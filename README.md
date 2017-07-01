@@ -10,4 +10,5 @@ Pimcore already comes with some great features to build internationalized websit
 - Thanks to the hardlink element you can easily create copies of webpages with additional country information without adding and maintain duplicate content
 - Manage href-lang tags
 - Handle internal link redirects based on hardlink context
-- Domain mapping (`domain.com`) and/or language slug (`/en`) strategries
+- Domain mapping (`domain.com`) and/or language slug (`/en`) strategies
+- frontpage mapping for hardlink trees
