@@ -106,8 +106,8 @@ class DocumentPath extends AbstractPath
          * Check if page is a non-global one. maybe it's just an overwritten one from (global-)xy!
          */
         if ($isMergedCountryDocument === FALSE) {
-            $globalPrefixFragment = $globalPrefix !== NULL ? $globalPrefix . '-' : '';
-            $posGlobalPath = $rootPath . $globalPrefixFragment . $currentLanguage . '/' . $currentDocumentCleanPath;
+            $globalPrefixFragment = $globalPrefix !== NULL ? '-' . $globalPrefix : '';
+            $posGlobalPath = $rootPath . $currentLanguage . $globalPrefixFragment . '/' . $currentDocumentCleanPath;
 
             /**
              * Always (!) use the linked global doc to get translated files, even if offline!
@@ -143,8 +143,8 @@ class DocumentPath extends AbstractPath
                 unset($urlPathFragments[0]);
                 $targetPath = join('/', $urlPathFragments);
 
-                $globalPrefixFragment = $globalPrefix !== NULL ? $globalPrefix . '-' : '';
-                $slug = $globalPrefixFragment . $targetLanguage;
+                $globalPrefixFragment = $globalPrefix !== NULL ? '-' . $globalPrefix : '';
+                $slug = $targetLanguage . $globalPrefixFragment;
 
                 //add document to custom array, we need to add them to alternate also!
                 if ($isGlobal && $globalDocumentIsActive && $showGlobal) {

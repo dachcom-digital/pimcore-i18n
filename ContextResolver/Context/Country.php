@@ -5,6 +5,7 @@ namespace I18nBundle\ContextResolver\Context;
 use I18nBundle\Tool\System;
 use Pimcore\Model\Document;
 use Pimcore\Cache;
+use Pimcore\Model\Translation;
 use Symfony\Component\Intl\Intl;
 
 class Country extends Language
@@ -70,7 +71,7 @@ class Country extends Language
         $currentCountryIso = $this->getCurrentCountryIso();
 
         if (strtolower($currentCountryIso) === 'global') {
-            $countryName = \Pimcore\Model\Translation\Website::getByKeyLocalized('International', TRUE, TRUE);
+            $countryName = Translation\Website::getByKeyLocalized('International', TRUE, TRUE);
         } else {
             $countryName = Intl::getRegionBundle()->getCountryName($currentCountryIso, $this->getCurrentLanguage());
         }
@@ -90,11 +91,11 @@ class Country extends Language
     public function getActiveCountryLocalizations($force = FALSE)
     {
         $cacheKey = 'Website_ActiveCountryLocalizations';
-        $cachedData = \Pimcore\Cache::load($cacheKey);
+        $cachedData = Cache::load($cacheKey);
         $skipCache = \Pimcore\Tool::isFrontendRequestByAdmin() || $force === TRUE;
 
         if ($cachedData !== FALSE && $skipCache == FALSE) {
-            //return $cachedData;
+            return $cachedData;
         }
 
         $activeCountries = $this->configuration->getCountryAdapter()->getActiveCountries();
@@ -143,7 +144,7 @@ class Country extends Language
         ];
 
         if (!$skipCache) {
-            \Pimcore\Cache::save($countryData, $cacheKey, ['website', 'output']);
+            Cache::save($countryData, $cacheKey, ['website', 'output']);
         }
 
         return $countryData;

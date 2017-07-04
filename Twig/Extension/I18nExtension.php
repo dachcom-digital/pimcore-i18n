@@ -26,7 +26,6 @@ class I18nExtension extends \Twig_Extension
     {
         $this->configuration = $configuration;
         $this->context = $context;
-
     }
 
     /**
@@ -35,30 +34,18 @@ class I18nExtension extends \Twig_Extension
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('i18n_country', [$this, 'getCountryInfo']),
-            new \Twig_SimpleFunction('i18n_language', [$this, 'getLanguageInfo'])
+            new \Twig_SimpleFunction('i18n_context', [$this, 'getI18Context'])
         ];
     }
 
     /**
      * @param string $method
-     * @param null   $options
+     * @param array  $options
      *
      * @return mixed
      */
-    public function getCountryInfo($method = '', $options = NULL)
+    public function getI18Context($method = '', $options = [])
     {
-        return call_user_func_array([$this->context, $method], [$options]);
-    }
-
-    /**
-     * @param string $method
-     * @param null   $options
-     *
-     * @return mixed
-     */
-    public function getLanguageInfo($method = '', $options = NULL)
-    {
-        return call_user_func_array([$this->context, $method], [$options]);
+        return call_user_func_array([$this->context, $method], $options);
     }
 }
