@@ -1,5 +1,5 @@
 {
-    "name": "dachcom-digital/pimcore-i18n",
+    "name": "dachcom-digital/i18n",
     "type": "pimcore-bundle",
     "license": "GPL-3.0+",
     "description": "Pimcore 5.x I18n Manager.",
