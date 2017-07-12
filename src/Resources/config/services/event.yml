@@ -1,0 +1,66 @@
+services:
+
+    # event: i18n detector, register language / country. setup all managers. redirect user
+    i18n.event_listener.detector:
+        class: I18nBundle\EventListener\DetectorListener
+        arguments:
+            - '@pimcore.service.request.document_resolver'
+            - '@i18n.manager.zone'
+            - '@i18n.manager.context'
+            - '@i18n.manager.path_generator'
+            - '@i18n.helper.document'
+            - '@i18n.helper.user'
+        calls:
+            - [setPimcoreContextResolver, ['@pimcore.service.request.pimcore_context_resolver']]
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # event: check frontend path
+    i18n.event_listener.frontend.path.document:
+        class: I18nBundle\EventListener\Frontend\FrontendPathListener
+        arguments:
+            - '@i18n.finder.path'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # event: check link paths (correct link path when redirection in hardlink context)
+    i18n.event_listener.link_path_resolver:
+        class: I18nBundle\EventListener\Frontend\LinkPathListener
+        arguments:
+            - '@pimcore.service.request.document_resolver'
+            - '@i18n.finder.path'
+        calls:
+            - [setPimcoreContextResolver, ['@pimcore.service.request.pimcore_context_resolver']]
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # event: removes canonical Link tag from hardlink headers
+    i18n.event_listener.frontend.canonical:
+        class: I18nBundle\EventListener\CanonicalListener
+        arguments:
+            - '@pimcore.service.request.document_resolver'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # event: adds i18n meta tags to HeadMeta view helper
+    i18n.event_listener.frontend.document_head_meta:
+        class: I18nBundle\EventListener\Frontend\HeadMetaListener
+        arguments:
+            - '@pimcore.service.request.document_resolver'
+            - '@pimcore.templating.view_helper.head_meta'
+            - '@i18n.manager.zone'
+            - '@i18n.manager.context'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # event: adds i18n meta tags to HeadMeta view helper
+    i18n.event_listener.frontend.document_head_link:
+        class: I18nBundle\EventListener\Frontend\HeadLinkListener
+        arguments:
+            - '@pimcore.service.request.document_resolver'
+            - '@pimcore.templating.view_helper.head_link'
+            - '@i18n.manager.zone'
+            - '@i18n.manager.context'
+            - '@i18n.manager.path_generator'
+        tags:
+            - { name: kernel.event_subscriber }

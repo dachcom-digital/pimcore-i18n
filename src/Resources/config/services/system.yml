@@ -1,0 +1,18 @@
+services:
+
+    # tool: installer
+    i18n.tool.installer:
+        class: I18nBundle\Tool\Install
+        arguments: ['@logger']
+        tags:
+            - { name: monolog.logger }
+
+    # session: configurator
+    i18n.session.configurator:
+        class: I18nBundle\Session\SessionConfigurator
+        tags:
+            - { name: pimcore.session.configurator }
+
+    # configuration
+    i18n.configuration:
+        class: I18nBundle\Configuration\Configuration

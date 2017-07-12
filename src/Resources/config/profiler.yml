@@ -1,0 +1,13 @@
+services:
+    i18n.profiler.collector.context:
+        class: I18nBundle\DataCollector\I18nDataCollector
+        arguments:
+            - '@i18n.manager.zone'
+            - '@pimcore.http.request_helper'
+        public: false
+        tags:
+            -
+                name:     data_collector
+                template: 'I18nBundle:Profiler:data_collector.html.twig'
+                id:       'i18n.data_collector'
+                priority: 500

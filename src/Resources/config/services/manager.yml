@@ -1,0 +1,23 @@
+services:
+
+    # manager: zone
+    i18n.manager.zone:
+        class: I18nBundle\Manager\ZoneManager
+        arguments:
+            - '@i18n.configuration'
+            - '@i18n.registry.language'
+            - '@i18n.registry.country'
+
+    # manager: path_generator
+    i18n.manager.path_generator:
+        class: I18nBundle\Manager\PathGeneratorManager
+        arguments:
+            - '@i18n.configuration'
+            - '@i18n.registry.path.generator'
+
+    # manager: context
+    i18n.manager.context:
+        class: I18nBundle\Manager\ContextManager
+        arguments:
+            - '@i18n.configuration'
+            - '@i18n.registry.context'

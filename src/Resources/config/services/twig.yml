@@ -1,0 +1,11 @@
+services:
+
+    # twig extensions
+    i18n.twig.extension.pagination:
+        class: I18nBundle\Twig\Extension\I18nExtension
+        public: false
+        arguments:
+            - '@i18n.manager.zone'
+            - '@i18n.manager.context'
+        tags:
+            - { name: twig.extension }

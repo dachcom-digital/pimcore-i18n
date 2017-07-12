@@ -1,0 +1,19 @@
+imports:
+    - { resource: services/system.yml }
+    - { resource: services/registry.yml }
+    - { resource: services/adapter.yml }
+    - { resource: services/manager.yml }
+    - { resource: services/helper.yml }
+    - { resource: services/event.yml }
+    - { resource: services/twig.yml }
+
+services:
+
+    # finder: path check if current path is in right (hard link) context
+    i18n.finder.path:
+        class: I18nBundle\Finder\PathFinder
+        arguments:
+            - '@request_stack'
+            - '@pimcore.locale'
+            - '@i18n.manager.zone'
+        public: false

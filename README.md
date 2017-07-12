@@ -12,3 +12,7 @@ Pimcore already comes with some great features to build internationalized websit
 - Handle internal link redirects based on hardlink context
 - Domain mapping (`domain.com`) and/or language slug (`/en`) strategies
 - frontpage mapping for hardlink trees
+
+## Copyright and license
+Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
+For licensing details please visit [LICENSE.md](LICENSE.md)  

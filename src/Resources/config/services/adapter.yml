@@ -1,0 +1,69 @@
+services:
+
+    # adapter: country
+    i18n.adapter.country.abstract:
+        abstract: true
+        class: I18nBundle\Adapter\Language\AbstractCountry
+    i18n.adapter.country.flat:
+        parent: 'i18n.adapter.country.abstract'
+        class: I18nBundle\Adapter\Country\Flat
+        tags:
+            - { name: i18n.adapter.country }
+    i18n.adapter.country.coreshop:
+        parent: 'i18n.adapter.country.abstract'
+        class: I18nBundle\Adapter\Country\CoreShop
+        tags:
+            - { name: i18n.adapter.country }
+
+    # adapter: language
+    i18n.adapter.language.abstract:
+        abstract: true
+        class: I18nBundle\Adapter\Language\AbstractLanguage
+    i18n.adapter.language.system:
+        parent: 'i18n.adapter.language.abstract'
+        class: I18nBundle\Adapter\Language\System
+        tags:
+            - { name: i18n.adapter.language }
+
+
+    # adapter: pathGenerator
+    i18n.adapter.path.abstract:
+        abstract: true
+        class: I18nBundle\Adapter\PathGenerator\AbstractPathGenerator
+        arguments:
+            - '@i18n.manager.zone'
+            - '@i18n.helper.document'
+    i18n.adapter.path.generator.staticroute:
+        parent: 'i18n.adapter.path.abstract'
+        class: I18nBundle\Adapter\PathGenerator\StaticRoute
+        tags:
+            - { name: i18n.adapter.path.generator }
+        calls:
+            - ['setUrlGenerator', ['@router']]
+            - ['setMasterRequest', ['@=service("request_stack").getMasterRequest()']]
+    i18n.adapter.path.generator.document:
+        parent: 'i18n.adapter.path.abstract'
+        class: I18nBundle\Adapter\PathGenerator\Document
+        tags:
+            - { name: i18n.adapter.path.generator }
+
+
+    # adapter: context
+    i18n.adapter.context.abstract:
+        abstract: true
+        class: I18nBundle\Adapter\Context\AbstractContext
+        arguments:
+            - '@i18n.manager.zone'
+            - '@i18n.manager.path_generator'
+            - '@i18n.helper.document'
+            - '@i18n.helper.user'
+    i18n.adapter.context.country:
+        parent: 'i18n.adapter.context.abstract'
+        class: I18nBundle\Adapter\Context\Country
+        tags:
+            - { name: i18n.adapter.context }
+    i18n.adapter.context.language:
+        parent: 'i18n.adapter.context.abstract'
+        class: I18nBundle\Adapter\Context\Language
+        tags:
+            - { name: i18n.adapter.context }
