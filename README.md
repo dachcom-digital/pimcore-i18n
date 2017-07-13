@@ -14,7 +14,7 @@ Pimcore already comes with some great features to build internationalized websit
 - frontpage mapping for hardlink trees
 
 ## Zones
-[Click here](docs/10_Zones.md) to learn more about i18n zones.
+[Click here](docs/20_Zones.md) to learn more about i18n zones.
 
 ## Copyright and license
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
