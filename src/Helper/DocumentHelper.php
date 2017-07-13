@@ -7,87 +7,6 @@ use Pimcore\Model\Site as PimcoreSite;
 class DocumentHelper
 {
     /**
-     * Get All root connected documents (connected via translations)
-     * @todo: add caching key?
-     * @return array
-     */
-    public function getRootConnectedDocuments()
-    {
-        $docs = [];
-        $rootPath = $this->getCurrentPageRootPath();
-        $translations = NULL;
-        $connector = NULL;
-
-        $singlePage = FALSE;
-        $singlePageId = NULL;
-
-        $currentRootDoc = \Pimcore\Model\Document::getByPath($rootPath);
-
-        // no language tag found. so current root doc does have language based childs!
-        // get at least one of them to get connected languages!
-        if (empty($currentRootDoc->getProperty('language'))) {
-
-            $db = \Pimcore\Db::get();
-            $select = $db->select();
-            $select->from(['document' => 'documents'], [new \Pimcore\Db\ZendCompatibility\Expression('COUNT(document.id) as count'), 'document.id']);
-            $select->where('document.path LIKE ?', $rootPath);
-            $select->where('document.parentId = ?', $currentRootDoc->getId());
-            $select->where('document.published = ?', 1);
-
-            $row = $db->fetchRow($select);
-
-            //there is just one subpage, maybe just one language?
-            if ((int)$row['count'] === 1) {
-                $singlePage = TRUE;
-                $singlePageId = (int)$row['id'];
-                //there are more. just use the current row id and check the translation references.
-            } else {
-                $connector = \Pimcore\Model\Document::getById($row['id']);
-            }
-        } else {
-            $connector = $currentRootDoc;
-        }
-
-        if ($singlePage === TRUE) {
-            $translations[] = $singlePageId;
-        } else if ($connector instanceof \Pimcore\Model\Document) {
-            $service = new \Pimcore\Model\Document\Service;
-            $translations = $service->getTranslations($connector);
-        }
-
-        if (is_array($translations)) {
-            foreach ($translations as $langIso => $docId) {
-                $document = \Pimcore\Model\Document::getById($docId);
-
-                if (!$document->isPublished()) {
-                    continue;
-                }
-
-                $documentUrlInfo = $this->getDocumentUrl($document, TRUE, FALSE);
-
-                $homeUrl = $documentUrlInfo['url'];
-                $langIso = $document->getProperty('language');
-                $countryIso = $document->getProperty('country');
-
-                if ($documentUrlInfo['siteIsLanguageRoot'] === FALSE) {
-                    $homeUrl = \I18nBundle\Tool\System::joinPath([$homeUrl, $langIso]);
-                }
-
-                $docs[] = [
-                    'siteIsLanguageRoot' => $documentUrlInfo['siteIsLanguageRoot'],
-                    'hostUrl'            => $documentUrlInfo['url'],
-                    'homeUrl'            => $homeUrl,
-                    'realFullPath'       => $document->getRealFullPath(),
-                    'langIso'            => $langIso,
-                    'countryIso'         => $countryIso
-                ];
-            }
-        }
-
-        return $docs;
-    }
-
-    /**
      * Get Documents Url and Path
      *
      * @param \Pimcore\Model\Document $document
@@ -197,6 +116,4 @@ class DocumentHelper
 
         return FALSE;
     }
-
-
 }

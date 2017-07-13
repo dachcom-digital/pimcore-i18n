@@ -5,20 +5,18 @@ namespace I18nBundle\Adapter\Context;
 class Language extends AbstractContext
 {
     /**
-     * @return array|bool
+     * @return array
      */
     public function getActiveLanguages()
     {
-        $validLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getValidLanguages();
-
         $languages = [];
+        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
 
-        $rootConnectedDocuments = $this->documentHelper->getRootConnectedDocuments();
-
-        foreach ($rootConnectedDocuments as $doc) {
-            if (in_array($doc['langIso'], $validLanguages)) {
-                $languages[] = $this->mapLanguageInfo($doc['langIso'], $doc['homeUrl']);
+        foreach ($tree as $domainElement) {
+            if(empty($domainElement['languageIso'])) {
+                continue;
             }
+            $languages[] = $this->mapLanguageInfo($domainElement['languageIso'], NULL, $domainElement['url']);
         }
 
         return $languages;
@@ -26,45 +24,14 @@ class Language extends AbstractContext
 
     /**
      * @param bool $onlyShowRootLanguages
-     * @param bool $strictMode if false and document couldn't be found, the language root page will be shown
-     *                         Mostly used for navigation drop downs or lists.
-     *                         Get all linked documents from given document in current country!
      *
-     * @return array|bool|mixed
+     * @return array
      */
-    public function getLinkedLanguages($onlyShowRootLanguages = TRUE, $strictMode = FALSE)
+    public function getLinkedLanguages($onlyShowRootLanguages = FALSE)
     {
-        $activeLanguages = $this->getActiveLanguages();
-
-        if ($onlyShowRootLanguages === TRUE) {
-            return $activeLanguages;
-        } else {
-
-            $currentDocument = $this->getDocument();
-            $urls = $this->pathGeneratorManager->getPathGenerator()->getUrls($currentDocument, []);
-
-            $validLinks = [];
-
-            foreach ($urls as $url) {
-                $validLinks[] = $this->mapLanguageInfo($url['language'], $url['href']);
-            }
-
-            //add missing languages, if strictMode is off.
-            if ($strictMode === FALSE) {
-                $compareArray = array_diff(
-                    array_column($activeLanguages, 'iso'),
-                    array_column($validLinks, 'iso')
-                );
-
-                foreach ($activeLanguages as $languageInfo) {
-                    if (in_array($languageInfo['iso'], $compareArray)) {
-                        $validLinks[] = $languageInfo;
-                    }
-                }
-            }
-
-            return $validLinks;
-        }
+        $currentDocument = $this->getDocument();
+        $urls = $this->pathGeneratorManager->getPathGenerator()->getUrls($currentDocument, $onlyShowRootLanguages);
+        return $urls;
     }
 
 }

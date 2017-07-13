@@ -4,9 +4,9 @@ services:
     i18n.adapter.country.abstract:
         abstract: true
         class: I18nBundle\Adapter\Language\AbstractCountry
-    i18n.adapter.country.flat:
+    i18n.adapter.country.system:
         parent: 'i18n.adapter.country.abstract'
-        class: I18nBundle\Adapter\Country\Flat
+        class: I18nBundle\Adapter\Country\System
         tags:
             - { name: i18n.adapter.country }
     i18n.adapter.country.coreshop:

@@ -38,22 +38,22 @@ class StaticRoute extends AbstractPathGenerator
 
     /**
      * @param PimcoreDocument|NULL $currentDocument
-     * @param array                $validCountries
+     * @param bool                 $onlyShowRootLanguages
      *
      * @return array
      * @throws \Exception
      */
-    public function getUrls(PimcoreDocument $currentDocument = NULL, $validCountries = [])
+    public function getUrls(PimcoreDocument $currentDocument = NULL, $onlyShowRootLanguages = FALSE)
     {
         $globalPrefix = NULL;
-        $routes = [];
         $i18nList = [];
+        $routes = [];
 
-        if(!$this->urlGenerator instanceof UrlGeneratorInterface) {
+        if (!$this->urlGenerator instanceof UrlGeneratorInterface) {
             throw new \Exception('PathGenerator StaticRoute needs a valid UrlGeneratorInterface to work.');
         }
 
-        if(!$this->request instanceof Request) {
+        if (!$this->request instanceof Request) {
             throw new \Exception('PathGenerator StaticRoute needs a valid Request to work.');
         }
 
@@ -64,51 +64,22 @@ class StaticRoute extends AbstractPathGenerator
         $currentLanguage = $currentDocument->getProperty('language');
         $currentCountry = strtolower($currentDocument->getProperty('country'));
 
-        //to cycle through global pages!
-        $showGlobal = isset($validCountries['global']);
-
         $route = PimcoreStaticRoute::getCurrentRoute();
 
         if (!$route instanceof PimcoreStaticRoute) {
             return [];
         }
 
-        $rootConnectedDocuments = $this->documentHelper->getRootConnectedDocuments();
+        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
 
-        if ($showGlobal) {
-            foreach ($rootConnectedDocuments as $languageDoc) {
-
-                //only show global pages.
-                if ($languageDoc['countryIso'] !== 'GLOBAL') {
-                    continue;
-                }
-
+        foreach ($tree as $pageInfo) {
+            if (!empty($pageInfo['languageIso'])) {
                 $i18nList[] = [
-                    'langIso'            => $languageDoc['langIso'],
-                    'countryIso'         => $languageDoc['countryIso'],
-                    'hostUrl'            => $languageDoc['hostUrl'],
-                    'siteIsLanguageRoot' => $languageDoc['siteIsLanguageRoot'],
-                    'countryName'        => 'global'
-                ];
-            }
-        }
-
-        foreach ($validCountries as $countryData) {
-            //Never parse global "country". It has been parsed above.
-            if ($countryData['country']['name'] === 'global') {
-                continue;
-            }
-
-            $countryIso = $countryData['country']['isoCode'];
-            $countryName = $countryData['country']['name'];
-
-            foreach ($countryData['languages'] as $activeLanguage) {
-                $i18nList[] = [
-                    'langIso'            => $activeLanguage['iso'],
-                    'hostUrl'            => \Pimcore\Tool::getHostUrl(),
-                    'siteIsLanguageRoot' => FALSE,
-                    'countryName'        => $countryName,
-                    'countryIso'         => $countryIso
+                    'languageIso' => $pageInfo['languageIso'],
+                    'countryIso'  => $pageInfo['countryIso'],
+                    'hrefLang'    => $pageInfo['hrefLang'],
+                    'key'         => $pageInfo['key'],
+                    'url'         => $pageInfo['url']
                 ];
             }
         }
@@ -119,7 +90,6 @@ class StaticRoute extends AbstractPathGenerator
             'currentDocument'   => $currentDocument,
             'currentLanguage'   => $currentLanguage,
             'currentCountry'    => $currentCountry,
-            'validCountries'    => $validCountries,
             'route'             => $route,
             'requestAttributes' => $this->request->attributes->all()
         ]);
@@ -146,17 +116,11 @@ class StaticRoute extends AbstractPathGenerator
 
                         $link = $this->urlGenerator->generate($staticRouteName, $staticRouteParams);
 
-                        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country') {
-                            $hrefLangCode = $routeInfo['langIso'] . ($routeInfo['countryIso'] !== 'GLOBAL' ? '-' . $routeInfo['countryIso'] : '');
-                        } else {
-                            $hrefLangCode = $routeInfo['langIso'];
-                        }
-
                         $finalStoreData = [
-                            'language' => $routeInfo['langIso'],
+                            'language' => $routeInfo['languageIso'],
                             'country'  => $routeInfo['countryIso'],
-                            'hreflang' => $hrefLangCode,
-                            'href'     => $routeInfo['hostUrl'] . $link
+                            'hrefLang' => $routeInfo['hrefLang'],
+                            'url'      => $routeInfo['hostUrl'] . $link
                         ];
 
                         $routes[] = $finalStoreData;

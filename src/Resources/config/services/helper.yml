@@ -4,6 +4,9 @@ services:
     i18n.helper.document:
         class: I18nBundle\Helper\DocumentHelper
         public: false
+    i18n.helper.zone:
+         class: I18nBundle\Helper\ZoneHelper
+         public: false
     i18n.helper.user:
         class: I18nBundle\Helper\UserHelper
         public: false

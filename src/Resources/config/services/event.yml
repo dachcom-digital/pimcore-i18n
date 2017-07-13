@@ -9,6 +9,7 @@ services:
             - '@i18n.manager.context'
             - '@i18n.manager.path_generator'
             - '@i18n.helper.document'
+            - '@i18n.helper.zone'
             - '@i18n.helper.user'
         calls:
             - [setPimcoreContextResolver, ['@pimcore.service.request.pimcore_context_resolver']]

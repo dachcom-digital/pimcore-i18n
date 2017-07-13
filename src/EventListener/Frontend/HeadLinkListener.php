@@ -97,10 +97,7 @@ class HeadLinkListener extends AbstractFrontendListener implements EventSubscrib
         }
 
         $document = $this->documentResolverService->getDocument($request);
-        $this->contextManager->setDocumentToCurrentContext($document);
-
-        $validCountries = $this->contextManager->getCountryContext()->getActiveCountryLocalizations();
-        $hrefLinks = $this->pathGeneratorManager->getPathGenerator()->getUrls($document, $validCountries);
+        $hrefLinks = $this->pathGeneratorManager->getPathGenerator()->getUrls($document);
 
         //add x-default to main page!
         $xDefaultUrl = $this->getXDefaultLink($hrefLinks);
@@ -110,7 +107,7 @@ class HeadLinkListener extends AbstractFrontendListener implements EventSubscrib
         }
 
         foreach ($hrefLinks as $route) {
-            $this->headLink->appendAlternate($this->generateHrefLink($route['href']), FALSE, FALSE, ['hreflang' => $route['hreflang']]);
+            $this->headLink->appendAlternate($this->generateHrefLink($route['url']), FALSE, FALSE, ['hreflang' => $route['hrefLang']]);
         }
     }
 

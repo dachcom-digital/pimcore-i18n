@@ -12,10 +12,10 @@ interface LanguageInterface
     function setCurrentZoneId($zoneId);
 
     /**
-     * Get Active Countries
+     * Get Active Languages
      * @return array
      */
-    function getValidLanguages(): array;
+    function getActiveLanguages(): array;
 
     /**
      * @param $isoCode

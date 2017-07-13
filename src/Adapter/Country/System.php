@@ -2,15 +2,34 @@
 
 namespace I18nBundle\Adapter\Country;
 
-class Flat extends AbstractCountry
+use Pimcore\Tool;
+
+class System extends AbstractCountry
 {
     /**
      * @return array
      */
     public function getActiveCountries(): array
     {
-        $cList = [$this->getGlobalInfo()];
-        return $cList;
+        $validCountries = [$this->getGlobalInfo()];
+
+        foreach (Tool::getValidLanguages() as $id => $language) {
+
+            if(strpos($language, '_') === FALSE) {
+                continue;
+            }
+
+            $parts = explode('_', $language);
+
+            $validCountries[] = [
+                'isoCode' => $parts[1],
+                'id'      => $id,
+                'zone'    => NULL,
+                'object'  => NULL
+            ];
+        }
+
+        return $validCountries;
     }
 
     /**

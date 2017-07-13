@@ -1,6 +1,6 @@
 i18n:
     mode: language
     language_adapter: i18n.adapter.language.system
-    country_adapter: ~ # i18n.adapter.country.flat | i18n.adapter.country.coreshop
+    country_adapter: ~ # i18n.adapter.country.system | i18n.adapter.country.coreshop
     translations: ~
     zones: ~

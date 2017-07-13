@@ -4,11 +4,14 @@ namespace I18nBundle\EventListener;
 
 use I18nBundle\Helper\DocumentHelper;
 use I18nBundle\Helper\UserHelper;
+use I18nBundle\Helper\ZoneHelper;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Tool\System;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -83,6 +86,11 @@ class DetectorListener implements EventSubscriberInterface
     protected $documentHelper;
 
     /**
+     * @var ZoneHelper
+     */
+    protected $zoneHelper;
+
+    /**
      * @var UserHelper
      */
     protected $userHelper;
@@ -100,6 +108,7 @@ class DetectorListener implements EventSubscriberInterface
      * @param ContextManager       $contextManager
      * @param PathGeneratorManager $pathGeneratorManager
      * @param DocumentHelper       $documentHelper
+     * @param ZoneHelper           $zoneHelper
      * @param UserHelper           $userHelper
      */
     public function __construct(
@@ -108,6 +117,7 @@ class DetectorListener implements EventSubscriberInterface
         ContextManager $contextManager,
         PathGeneratorManager $pathGeneratorManager,
         DocumentHelper $documentHelper,
+        ZoneHelper $zoneHelper,
         UserHelper $userHelper
     ) {
         $this->documentResolver = $documentResolver;
@@ -115,6 +125,7 @@ class DetectorListener implements EventSubscriberInterface
         $this->contextManager = $contextManager;
         $this->pathGeneratorManager = $pathGeneratorManager;
         $this->documentHelper = $documentHelper;
+        $this->zoneHelper = $zoneHelper;
         $this->userHelper = $userHelper;
     }
 
@@ -145,6 +156,7 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         $this->document = $this->documentResolver->getDocument($this->request);
+
         if (!$this->document) {
             return;
         }
@@ -160,7 +172,7 @@ class DetectorListener implements EventSubscriberInterface
 
         $this->i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
 
-        $this->validLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getValidLanguages();
+        $this->validLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getActiveLanguages();
         $this->defaultLanguage = $this->zoneManager->getCurrentZoneLanguageAdapter()->getDefaultLanguage();
 
         if ($this->i18nType === 'country') {
@@ -179,8 +191,6 @@ class DetectorListener implements EventSubscriberInterface
             $documentCountry = $this->document->getProperty('country');
             $documentLanguage = $this->document->getProperty('language');
         }
-
-        //$isStaticRoute = $this->request->attributes->get('pimcore_request_source') === 'staticroute';
 
         if (empty($documentLanguage)) {
 
@@ -218,6 +228,7 @@ class DetectorListener implements EventSubscriberInterface
                     if ($this->canRedirect() && $this->i18nType === 'language') {
                         $url = $this->getRedirectUrl($this->getLanguageUrl());
                         $event->setResponse(new RedirectResponse($url));
+
                         return;
                     }
                 }
@@ -319,37 +330,17 @@ class DetectorListener implements EventSubscriberInterface
      */
     private function getCountryUrl()
     {
-        $globalPrefix = $this->zoneManager->getCurrentZoneInfo('global_prefix');
+        $userLanguageIso = $this->userHelper->guessLanguage($this->validLanguages);
+        $userCountryIso = $this->userHelper->guessCountry($this->validCountries);
 
-        $userLanguage = $this->userHelper->guessLanguage($this->validLanguages);
-        $userCountry = $this->userHelper->guessCountry($this->validCountries);
-        $userCountry = $userCountry === FALSE && $globalPrefix !== FALSE ? $globalPrefix : $userCountry;
+        $matchUrl = $this->zoneHelper->findUrlInZoneTree(
+            $this->zoneManager->getCurrentZoneDomains(TRUE),
+            $userLanguageIso,
+            $this->defaultLanguage,
+            $userCountryIso
+        );
 
-        $countrySlug = $userCountry === FALSE ? '' : '-' . $userCountry;
-
-        $rootPath = $this->documentHelper->getCurrentPageRootPath();
-
-        if(\Pimcore\Model\Site::isSiteRequest()) {
-            $hostUrl = \Pimcore\Tool::getRequestScheme() . '://' . \Pimcore\Model\Site::getCurrentSite()->getMainDomain();
-        } else {
-            $hostUrl = \Pimcore\Tool::getHostUrl();
-        }
-
-        //check if path exists
-        if (Document\Service::pathExists($rootPath . $userLanguage . $countrySlug . '/')
-            && Document\Service::getByUrl($rootPath . $userLanguage . $countrySlug . '/')->isPublished()
-        ) {
-            $path = '/' . $userLanguage . $countrySlug;
-        }
-        //maybe country exists, but not the valid language?
-        else if (Document\Service::pathExists($rootPath . $this->defaultLanguage . $countrySlug . '/')) {
-            $path = '/' . $this->defaultLanguage . $countrySlug;
-        } //nothing found. redirect to default /$this->globalPrefix-$this->defaultLanguage/
-        else {
-            $path = '/' . $this->defaultLanguage . (!is_null($this->globalPrefix) ? '-' . $this->globalPrefix : '');
-        }
-
-        return System::joinPath([$hostUrl, $path]);
+        return $matchUrl;
     }
 
     /**
@@ -359,46 +350,16 @@ class DetectorListener implements EventSubscriberInterface
      */
     private function getLanguageUrl()
     {
-        $guessedLanguage = $this->userHelper->guessLanguage($this->validLanguages);
-        $languageIso = $this->defaultLanguage;
+        $userLanguageIso = $this->userHelper->guessLanguage($this->validLanguages);
+        $defaultLanguageIso = $this->defaultLanguage;
 
-        $defaultLanguageUrl = '';
-        $languageUrl = '';
+        $matchUrl = $this->zoneHelper->findUrlInZoneTree(
+            $this->zoneManager->getCurrentZoneDomains(TRUE),
+            $userLanguageIso,
+            $defaultLanguageIso
+        );
 
-        // 1. get all linked && translated tree-nodes
-        // 2. search for guessed Language Code!
-        if (\Pimcore\Model\Site::isSiteRequest()) {
-            $rootConnectedDocuments = $this->documentHelper->getRootConnectedDocuments();
-
-            foreach ($rootConnectedDocuments as $document) {
-                if ($document['langIso'] === $languageIso) {
-                    $defaultLanguageUrl = $document['homeUrl'];
-                }
-
-                if ($document['langIso'] === $guessedLanguage) {
-                    $languageUrl = $document['homeUrl'];
-                }
-            }
-
-            if (empty($languageUrl)) {
-                $languageUrl = $defaultLanguageUrl;
-            }
-        } else {
-            $rootPath = $this->documentHelper->getCurrentPageRootPath();
-
-            //check if path exists
-            $doc = Document\Service::getByUrl($rootPath . $guessedLanguage . '/');
-
-            $languagePath = $languageIso;
-
-            if (!is_null($doc) && $doc->isPublished()) {
-                $languagePath = $guessedLanguage;
-            }
-
-            $languageUrl = System::joinPath([\Pimcore\Tool::getHostUrl(), $languagePath]);
-        }
-
-        return $languageUrl;
+        return $matchUrl;
     }
 
     /**

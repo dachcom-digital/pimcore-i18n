@@ -15,7 +15,7 @@ class System extends AbstractLanguage
     /**
      * @return array
      */
-    public function getValidLanguages(): array
+    public function getActiveLanguages(): array
     {
         $validLanguages = [];
         $languages = Tool::getValidLanguages();

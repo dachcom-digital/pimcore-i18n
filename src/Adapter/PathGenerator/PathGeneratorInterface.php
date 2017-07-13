@@ -6,5 +6,11 @@ use Pimcore\Model\Document as PimcoreDocument;
 
 interface PathGeneratorInterface
 {
-    public function getUrls(PimcoreDocument $currentDocument, $validCountries = []);
+    /**
+     * @param PimcoreDocument $currentDocument
+     * @param bool $onlyShowRootLanguages
+     *
+     * @return array
+     */
+    public function getUrls(PimcoreDocument $currentDocument, $onlyShowRootLanguages = FALSE);
 }

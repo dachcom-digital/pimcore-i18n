@@ -82,51 +82,46 @@ class Country extends AbstractContext
         $skipCache = \Pimcore\Tool::isFrontendRequestByAdmin() || $force === TRUE;
 
         if ($cachedData !== FALSE && $skipCache == FALSE) {
-           // return $cachedData;
+            return $cachedData;
         }
 
         $countryData = [];
         $activeCountries = $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
-        $countryNames = Intl::getRegionBundle()->getCountryNames($this->getCurrentLanguageIso());
+        $activeLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getActiveLanguages();
+        $userLanguage = $this->userHelper->guessLanguage($activeLanguages);
 
         if (!empty($activeCountries)) {
+
             foreach ($activeCountries as $country) {
-                if (is_null($country['isoCode'])) {
+
+                if (is_null($country['isoCode']) | $country['isoCode'] === 'GLOBAL') {
                     continue;
                 }
 
                 $countryIso = $country['isoCode'];
-                $countryIsoLower = strtolower($countryIso);
                 $languages = $this->getActiveLanguagesForCountry($countryIso);
 
                 if ($languages === FALSE) {
                     continue;
                 }
 
-                $countryName = '';
+                $countryTitleNative = Intl::getRegionBundle()->getCountryName($countryIso, $userLanguage);
+                $countryTitle = Intl::getRegionBundle()->getCountryName($countryIso, $this->getCurrentLanguageIso());
 
-                foreach ($countryNames as $countryNameIso => $_countryName) {
-                    if ($countryNameIso === $countryIso) {
-                        $countryName = $_countryName;
-                        break;
-                    }
-                }
-
-                $validLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getValidLanguages();
-                $countryLocale = Intl::getRegionBundle()->getCountryName($countryIso, $this->userHelper->guessLanguage($validLanguages));
-
-                $countryData[$countryIsoLower] = [
+                $countryData[] = [
                     'country'            => $country,
-                    'countryTitleNative' => $countryLocale,
-                    'countryTitle'       => $countryName,
+                    'countryTitleNative' => $countryTitleNative,
+                    'countryTitle'       => $countryTitle,
                     'languages'          => $languages
                 ];
             }
         }
 
-        $countryData['global'] = [
-            'country'   => $this->zoneManager->getCurrentZoneCountryAdapter()->getGlobalInfo(),
-            'languages' => $this->getActiveLanguagesForCountry('GLOBAL'),
+        $countryData[] = [
+            'country'            => $this->zoneManager->getCurrentZoneCountryAdapter()->getGlobalInfo(),
+            'countryTitleNative' => Translation\Website::getByKeyLocalized('International', TRUE, TRUE, $userLanguage),
+            'countryTitle'       => Translation\Website::getByKeyLocalized('International', TRUE, TRUE),
+            'languages'          => $this->getActiveLanguagesForCountry('GLOBAL'),
         ];
 
         if (!$skipCache) {
@@ -134,6 +129,13 @@ class Country extends AbstractContext
         }
 
         return $countryData;
+    }
+
+    public function getLinkedLanguages($onlyShowRootLanguages = FALSE)
+    {
+        $currentDocument = $this->getDocument();
+        $urls = $this->pathGeneratorManager->getPathGenerator()->getUrls($currentDocument, $onlyShowRootLanguages);
+        return $urls;
     }
 
     /**
@@ -144,90 +146,23 @@ class Country extends AbstractContext
      *
      * @return array|bool
      */
-    public function getActiveLanguagesForCountry($countryIso = NULL)
+    private function getActiveLanguagesForCountry($countryIso = NULL)
     {
         $languages = [];
-        $validLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getValidLanguages();
 
         if (is_null($countryIso)) {
             $countryIso = $this->getCurrentCountryIso();
         }
 
-        $countryIsoLower = strtolower($countryIso);
+        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
 
-        if ($countryIso === 'GLOBAL') {
-            $globalPrefix = $this->zoneManager->getCurrentZoneInfo('global_prefix');
-            $countrySlug = !empty($globalPrefix) ? '-' . $globalPrefix : '';
-        } else {
-            $countrySlug = !empty($countryIso) ? '-' . $countryIsoLower : '';
-        }
-
-        foreach ($validLanguages as $language) {
-            $relatedDocument = Document::getByPath($this->documentHelper->getCurrentPageRootPath() . $language['isoCode'] . $countrySlug);
-
-            if (empty($relatedDocument) || !$relatedDocument->isPublished()) {
-                continue;
+        foreach ($tree as $domainElement) {
+            if ($domainElement['countryIso'] === $countryIso) {
+                $languages[] = $this->mapLanguageInfo($domainElement['languageIso'], $domainElement['countryIso'], $domainElement['url']);
             }
-
-            $url = System::joinPath([\Pimcore\Tool::getHostUrl(), $relatedDocument->getKey()]);
-            $languages[] = $this->mapLanguageInfo($language['isoCode'], $url);
         }
 
         return $languages;
     }
 
-    /**
-     * @param bool $onlyShowRootLanguages
-     * @param bool $strictMode if false and document couldn't be found, the country root page will be shown
-     *                         Mostly used for navigation drop downs or lists.
-     *                         Get all linked documents from given document in current country!
-     *
-     * @return array|bool|mixed
-     */
-    public function getLinkedLanguages($onlyShowRootLanguages = TRUE, $strictMode = FALSE)
-    {
-        $activeLanguagesForCountry = $this->getActiveLanguagesForCountry();
-
-        if ($onlyShowRootLanguages === TRUE) {
-            return $activeLanguagesForCountry;
-        } else {
-            $currentDocument = $this->getDocument();
-            $data = $this->getActiveCountryLocalizations();
-
-            $validCountries = [];
-
-            $countryIso = strtolower($this->getCurrentCountryIso());
-
-            foreach ($data as $validCountryIso => $country) {
-                //only current country
-                if ($validCountryIso === $countryIso) {
-                    $validCountries[$validCountryIso] = $country;
-                    break;
-                }
-            }
-
-            $validLinks = [];
-            $urls = $this->pathGeneratorManager->getPathGenerator()->getUrls($currentDocument, $validCountries);
-
-            foreach ($urls as $url) {
-                $validLinks[] = $this->mapLanguageInfo($url['language'], $url['href']);
-            }
-
-            //add missing languages, if strictMode is off.
-            if ($strictMode === FALSE) {
-                $compareArray = array_diff(
-                    array_column($activeLanguagesForCountry, 'iso'),
-                    array_column($validLinks, 'iso')
-                );
-
-                foreach ($activeLanguagesForCountry as $languageInfo) {
-                    if (in_array($languageInfo['iso'], $compareArray)) {
-                        $validLinks[] = $languageInfo;
-                    }
-                }
-            }
-
-            return $validLinks;
-        }
-    }
 }

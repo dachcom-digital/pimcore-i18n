@@ -107,17 +107,18 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
-     * @param $language
+     * @param $languageIso
+     * @param $countryIso
      * @param $href
      *
      * @return array
      */
-    public function mapLanguageInfo($language, $href)
+    public function mapLanguageInfo($languageIso, $countryIso = NULL, $href)
     {
         return [
-            'iso'         => $language,
-            'titleNative' => Intl::getLanguageBundle()->getLanguageName($language, $language),
-            'title'       => Intl::getLanguageBundle()->getLanguageName($language, $this->getCurrentLanguageIso()),
+            'iso'         => $languageIso,
+            'titleNative' => Intl::getLanguageBundle()->getLanguageName($languageIso, $countryIso, $this->getCurrentLanguageIso()),
+            'title'       => Intl::getLanguageBundle()->getLanguageName($languageIso, $countryIso, $languageIso),
             'href'        => $href
         ];
     }

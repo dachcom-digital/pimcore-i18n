@@ -24,6 +24,7 @@ class UserHelper
             }
         }
 
+        //return 'en';
         return $guessedLanguage;
     }
 
@@ -62,11 +63,12 @@ class UserHelper
 
         if ($country !== FALSE && !empty($country)) {
             $countryCode = strtoupper($country);
-            if (array_search($countryCode, array_column($validCountries, 'isoCode'))) {
-                $userCountry = strtolower($countryCode);
+            if (array_search($countryCode, array_column($validCountries, 'isoCode')) !== FALSE) {
+                $userCountry = $countryCode;
             }
         }
 
+        //return 'US';
         return $userCountry;
     }
 }
