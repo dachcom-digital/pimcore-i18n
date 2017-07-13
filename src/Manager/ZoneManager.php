@@ -81,7 +81,6 @@ class ZoneManager
                 $currentSite = Site::getCurrentSite();
 
                 foreach ($zones as $zone) {
-
                     if (in_array($currentSite->getMainDomain(), $zone['domains'])) {
                         $validZone = TRUE;
                         $zoneConfig = $zone;

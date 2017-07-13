@@ -434,10 +434,7 @@ class DetectorListener implements EventSubscriberInterface
      */
     private function isValidI18nCheckRequest($allowAjax = FALSE)
     {
-        if (
-            System::isInCliMode() ||
-            ($allowAjax === FALSE && $this->request->isXmlHttpRequest())
-        ) {
+        if (System::isInCliMode() || ($allowAjax === FALSE && $this->request->isXmlHttpRequest())) {
             return FALSE;
         }
 
