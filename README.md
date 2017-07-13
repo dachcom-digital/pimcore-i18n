@@ -13,6 +13,9 @@ Pimcore already comes with some great features to build internationalized websit
 - Domain mapping (`domain.com`) and/or language slug (`/en`) strategies
 - frontpage mapping for hardlink trees
 
+## Zones
+[Click here](docs/10_Zones.md) to learn more about i18n zones.
+
 ## Copyright and license
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
 For licensing details please visit [LICENSE.md](LICENSE.md)  
