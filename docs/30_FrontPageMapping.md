@@ -17,6 +17,6 @@ But what if you want to override the front page content? That's a tricky one sin
 ### i18n to the rescue
 Just add a new (document) property  named `front_page_map` to your hardlink and assign a custom document. you can leave the document unpublished, so it stays private.
 
-> this property should be available in your predefined properties since it gets automatically installed.
+> This property should be available in your predefined properties since it gets automatically installed.
 
 If your opening your `en-us/` front page again you'll see the new content. Bravo!

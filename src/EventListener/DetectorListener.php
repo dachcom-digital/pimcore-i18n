@@ -2,6 +2,7 @@
 
 namespace I18nBundle\EventListener;
 
+use I18nBundle\Definitions;
 use I18nBundle\Helper\DocumentHelper;
 use I18nBundle\Helper\UserHelper;
 use I18nBundle\Helper\ZoneHelper;
@@ -10,6 +11,7 @@ use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Tool\System;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -133,8 +135,31 @@ class DetectorListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            KernelEvents::REQUEST => ['onKernelRequest']
+            KernelEvents::EXCEPTION => ['onKernelException', 20], //before responseException
+            KernelEvents::REQUEST   => ['onKernelRequest']
         ];
+    }
+
+    private function initI18nSystem($request)
+    {
+        //initialize all managers!
+        $this->zoneManager->initZones();
+        $this->contextManager->initContext($this->zoneManager->getCurrentZoneInfo('mode'));
+        $this->pathGeneratorManager->initPathGenerator($request->attributes->get('pimcore_request_source'));
+    }
+
+    /**
+     * @param GetResponseForExceptionEvent $event
+     */
+    public function onKernelException(GetResponseForExceptionEvent $event)
+    {
+        $this->initI18nSystem($event->getRequest());
+
+        $this->document = $this->documentResolver->getDocument($this->request);
+
+        //fallback.
+        Cache\Runtime::set('i18n.languageIso', strtolower($event->getRequest()->getLocale()));
+        Cache\Runtime::set('i18n.countryIso', Definitions::INTERNATIONAL_COUNTRY_NAMESPACE);
     }
 
     /**
@@ -153,7 +178,7 @@ class DetectorListener implements EventSubscriberInterface
         $this->request = $event->getRequest();
 
         //@fixme if pimcore hardlink context issue has been fixed.
-        if(strpos($this->request->getLocale(), '-') !== FALSE) {
+        if (strpos($this->request->getLocale(), '-') !== FALSE) {
             $this->request->setLocale(str_replace('-', '_', $this->request->getLocale()));
         }
 
@@ -171,10 +196,7 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        //initialize all managers!
-        $this->zoneManager->initZones();
-        $this->contextManager->initContext($this->zoneManager->getCurrentZoneInfo('mode'));
-        $this->pathGeneratorManager->initPathGenerator($this->request->attributes->get('pimcore_request_source'));
+        $this->initI18nSystem($this->request);
 
         $this->i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
 
@@ -250,7 +272,7 @@ class DetectorListener implements EventSubscriberInterface
                 $currentCountry = strtoupper($documentCountry);
             }
 
-            if(strpos($documentLanguage, '_') !== FALSE) {
+            if (strpos($documentLanguage, '_') !== FALSE) {
                 $parts = explode('_', $documentLanguage);
                 $currentLanguage = $parts[0];
             } else {

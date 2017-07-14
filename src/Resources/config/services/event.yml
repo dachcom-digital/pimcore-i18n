@@ -84,3 +84,15 @@ services:
             - '@i18n.manager.path_generator'
         tags:
             - { name: kernel.event_subscriber }
+
+    # override pimcore not found exception handling
+    pimcore.event_listener.response_exception:
+        class: I18nBundle\EventListener\ResponseExceptionListener
+        arguments:
+            - '@pimcore.templating.action_renderer'
+            - '@i18n.manager.zone'
+            - '@i18n.manager.context'
+            - '@i18n.manager.path_generator'
+            - '%pimcore.response_exception_listener.render_error_document%'
+        tags:
+            - { name: kernel.event_subscriber }
