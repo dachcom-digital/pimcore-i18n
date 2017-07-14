@@ -2,6 +2,7 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
+use I18nBundle\Definitions;
 use Pimcore\Model\Document as PimcoreDocument;
 
 class Document extends AbstractPathGenerator
@@ -127,7 +128,7 @@ class Document extends AbstractPathGenerator
                 }
 
                 $pageInfoLocale = $pageInfo['languageIso'];
-                if ($pageInfo['countryIso'] !== 'GLOBAL') {
+                if ($pageInfo['countryIso'] !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
                     $pageInfoLocale .= '_' . $pageInfo['countryIso'];
                 }
 

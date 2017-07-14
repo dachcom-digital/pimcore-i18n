@@ -75,6 +75,8 @@ class StaticRoute extends AbstractPathGenerator
         foreach ($tree as $pageInfo) {
             if (!empty($pageInfo['languageIso'])) {
                 $i18nList[] = [
+                    '_locale'     => $pageInfo['locale'],
+                    '_localeUrl'  => strtolower(str_replace('_', '-', $pageInfo['locale'])),
                     'languageIso' => $pageInfo['languageIso'],
                     'countryIso'  => $pageInfo['countryIso'],
                     'hrefLang'    => $pageInfo['hrefLang'],
@@ -112,7 +114,7 @@ class StaticRoute extends AbstractPathGenerator
                             $staticRouteParams = [];
                         }
 
-                        $staticRouteParams['siteIsLanguageRoot'] = $routeInfo['siteIsLanguageRoot'];
+                        //$staticRouteParams['siteIsLanguageRoot'] = $routeInfo['siteIsLanguageRoot'];
 
                         $link = $this->urlGenerator->generate($staticRouteName, $staticRouteParams);
 

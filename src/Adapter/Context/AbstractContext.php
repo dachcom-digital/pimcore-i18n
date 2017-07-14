@@ -84,8 +84,8 @@ abstract class AbstractContext implements ContextInterface
      */
     public function getCurrentLanguageIso()
     {
-        if (Cache\Runtime::isRegistered('i18n.langIso')) {
-            $isoCode = Cache\Runtime::get('i18n.langIso');
+        if (Cache\Runtime::isRegistered('i18n.languageIso')) {
+            $isoCode = Cache\Runtime::get('i18n.languageIso');
             return $isoCode;
         }
 

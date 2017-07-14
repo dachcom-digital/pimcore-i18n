@@ -2,6 +2,7 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
+use I18nBundle\Definitions;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
@@ -135,7 +136,7 @@ class HeadLinkListener extends AbstractFrontendListener implements EventSubscrib
             $countryIsoTag = NULL;
 
             if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country') {
-                $countryIsoTag = 'GLOBAL';
+                $countryIsoTag = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
             }
 
             if ($link['language'] === $defaultLanguage && $link['country'] === $countryIsoTag) {

@@ -2,6 +2,7 @@
 
 namespace I18nBundle\Finder;
 
+use I18nBundle\Definitions;
 use I18nBundle\Manager\ZoneManager;
 use Pimcore\Service\Locale;
 use Pimcore\Model\Document;
@@ -10,8 +11,6 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class PathFinder
 {
-    const INTERNATIONAL_COUNTRY_NAMESPACE = 'GLOBAL';
-
     /**
      * @var RequestStack
      */
@@ -55,6 +54,7 @@ class PathFinder
      * /global-de/test
      * /de-de/test
      *
+     * @todo implement zone manager to check valid languages/countries
      * @param string $frontEndPath
      *
      * @return string|bool
@@ -75,6 +75,11 @@ class PathFinder
 
         $currentCountryIso = $document->getProperty('country');
         $currentLanguageIso = $document->getProperty('language');
+
+        if(strpos($currentLanguageIso, '_') !== FALSE) {
+            $parts = explode('_', $currentLanguageIso);
+            $currentLanguageIso = $parts[0];
+        }
 
         //only parse if country in i10n is active!
         if (is_null($currentCountryIso)) {
@@ -114,7 +119,7 @@ class PathFinder
             return FALSE;
         }
 
-        if ($currentCountryIso !== self::INTERNATIONAL_COUNTRY_NAMESPACE) {
+        if ($currentCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
             $this->localeFragment = [$currentLanguageIso . '-' . $currentCountryIso];
         } else {
             $this->localeFragment = [$currentLanguageIso];
@@ -171,6 +176,6 @@ class PathFinder
 
     private function getValidLanguages()
     {
-        return array_merge([self::INTERNATIONAL_COUNTRY_NAMESPACE], \Pimcore\Tool::getValidLanguages());
+        return array_merge([Definitions::INTERNATIONAL_COUNTRY_NAMESPACE], \Pimcore\Tool::getValidLanguages());
     }
 }

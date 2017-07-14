@@ -2,9 +2,11 @@
 
 namespace I18nBundle\Helper;
 
+use I18nBundle\Definitions;
+
 class ZoneHelper
 {
-    public function findUrlInZoneTree($zoneDomains, $languageIso, $fallBackLanguageIso, $countryIso = NULL, $fallBackCountryIso = 'GLOBAL')
+    public function findUrlInZoneTree($zoneDomains, $languageIso, $fallBackLanguageIso, $countryIso = NULL, $fallBackCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE)
     {
         if(!is_array($zoneDomains)) {
             return FALSE;

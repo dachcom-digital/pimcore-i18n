@@ -10,6 +10,11 @@ class System extends AbstractLanguage
     /**
      * @var null
      */
+    var $validLanguages = NULL;
+
+    /**
+     * @var null
+     */
     var $defaultLanguage = NULL;
 
     /**
@@ -17,6 +22,10 @@ class System extends AbstractLanguage
      */
     public function getActiveLanguages(): array
     {
+        if (!empty($this->validLanguages)) {
+            return $this->validLanguages;
+        }
+
         $validLanguages = [];
         $languages = Tool::getValidLanguages();
 
@@ -27,7 +36,9 @@ class System extends AbstractLanguage
             ];
         }
 
-        return $validLanguages;
+        $this->validLanguages = $validLanguages;
+
+        return $this->validLanguages;
     }
 
     /**
@@ -49,10 +60,15 @@ class System extends AbstractLanguage
      * @param string $isoCode
      * @param null   $field
      *
-     * @return null
+     * @return mixed
      */
     public function getLanguageData($isoCode = '', $field = NULL)
     {
+        $key = array_search($isoCode, array_column($this->validLanguages, 'isoCode'));
+        if ($key !== FALSE) {
+            return $this->validLanguages[$key][$field];
+        }
+
         return NULL;
     }
 }

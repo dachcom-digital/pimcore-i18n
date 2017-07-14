@@ -2,11 +2,10 @@
 
 namespace I18nBundle\Adapter\Context;
 
-use I18nBundle\Tool\System;
-use Pimcore\Model\Document;
 use Pimcore\Cache;
 use Pimcore\Model\Translation;
 use Symfony\Component\Intl\Intl;
+use I18nBundle\Definitions;
 
 class Country extends AbstractContext
 {
@@ -35,7 +34,7 @@ class Country extends AbstractContext
      */
     public function getCountryNameByIsoCode($countryIso, $locale = NULL)
     {
-        if ($countryIso === 'GLOBAL') {
+        if ($countryIso === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
             return Translation\Website::getByKeyLocalized('International', TRUE, TRUE);
         }
 
@@ -57,7 +56,7 @@ class Country extends AbstractContext
     {
         $currentCountryIso = $this->getCurrentCountryIso();
 
-        if ($currentCountryIso === 'GLOBAL') {
+        if ($currentCountryIso === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
             $countryName = Translation\Website::getByKeyLocalized('International', TRUE, TRUE);
         } else {
             $countryName = Intl::getRegionBundle()->getCountryName($currentCountryIso, $this->getCurrentLanguageIso());
@@ -94,7 +93,7 @@ class Country extends AbstractContext
 
             foreach ($activeCountries as $country) {
 
-                if (is_null($country['isoCode']) | $country['isoCode'] === 'GLOBAL') {
+                if (is_null($country['isoCode']) | $country['isoCode'] === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
                     continue;
                 }
 
@@ -121,7 +120,7 @@ class Country extends AbstractContext
             'country'            => $this->zoneManager->getCurrentZoneCountryAdapter()->getGlobalInfo(),
             'countryTitleNative' => Translation\Website::getByKeyLocalized('International', TRUE, TRUE, $userLanguage),
             'countryTitle'       => Translation\Website::getByKeyLocalized('International', TRUE, TRUE),
-            'languages'          => $this->getActiveLanguagesForCountry('GLOBAL'),
+            'languages'          => $this->getActiveLanguagesForCountry(Definitions::INTERNATIONAL_COUNTRY_NAMESPACE),
         ];
 
         if (!$skipCache) {
@@ -164,5 +163,4 @@ class Country extends AbstractContext
 
         return $languages;
     }
-
 }

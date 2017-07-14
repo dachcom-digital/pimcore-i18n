@@ -2,6 +2,7 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
+use I18nBundle\Definitions;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\ZoneManager;
 use Pimcore\Bundle\CoreBundle\EventListener\Frontend\AbstractFrontendListener;
@@ -91,7 +92,7 @@ class HeadMetaListener extends AbstractFrontendListener implements EventSubscrib
             return;
         }
 
-        $countryIso = strtolower($currentCountryIso) === 'global' ? 'international' : $currentCountryIso;
+        $countryIso = $currentCountryIso === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE ? 'international' : $currentCountryIso;
         $this->headMeta->appendName('country', $countryIso);
     }
 }

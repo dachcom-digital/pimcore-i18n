@@ -2,20 +2,29 @@
 
 namespace I18nBundle\Adapter\Country;
 
+use I18nBundle\Definitions;
 use Pimcore\Tool;
 
 class System extends AbstractCountry
 {
     /**
+     * @var null
+     */
+    protected $validCountries = NULL;
+
+    /**
      * @return array
      */
     public function getActiveCountries(): array
     {
-        $validCountries = [$this->getGlobalInfo()];
+        if (!empty($this->validCountries)) {
+            return $this->validCountries;
+        }
 
+        $validCountries = [$this->getGlobalInfo()];
         foreach (Tool::getValidLanguages() as $id => $language) {
 
-            if(strpos($language, '_') === FALSE) {
+            if (strpos($language, '_') === FALSE) {
                 continue;
             }
 
@@ -29,7 +38,9 @@ class System extends AbstractCountry
             ];
         }
 
-        return $validCountries;
+        $this->validCountries = $validCountries;
+
+        return $this->validCountries;
     }
 
     /**
@@ -40,6 +51,11 @@ class System extends AbstractCountry
      */
     public function getCountryData($isoCode = '', $field = NULL)
     {
+        $key = array_search($isoCode, array_column($this->validCountries, 'isoCode'));
+        if ($key !== FALSE) {
+            return $this->validCountries[$key][$field];
+        }
+
         return NULL;
     }
 
@@ -50,7 +66,7 @@ class System extends AbstractCountry
     {
         return [
 
-            'isoCode' => 'GLOBAL',
+            'isoCode' => Definitions::INTERNATIONAL_COUNTRY_NAMESPACE,
             'id'      => NULL,
             'zone'    => NULL,
             'object'  => NULL

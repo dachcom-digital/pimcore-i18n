@@ -75,8 +75,8 @@ class I18nDataCollector extends DataCollector
             $currentCountry = Runtime::get('i18n.countryIso');
         }
 
-        if (Runtime::isRegistered('i18n.langIso')) {
-            $currentLanguage = Runtime::get('i18n.langIso');
+        if (Runtime::isRegistered('i18n.languageIso')) {
+            $currentLanguage = Runtime::get('i18n.languageIso');
         }
 
         $this->data = [

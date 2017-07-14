@@ -10,8 +10,6 @@ use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Tool\System;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -140,6 +138,8 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
+     * @todo: https://github.com/pimcore/pimcore/issues/1733
+     *
      * @param GetResponseEvent $event
      *
      * @throws \Exception
@@ -151,6 +151,12 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         $this->request = $event->getRequest();
+
+        //@fixme if pimcore hardlink context issue has been fixed.
+        if(strpos($this->request->getLocale(), '-') !== FALSE) {
+            $this->request->setLocale(str_replace('-', '_', $this->request->getLocale()));
+        }
+
         if (!$this->matchesPimcoreContext($this->request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
             return;
         }
@@ -244,11 +250,16 @@ class DetectorListener implements EventSubscriberInterface
                 $currentCountry = strtoupper($documentCountry);
             }
 
-            $currentLanguage = $documentLanguage;
+            if(strpos($documentLanguage, '_') !== FALSE) {
+                $parts = explode('_', $documentLanguage);
+                $currentLanguage = $parts[0];
+            } else {
+                $currentLanguage = $documentLanguage;
+            }
         }
 
         //Set Locale.
-        Cache\Runtime::set('i18n.langIso', strtolower($currentLanguage));
+        Cache\Runtime::set('i18n.languageIso', strtolower($currentLanguage));
 
         //Set Country. This variable is only !false if i18n country is active
         if ($currentCountry !== FALSE) {

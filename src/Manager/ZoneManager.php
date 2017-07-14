@@ -7,6 +7,7 @@ use I18nBundle\Adapter\Language\AbstractLanguage;
 use I18nBundle\Adapter\Language\LanguageInterface;
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Adapter\Country\CountryInterface;
+use I18nBundle\Definitions;
 use I18nBundle\Registry\CountryRegistry;
 use I18nBundle\Registry\LanguageRegistry;
 use Pimcore\Model\Document;
@@ -329,7 +330,7 @@ class ZoneManager
 
                 $realLang = explode('_', $childLanguageIso);
                 $hrefLang = strtolower($realLang[0]);
-                if (!empty($childCountryIso) && $childCountryIso !== 'GLOBAL') {
+                if (!empty($childCountryIso) && $childCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
                     $hrefLang .= '-' . strtolower($childCountryIso);
                 }
 
@@ -337,6 +338,7 @@ class ZoneManager
                     'id'          => $child->getId(),
                     'host'        => $domain,
                     'realHost'    => $domainHost,
+                    'locale'      => $childLanguageIso,
                     'countryIso'  => $childCountryIso,
                     'languageIso' => $realLang[0],
                     'hrefLang'    => $hrefLang,
@@ -354,11 +356,12 @@ class ZoneManager
         }
 
         $hrefLang = '';
-        if(!empty($docLanguageIso)) {
+        $docRealLanguageIso = '';
+        if (!empty($docLanguageIso)) {
             $realLang = explode('_', $docLanguageIso);
-            $docLanguageIso = $realLang[0];
-            $hrefLang = strtolower($docLanguageIso);
-            if (!empty($docCountryIso) && $docCountryIso !== 'GLOBAL') {
+            $docRealLanguageIso = $realLang[0];
+            $hrefLang = strtolower($docRealLanguageIso);
+            if (!empty($docCountryIso) && $docCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
                 $hrefLang .= '-' . strtolower($docCountryIso);
             }
         }
@@ -368,8 +371,9 @@ class ZoneManager
             'host'         => $domain,
             'realHost'     => $domainHost,
             'isRootDomain' => $isRootDomain,
+            'locale'       => $docLanguageIso,
             'countryIso'   => $docCountryIso,
-            'languageIso'  => $docLanguageIso,
+            'languageIso'  => $docRealLanguageIso,
             'hrefLang'     => $hrefLang,
             'key'          => NULL,
             'url'          => $domainUrl,
@@ -404,7 +408,7 @@ class ZoneManager
 
             unset($domain['subPages']);
 
-            if(empty($domain['countryIso']) && empty($domain['languageIso'])) {
+            if (empty($domain['countryIso']) && empty($domain['languageIso'])) {
                 continue;
             }
 

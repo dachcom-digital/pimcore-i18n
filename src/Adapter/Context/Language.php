@@ -2,8 +2,27 @@
 
 namespace I18nBundle\Adapter\Context;
 
+use Pimcore\Cache;
+
 class Language extends AbstractContext
 {
+    /**
+     * @param $field
+     *
+     * @return string
+     */
+    public function getCurrentLanguageInfo($field = 'name')
+    {
+        $languageData = NULL;
+
+        if (Cache\Runtime::isRegistered('i18n.languageIso')) {
+            $countryIso = Cache\Runtime::get('i18n.languageIso');
+            $languageData = $this->zoneManager->getCurrentZoneLanguageAdapter()->getLanguageData($countryIso, $field);
+        }
+
+        return $languageData;
+    }
+
     /**
      * @return array
      */

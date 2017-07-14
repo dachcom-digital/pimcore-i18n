@@ -3,6 +3,7 @@
 namespace I18nBundle\Adapter\Country;
 
 use CoreShop\Model\Country;
+use I18nBundle\Definitions;
 
 class CoreShop extends AbstractCountry
 {
@@ -14,7 +15,7 @@ class CoreShop extends AbstractCountry
         $list = Country::getActiveCountries();
 
         $cList = [
-            'GLOBAL' => self::getGlobalInfo()
+            Definitions::INTERNATIONAL_COUNTRY_NAMESPACE => self::getGlobalInfo()
         ];
 
         /** @var Country $c */
@@ -40,7 +41,7 @@ class CoreShop extends AbstractCountry
         $data = NULL;
 
         //no info for global!
-        if ($isoCode === 'GLOBAL') {
+        if ($isoCode === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
             return $data;
         }
 
@@ -65,7 +66,7 @@ class CoreShop extends AbstractCountry
         return [
 
             'name'    => 'global',
-            'isoCode' => 'GLOBAL',
+            'isoCode' => Definitions::INTERNATIONAL_COUNTRY_NAMESPACE,
             'id'      => NULL,
             'zone'    => NULL,
             'object'  => NULL

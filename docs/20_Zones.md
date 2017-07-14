@@ -15,8 +15,8 @@ i18n:
     # define a language adapter (system|custom)
     language_adapter: i18n.adapter.language.system
 
-    # define a country adapter (flat|coreshop|custom)
-    country_adapter: i18n.adapter.country.flat
+    # define a country adapter (system|coreshop|custom)
+    country_adapter: i18n.adapter.country.system
 
     # define a global prefix (like de-global or de-int)
     global_prefix: ~
@@ -42,7 +42,7 @@ i18n:
                 global_prefix: ~
                 translations: ~
 
-        # example 2: language and country
+        # zone 2: language and country
         -
             id: 2
             name: 'zone 2'
@@ -57,7 +57,7 @@ i18n:
                 global_prefix: ~
                 translations: ~
 
-        # example 3: no language switch. just a simple website.
+        # zone 3: no language switch. just a simple website.
         -
             id: 3
             name: 'zone 3'

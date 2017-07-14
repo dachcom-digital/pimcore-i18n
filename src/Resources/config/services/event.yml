@@ -16,11 +16,20 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
-    # event: check frontend path
+    # event: check frontend path document
     i18n.event_listener.frontend.path.document:
         class: I18nBundle\EventListener\Frontend\FrontendPathListener
         arguments:
             - '@i18n.finder.path'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # event: check frontend path staticroute
+    i18n.event_listener.frontend.path.staticroute:
+        class: I18nBundle\EventListener\Frontend\FrontendPathStaticRouteListener
+        arguments:
+            - '@i18n.finder.path'
+            - '@i18n.manager.zone'
         tags:
             - { name: kernel.event_subscriber }
 
