@@ -16,6 +16,16 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
+     # event: checks if hardlink page has a frontpage map
+    i18n.event_listener.frontpage_mapper:
+        class: I18nBundle\EventListener\FrontPageMapperListener
+        arguments:
+            - '@pimcore.service.request.document_resolver'
+        calls:
+            - [setPimcoreContextResolver, ['@pimcore.service.request.pimcore_context_resolver']]
+        tags:
+            - { name: kernel.event_subscriber }
+
     # event: check frontend path document
     i18n.event_listener.frontend.path.document:
         class: I18nBundle\EventListener\Frontend\FrontendPathListener

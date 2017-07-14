@@ -16,6 +16,9 @@ Pimcore already comes with some great features to build internationalized websit
 ## Zones
 [Click here](docs/20_Zones.md) to learn more about i18n zones.
 
+## Front Page Mapping
+[Click here](docs/30_FrontPageMapping.md) to learn how to map a custom front page.
+
 ## Copyright and license
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
 For licensing details please visit [LICENSE.md](LICENSE.md)  
