@@ -114,6 +114,7 @@ class PathFinder
             } else if (!$this->isValidCountry($pathElements[1])) {
                 return FALSE;
             }
+
             //check if language is valid, otherwise there is no locale context.
         } else if (!$this->isValidLanguage($localePart)) {
             return FALSE;
@@ -159,23 +160,26 @@ class PathFinder
      */
     private function isValidLanguage($fragment)
     {
-        return in_array($fragment, $this->getValidLanguages());
+        return array_search($fragment, array_column($this->getValidLanguages(), 'isoCode')) !== FALSE;
     }
 
     /**
-     * @notImplemented
-     *
      * @param $fragment
      *
      * @return bool
      */
     private function isValidCountry($fragment)
     {
-        return TRUE;
+        return array_search(strtoupper($fragment), array_column($this->getValidCountries(), 'isoCode')) !== FALSE;
     }
 
     private function getValidLanguages()
     {
-        return array_merge([Definitions::INTERNATIONAL_COUNTRY_NAMESPACE], \Pimcore\Tool::getValidLanguages());
+        return $this->zoneManager->getCurrentZoneLanguageAdapter()->getActiveLanguages();
+    }
+
+    private function getValidCountries()
+    {
+        return $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
     }
 }
