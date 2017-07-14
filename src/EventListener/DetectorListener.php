@@ -10,8 +10,10 @@ use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Tool\System;
+use Pimcore\Http\Exception\ResponseException;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -153,8 +155,11 @@ class DetectorListener implements EventSubscriberInterface
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
-        $this->initI18nSystem($event->getRequest());
+        if (!$event->getException() instanceof NotFoundHttpException) {
+            return;
+        }
 
+        $this->initI18nSystem($event->getRequest());
         $this->document = $this->documentResolver->getDocument($this->request);
 
         //fallback.
