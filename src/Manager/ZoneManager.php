@@ -63,7 +63,8 @@ class ZoneManager
     public function initZones()
     {
         if (!empty($this->currentZone)) {
-            throw new \Exception('current zone already defined');
+            //throw new \Exception('current zone already defined');
+            return;
         }
 
         $zones = $this->configuration->getConfig('zones');

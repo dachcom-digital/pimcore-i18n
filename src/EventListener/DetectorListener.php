@@ -154,7 +154,7 @@ class DetectorListener implements EventSubscriberInterface
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
-        if (!$event->getException() instanceof NotFoundHttpException) {
+        if($event->isMasterRequest() === FALSE || !$event->getException() instanceof NotFoundHttpException) {
             return;
         }
 

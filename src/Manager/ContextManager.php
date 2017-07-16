@@ -46,7 +46,8 @@ class ContextManager
         $contextId = 'i18n.adapter.context.' . $contextIdentifier;
 
         if (!empty($this->currentContext)) {
-            throw new \Exception('context already defined');
+            //throw new \Exception('context already defined');
+            return;
         }
 
         if(!$this->contextRegistry->has($contextId)) {
