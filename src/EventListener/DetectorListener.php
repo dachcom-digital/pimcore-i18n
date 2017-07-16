@@ -10,7 +10,6 @@ use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Tool\System;
-use Pimcore\Http\Exception\ResponseException;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -225,7 +224,15 @@ class DetectorListener implements EventSubscriberInterface
             $documentLanguage = $this->document->getProperty('language');
         }
 
-        if (empty($documentLanguage)) {
+        $currentRouteName = $this->request->get('_route');
+        $requestSource = $this->request->attributes->get('pimcore_request_source');
+        $validRoute = FALSE;
+
+        if ($requestSource === 'staticroute' || $currentRouteName === 'document_' . $this->document->getId()) {
+            $validRoute = TRUE;
+        }
+
+        if ($validRoute === TRUE && empty($documentLanguage)) {
 
             $siteId = 1;
             if (\Pimcore\Model\Site::isSiteRequest() === TRUE) {
@@ -239,29 +246,19 @@ class DetectorListener implements EventSubscriberInterface
             }
         }
 
-        //if i18n has been disabled
-        if ($this->document->getProperty('disable_i18n') === TRUE) {
-            return;
-        }
-
         $currentCountry = FALSE;
         $currentLanguage = FALSE;
 
         $validCountry = !empty($documentCountry) && array_search(strtoupper($documentCountry), array_column($this->validCountries, 'isoCode')) !== FALSE;
         $validLanguage = !empty($documentLanguage) && array_search($documentLanguage, array_column($this->validLanguages, 'isoCode')) !== FALSE;
 
-        $route = NULL;
-
-        $currentRouteName = $this->request->get('_route');
-
-        if ($currentRouteName !== NULL) {
+        if ($validRoute) {
             if ($this->i18nType === 'language') {
                 //first get valid language
                 if (!$validLanguage) {
                     if ($this->canRedirect() && $this->i18nType === 'language') {
                         $url = $this->getRedirectUrl($this->getLanguageUrl());
                         $event->setResponse(new RedirectResponse($url));
-
                         return;
                     }
                 }
@@ -270,7 +267,6 @@ class DetectorListener implements EventSubscriberInterface
                 if ($this->canRedirect() && (!$validCountry || !$validLanguage)) {
                     $url = $this->getRedirectUrl($this->getCountryUrl());
                     $event->setResponse(new RedirectResponse($url));
-
                     return;
                 }
 
