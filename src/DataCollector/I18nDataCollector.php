@@ -18,10 +18,6 @@ use Pimcore\Http\RequestHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
-use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Exception\ResourceNotFoundException;
-use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 class I18nDataCollector extends DataCollector
 {
@@ -57,7 +53,12 @@ class I18nDataCollector extends DataCollector
      */
     public function collect(Request $request, Response $response, \Exception $exception = NULL)
     {
-        if ($exception instanceof NotFoundHttpException
+        //only track current valid routes.
+        if($response->getStatusCode() !== 200) {
+            return;
+        }
+
+        if ( $exception instanceof \RuntimeException
             || $this->requestHelper->isFrontendRequest($request) === FALSE
             || $this->requestHelper->isFrontendRequestByAdmin($request)
         ) {
