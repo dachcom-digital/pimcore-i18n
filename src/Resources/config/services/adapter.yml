@@ -40,7 +40,7 @@ services:
             - { name: i18n.adapter.path.generator }
         calls:
             - ['setUrlGenerator', ['@router']]
-            - ['setMasterRequest', ['@=service("request_stack").getMasterRequest()']]
+            - ['setRequest', ['@request_stack']]
     i18n.adapter.path.generator.document:
         parent: 'i18n.adapter.path.abstract'
         class: I18nBundle\Adapter\PathGenerator\Document
