@@ -6,14 +6,15 @@ use Pimcore\Model\Document as PimcoreDocument;
 use Pimcore\Model\Staticroute as PimcoreStaticRoute;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class StaticRoute extends AbstractPathGenerator
 {
     /**
-     * @var Request
+     * @var RequestStack
      */
-    var $request;
+    protected $requestStack;
 
     /**
      * @var UrlGeneratorInterface
@@ -21,11 +22,11 @@ class StaticRoute extends AbstractPathGenerator
     protected $urlGenerator;
 
     /**
-     * @param Request $request
+     * @param RequestStack $requestStack
      */
-    public function setMasterRequest(Request $request)
+    public function setRequest(RequestStack $requestStack)
     {
-        $this->request = $request;
+        $this->requestStack = $requestStack;
     }
 
     /**
@@ -53,7 +54,7 @@ class StaticRoute extends AbstractPathGenerator
             throw new \Exception('PathGenerator StaticRoute needs a valid UrlGeneratorInterface to work.');
         }
 
-        if (!$this->request instanceof Request) {
+        if (!$this->requestStack->getMasterRequest() instanceof Request) {
             throw new \Exception('PathGenerator StaticRoute needs a valid Request to work.');
         }
 
@@ -93,7 +94,7 @@ class StaticRoute extends AbstractPathGenerator
             'currentLanguage'   => $currentLanguage,
             'currentCountry'    => $currentCountry,
             'route'             => $route,
-            'requestAttributes' => $this->request->attributes->all()
+            'requestAttributes' => $this->requestStack->getMasterRequest()->attributes->all()
         ]);
 
         \Pimcore::getEventDispatcher()->dispatch(
