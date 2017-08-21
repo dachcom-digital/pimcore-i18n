@@ -127,7 +127,7 @@ class ResponseExceptionListener extends AbstractContextAwareListener implements 
         //get host page.
         $hostIndex = array_keys(array_filter($zoneDomains,
             function ($v) use ($host, $possibleLocaleSlug) {
-                return $v['host'] === $host;
+                return $v['realHost'] === $host;
             }));
 
         //maybe there is a localized host page.
@@ -135,7 +135,7 @@ class ResponseExceptionListener extends AbstractContextAwareListener implements 
         if (!empty($possibleLocaleSlug)) {
             $languageIndex = array_keys(array_filter($zoneDomains,
                 function ($v) use ($host, $possibleLocaleSlug) {
-                    return $v['host'] === $host && $v['hrefLang'] === $possibleLocaleSlug;
+                    return $v['realHost'] === $host && $v['hrefLang'] === $possibleLocaleSlug;
                 }));
         }
 
