@@ -147,23 +147,37 @@ class ResponseExceptionListener extends AbstractContextAwareListener implements 
 
         $errorPath = NULL;
 
+        $defaultErrorPath = Config::getSystemConfig()->documents->error_pages->default;
+        if (Site::isSiteRequest()) {
+
+            $site = Site::getCurrentSite();
+            $siteErrorPath = $site->getErrorDocument();
+            if (!empty($siteErrorPath)) {
+                $defaultErrorPath = $siteErrorPath;
+            }
+        }
+
         if ($hostIndex !== FALSE) {
-            $path = $zoneDomains[$hostIndex]['fullPath'] . '/error';
+
+            $guessedErrorPath = 'error';
+
+            //if we have a default error page, try to use same name.
+            if(!empty($defaultErrorPath)) {
+                $defaultErrorPathFragments = array_filter(explode('/', $defaultErrorPath));
+                if(!empty($defaultErrorPathFragments)) {
+                    $guessedErrorPath = end($defaultErrorPathFragments);
+                }
+            }
+
+            $path = $zoneDomains[$hostIndex]['fullPath'] . '/' . $guessedErrorPath;
             if (Document\Service::pathExists($path)) {
                 $errorPath = $path;
             };
         }
 
+        //no custom error paths found, use system error path.
         if (empty($errorPath)) {
-            $errorPath = Config::getSystemConfig()->documents->error_pages->default;
-            if (Site::isSiteRequest()) {
-
-                $site = Site::getCurrentSite();
-                $siteErrorPath = $site->getErrorDocument();
-                if (!empty($siteErrorPath)) {
-                    $errorPath = $siteErrorPath;
-                }
-            }
+            $errorPath = $defaultErrorPath;
         }
 
         if (empty($errorPath)) {

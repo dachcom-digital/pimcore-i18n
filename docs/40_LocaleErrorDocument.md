@@ -8,7 +8,7 @@ Pimcore provides two ways to add a error document in case something went wrong o
 If you're using this plugin you probably need some abstraction. 
 This Bundle will help you to generate specific error documents depending on languages and/or country settings.
 
-Just create a document called `error` and place it in your tree:
+Just create a document called like the error page in your system settings or the error page of a specific site and place it in your tree:
 
 ```text
 site.com
