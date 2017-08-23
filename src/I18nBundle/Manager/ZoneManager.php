@@ -258,6 +258,7 @@ class ZoneManager
     {
         $scheme = \Pimcore\Tool::getRequestScheme();
         $domainHost = $this->getDomainHost($domain);
+        $domainPort = $this->getDomainPort($domain);
         $domainDoc = Document::getById($rootId);
 
         $valid = FALSE;
@@ -327,6 +328,11 @@ class ZoneManager
                 //we can't use the fullPath since PathFinder will transform all "out-of-context" paths.
                 $urlKey = $child->getKey();
                 $prefix = $scheme . '://' . $domainHost;
+
+                if (!empty($domainPort)) {
+                    $prefix = $prefix . ':' . $domainPort;
+                }
+
                 $url = $prefix . '/' . $urlKey;
 
                 $realLang = explode('_', $childLanguageIso);
@@ -354,6 +360,10 @@ class ZoneManager
         $domainUrl = $domainHost;
         if (strpos($domainUrl, 'http:') === FALSE) {
             $domainUrl = $scheme . '://' . $domainUrl;
+        }
+
+        if (!empty($domainPort)) {
+            $domainUrl = $domainUrl . ':' . $domainPort;
         }
 
         $hrefLang = '';
@@ -393,6 +403,18 @@ class ZoneManager
         $host = preg_replace('/^www./', '', $host);
 
         return $host;
+    }
+
+    private function getDomainPort($domain)
+    {
+        $urlInfo = parse_url($domain);
+
+        $port = '';
+        if ($urlInfo['port'] !== 80) {
+            $port = $urlInfo['port'];
+        }
+
+        return $port;
     }
 
     private function flattenDomainTree($zoneDomains)
