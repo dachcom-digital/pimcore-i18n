@@ -19,7 +19,7 @@ class UserHelper
 
         if (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
             $browserLanguage = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-            if (array_search($browserLanguage, array_column($validLanguages, 'isoCode'))) {
+            if (array_search($browserLanguage, array_column($validLanguages, 'isoCode')) !== FALSE) {
                 $guessedLanguage = $browserLanguage;
             }
         }
