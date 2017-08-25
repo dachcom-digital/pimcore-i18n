@@ -5,16 +5,10 @@ namespace I18nBundle\Tool;
 use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
 
 use Symfony\Component\Filesystem\Filesystem;
-use Psr\Log\LoggerInterface;
 use I18nBundle\Configuration\Configuration;
 
 class Install extends AbstractInstaller
 {
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
     /**
      * @var string
      */
@@ -25,9 +19,13 @@ class Install extends AbstractInstaller
      */
     private $fileSystem;
 
-    public function __construct(LoggerInterface $logger)
+    /**
+     * Install constructor.
+     */
+    public function __construct()
     {
-        $this->logger = $logger;
+        parent::__construct();
+
         $this->installSourcesPath = __DIR__ . '/../Resources/install';
         $this->fileSystem = new Filesystem();
     }

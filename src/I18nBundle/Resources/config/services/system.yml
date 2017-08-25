@@ -3,9 +3,6 @@ services:
     # tool: installer
     i18n.tool.installer:
         class: I18nBundle\Tool\Install
-        arguments: ['@logger']
-        tags:
-            - { name: monolog.logger }
 
     # session: configurator
     i18n.session.configurator:
