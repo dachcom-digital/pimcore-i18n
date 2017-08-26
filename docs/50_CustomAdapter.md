@@ -7,8 +7,8 @@ We're only show you a example with countries, if you need to do this with langua
 
 ### 1. Create a Service
 
-```twig
-{# in app/config/services.yml #}
+```yaml
+# in app/config/services.yml
 app.i18n.adapter.country.special:
     public: true
     class: AppBundle\Services\I18nBundle\CountryAdapter\Special

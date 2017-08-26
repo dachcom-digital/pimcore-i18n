@@ -55,7 +55,7 @@ Depending on your selected mode (language|country) there are several view helper
 
 ## Implementation Examples
 
-```twig
+```html
 {# create a language dropdown #}
 <nav id="navigation">
     <select>
