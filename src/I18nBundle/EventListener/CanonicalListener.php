@@ -2,17 +2,19 @@
 
 namespace I18nBundle\EventListener;
 
-use Pimcore\Bundle\CoreBundle\EventListener\Frontend\AbstractFrontendListener;
+use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Model\Document\Hardlink\Wrapper\WrapperInterface;
 use Pimcore\Model\Staticroute;
-use Pimcore\Service\Request\DocumentResolver;
-use Pimcore\Service\Request\PimcoreContextResolver;
+use Pimcore\Http\Request\Resolver\DocumentResolver;
+use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-class CanonicalListener extends AbstractFrontendListener implements EventSubscriberInterface
+class CanonicalListener implements EventSubscriberInterface
 {
+    use PimcoreContextAwareTrait;
+
     /**
      * @var DocumentResolver
      */

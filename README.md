@@ -3,7 +3,7 @@
 ![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
 
 ## Requirements
-* Pimcore 5. Only with Build 105 or greater.
+* Pimcore 5. Only with Build 108 or greater.
 
 #### Pimcore 4 
 Get the Pimcore4 Version [here](https://github.com/dachcom-digital/pimcore-i18n/tree/pimcore4).

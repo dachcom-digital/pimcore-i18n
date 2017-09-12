@@ -1,98 +1,54 @@
 services:
 
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
     # event: i18n detector, register language / country. setup all managers. redirect user
-    i18n.event_listener.detector:
-        class: I18nBundle\EventListener\DetectorListener
-        arguments:
-            - '@pimcore.service.request.document_resolver'
-            - '@i18n.manager.zone'
-            - '@i18n.manager.context'
-            - '@i18n.manager.path_generator'
-            - '@i18n.helper.document'
-            - '@i18n.helper.zone'
-            - '@i18n.helper.user'
-        calls:
-            - [setPimcoreContextResolver, ['@pimcore.service.request.pimcore_context_resolver']]
+    I18nBundle\EventListener\DetectorListener:
         tags:
             - { name: kernel.event_subscriber }
 
      # event: checks if hardlink page has a frontpage map
-    i18n.event_listener.frontpage_mapper:
-        class: I18nBundle\EventListener\FrontPageMapperListener
-        arguments:
-            - '@pimcore.service.request.document_resolver'
-        calls:
-            - [setPimcoreContextResolver, ['@pimcore.service.request.pimcore_context_resolver']]
+    I18nBundle\EventListener\FrontPageMapperListener:
         tags:
             - { name: kernel.event_subscriber }
 
     # event: check frontend path document
-    i18n.event_listener.frontend.path.document:
-        class: I18nBundle\EventListener\Frontend\FrontendPathListener
-        arguments:
-            - '@i18n.finder.path'
+    I18nBundle\EventListener\Frontend\FrontendPathListener:
         tags:
             - { name: kernel.event_subscriber }
 
     # event: check frontend path staticroute
-    i18n.event_listener.frontend.path.staticroute:
-        class: I18nBundle\EventListener\Frontend\FrontendPathStaticRouteListener
-        arguments:
-            - '@i18n.finder.path'
-            - '@i18n.manager.zone'
+    I18nBundle\EventListener\Frontend\FrontendPathStaticRouteListener:
         tags:
             - { name: kernel.event_subscriber }
 
     # event: check link paths (correct link path when redirection in hardlink context)
-    i18n.event_listener.link_path_resolver:
-        class: I18nBundle\EventListener\Frontend\LinkPathListener
-        arguments:
-            - '@pimcore.service.request.document_resolver'
-            - '@i18n.finder.path'
-        calls:
-            - [setPimcoreContextResolver, ['@pimcore.service.request.pimcore_context_resolver']]
+    I18nBundle\EventListener\Frontend\LinkPathListener:
         tags:
             - { name: kernel.event_subscriber }
 
     # event: removes canonical Link tag from hardlink headers
-    i18n.event_listener.frontend.canonical:
-        class: I18nBundle\EventListener\CanonicalListener
-        arguments:
-            - '@pimcore.service.request.document_resolver'
+    I18nBundle\EventListener\CanonicalListener:
         tags:
             - { name: kernel.event_subscriber }
 
     # event: adds i18n meta tags to HeadMeta view helper
-    i18n.event_listener.frontend.document_head_meta:
+    I18nBundle\EventListener\Frontend\HeadMetaListener:
         class: I18nBundle\EventListener\Frontend\HeadMetaListener
-        arguments:
-            - '@pimcore.service.request.document_resolver'
-            - '@pimcore.templating.view_helper.head_meta'
-            - '@i18n.manager.zone'
-            - '@i18n.manager.context'
         tags:
             - { name: kernel.event_subscriber }
 
     # event: adds i18n meta tags to HeadMeta view helper
-    i18n.event_listener.frontend.document_head_link:
-        class: I18nBundle\EventListener\Frontend\HeadLinkListener
-        arguments:
-            - '@pimcore.service.request.document_resolver'
-            - '@pimcore.templating.view_helper.head_link'
-            - '@i18n.manager.zone'
-            - '@i18n.manager.context'
-            - '@i18n.manager.path_generator'
+    I18nBundle\EventListener\Frontend\HeadLinkListener:
         tags:
             - { name: kernel.event_subscriber }
 
     # override pimcore not found exception handling
-    pimcore.event_listener.response_exception:
-        class: I18nBundle\EventListener\ResponseExceptionListener
+    I18nBundle\EventListener\ResponseExceptionListener:
         arguments:
-            - '@pimcore.templating.action_renderer'
-            - '@i18n.manager.zone'
-            - '@i18n.manager.context'
-            - '@i18n.manager.path_generator'
-            - '%pimcore.response_exception_listener.render_error_document%'
+            $renderErrorPage: '%pimcore.response_exception_listener.render_error_document%'
         tags:
             - { name: kernel.event_subscriber }

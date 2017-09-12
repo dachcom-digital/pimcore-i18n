@@ -3,8 +3,8 @@
 namespace I18nBundle\EventListener;
 
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
-use Pimcore\Service\Request\DocumentResolver;
-use Pimcore\Service\Request\PimcoreContextResolver;
+use Pimcore\Http\Request\Resolver\DocumentResolver;
+use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Model\Document\Hardlink;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;

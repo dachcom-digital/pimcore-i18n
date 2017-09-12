@@ -11,8 +11,10 @@ use Pimcore\Config;
 use Pimcore\Http\Exception\ResponseException;
 use Pimcore\Model\Document;
 use Pimcore\Model\Site;
-use Pimcore\Service\Request\PimcoreContextResolver;
+use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Templating\Renderer\ActionRenderer;
+use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
+
 use Pimcore\Bundle\CoreBundle\EventListener\AbstractContextAwareListener;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,6 +24,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class ResponseExceptionListener extends AbstractContextAwareListener implements EventSubscriberInterface
 {
+    use PimcoreContextAwareTrait;
+
     /**
      * @var ActionRenderer
      */
@@ -65,7 +69,6 @@ class ResponseExceptionListener extends AbstractContextAwareListener implements 
         $this->zoneManager = $zoneManager;
         $this->contextManager = $contextManager;
         $this->pathGeneratorManager = $pathGeneratorManager;
-
         $this->renderErrorPage = (bool)$renderErrorPage;
     }
 

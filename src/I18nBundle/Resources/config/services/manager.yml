@@ -4,6 +4,7 @@ services:
     i18n.manager.zone:
         class: I18nBundle\Manager\ZoneManager
         arguments:
+            - '@pimcore.service.request.site_resolver'
             - '@i18n.configuration'
             - '@i18n.registry.language'
             - '@i18n.registry.country'

@@ -2,8 +2,8 @@
 
 namespace I18nBundle\Tool;
 
-use Pimcore\Service\Request\EditmodeResolver;
 use Pimcore\Tool;
+use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use Symfony\Component\HttpFoundation\Request;
 
 class System

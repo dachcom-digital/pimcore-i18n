@@ -12,7 +12,6 @@ use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Tool\System;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,8 +22,8 @@ use Pimcore\Cache;
 use Pimcore\Logger;
 
 use Pimcore\Model\Document;
-use Pimcore\Service\Request\DocumentResolver;
-use Pimcore\Service\Request\PimcoreContextResolver;
+use Pimcore\Http\Request\Resolver\DocumentResolver;
+use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 
 class DetectorListener implements EventSubscriberInterface
@@ -136,7 +135,7 @@ class DetectorListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            KernelEvents::EXCEPTION => ['onKernelException', 20], //before responseException
+            KernelEvents::EXCEPTION => ['onKernelException', 20], //before responseExceptionListener
             KernelEvents::REQUEST   => ['onKernelRequest']
         ];
     }
@@ -167,8 +166,6 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * @todo: https://github.com/pimcore/pimcore/issues/1733
-     *
      * @param GetResponseEvent $event
      *
      * @throws \Exception

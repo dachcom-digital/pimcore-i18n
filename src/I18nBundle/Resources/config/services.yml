@@ -1,11 +1,5 @@
 imports:
-    - { resource: services/system.yml }
-    - { resource: services/registry.yml }
-    - { resource: services/adapter.yml }
-    - { resource: services/manager.yml }
-    - { resource: services/helper.yml }
-    - { resource: services/event.yml }
-    - { resource: services/twig.yml }
+    - { resource: services/*.yml }
 
 services:
 

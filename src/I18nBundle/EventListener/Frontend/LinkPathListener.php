@@ -4,9 +4,9 @@ namespace I18nBundle\EventListener\Frontend;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Pimcore\Service\Request\DocumentResolver;
+use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
-use Pimcore\Service\Request\PimcoreContextResolver;
+use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Model\Document\Hardlink;
 use I18nBundle\Finder\PathFinder;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -39,7 +39,7 @@ class LinkPathListener implements EventSubscriberInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @return array
      */
     public static function getSubscribedEvents()
     {

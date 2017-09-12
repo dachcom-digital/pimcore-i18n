@@ -4,7 +4,7 @@ namespace I18nBundle\Finder;
 
 use I18nBundle\Definitions;
 use I18nBundle\Manager\ZoneManager;
-use Pimcore\Service\Locale;
+use Pimcore\Localization\Locale;
 use Pimcore\Model\Document;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\HttpFoundation\RequestStack;

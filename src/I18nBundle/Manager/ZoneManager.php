@@ -10,11 +10,16 @@ use I18nBundle\Adapter\Country\CountryInterface;
 use I18nBundle\Definitions;
 use I18nBundle\Registry\CountryRegistry;
 use I18nBundle\Registry\LanguageRegistry;
+use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Model\Document;
-use Pimcore\Model\Site;
 
 class ZoneManager
 {
+    /**
+     * @var SiteResolver
+     */
+    private $siteResolver;
+
     /**
      * @var Configuration
      */
@@ -48,10 +53,16 @@ class ZoneManager
     protected $isInZone = FALSE;
 
     /**
-     * {@inheritdoc}
+     * ZoneManager constructor.
+     *
+     * @param SiteResolver     $siteResolver
+     * @param Configuration    $configuration
+     * @param LanguageRegistry $languageRegistry
+     * @param CountryRegistry  $countryRegistry
      */
-    public function __construct(Configuration $configuration, LanguageRegistry $languageRegistry, CountryRegistry $countryRegistry)
+    public function __construct(SiteResolver $siteResolver, Configuration $configuration, LanguageRegistry $languageRegistry, CountryRegistry $countryRegistry)
     {
+        $this->siteResolver = $siteResolver;
         $this->configuration = $configuration;
         $this->languageRegistry = $languageRegistry;
         $this->countryRegistry = $countryRegistry;
@@ -63,7 +74,6 @@ class ZoneManager
     public function initZones()
     {
         if (!empty($this->currentZone)) {
-            //throw new \Exception('current zone already defined');
             return;
         }
 
@@ -73,14 +83,15 @@ class ZoneManager
         if (empty($zones)) {
             $this->currentZone = $this->mapData($this->configuration->getConfigNode());
         } else {
+
             //it's not a site request, zones are invalid. use the default settings.
-            if (Site::isSiteRequest() === FALSE) {
+            if ($this->siteResolver->isSiteRequest() === FALSE) {
                 $this->currentZone = $this->mapData($this->configuration->getConfigNode());
             } else {
 
                 $validZone = FALSE;
                 $zoneConfig = [];
-                $currentSite = Site::getCurrentSite();
+                $currentSite = $this->siteResolver->getSite();
 
                 foreach ($zones as $zone) {
                     if (in_array($currentSite->getMainDomain(), $zone['domains'])) {
@@ -108,78 +119,8 @@ class ZoneManager
     }
 
     /**
-     * @param null $slot
-     *
-     * @return mixed
-     * @throws \Exception
+     * @return null
      */
-    public function getCurrentZoneInfo($slot = NULL)
-    {
-        if (empty($this->currentZone)) {
-            throw new \Exception('current zone is not configured');
-        } else if (!array_key_exists($slot, $this->currentZone)) {
-            throw new \Exception(sprintf('current zone config slot "%s" is not defined', $slot));
-        }
-
-        return $this->currentZone[$slot];
-    }
-
-    public function getCurrentZoneDomains($flatten = FALSE)
-    {
-        if (empty($this->currentZoneDomains)) {
-            throw new \Exception('current zone domains not configured');
-        }
-
-        return $flatten ? $this->flattenDomainTree($this->currentZoneDomains) : $this->currentZoneDomains;
-    }
-
-    /**
-     * @return LanguageInterface
-     * @throws \Exception
-     */
-    public function getCurrentZoneLanguageAdapter()
-    {
-        if (empty($this->currentZone)) {
-            throw new \Exception('current zone is not configured');
-        }
-
-        if (!$this->currentZone['language_adapter'] instanceof LanguageInterface) {
-            throw new \Exception(sprintf('language adapter is invalid. given language adapter is "%s"', get_class($this->currentZone['language_adapter'])));
-        }
-
-        return $this->currentZone['language_adapter'];
-    }
-
-    /**
-     * @return CountryInterface
-     * @throws \Exception
-     */
-    public function getCurrentZoneCountryAdapter()
-    {
-        if (empty($this->currentZone)) {
-            throw new \Exception('current zone is not configured');
-        }
-
-        if ($this->getCurrentZoneInfo('mode') !== 'country') {
-            throw new \Exception(sprintf('current i18n mode is "%s" and does not support country adapter.', $this->getCurrentZoneInfo('mode')));
-        }
-
-        if (!$this->currentZone['country_adapter'] instanceof CountryInterface) {
-            throw new \Exception(sprintf('country adapter is invalid. given country adapter is "%s"', get_class($this->currentZone['country_adapter'])));
-        }
-
-        return $this->currentZone['country_adapter'];
-    }
-
-    /**
-     * @return bool
-     * @throws \Exception
-     */
-    public function isInZone()
-    {
-        return $this->isInZone;
-    }
-
     private function setupZoneDomains()
     {
         if (!is_null($this->currentZoneDomains)) {
@@ -204,6 +145,81 @@ class ZoneManager
         }
 
         $this->currentZoneDomains = $zoneDomains;
+    }
+
+    /**
+     * @param null $slot
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getCurrentZoneInfo($slot = NULL)
+    {
+        if (empty($this->currentZone)) {
+            $this->initZones();
+        }
+
+        if (!array_key_exists($slot, $this->currentZone)) {
+            throw new \Exception(sprintf('current zone config slot "%s" is not defined', $slot));
+        }
+
+        return $this->currentZone[$slot];
+    }
+
+    public function getCurrentZoneDomains($flatten = FALSE)
+    {
+        if (empty($this->currentZone)) {
+            $this->initZones();
+        }
+
+        return $flatten ? $this->flattenDomainTree($this->currentZoneDomains) : $this->currentZoneDomains;
+    }
+
+    /**
+     * @return LanguageInterface
+     * @throws \Exception
+     */
+    public function getCurrentZoneLanguageAdapter()
+    {
+        if (empty($this->currentZone)) {
+            $this->initZones();
+        }
+
+        if (!$this->currentZone['language_adapter'] instanceof LanguageInterface) {
+            throw new \Exception(sprintf('language adapter is invalid. given language adapter is "%s"', get_class($this->currentZone['language_adapter'])));
+        }
+
+        return $this->currentZone['language_adapter'];
+    }
+
+    /**
+     * @return CountryInterface
+     * @throws \Exception
+     */
+    public function getCurrentZoneCountryAdapter()
+    {
+        if (empty($this->currentZone)) {
+            $this->initZones();
+        }
+
+        if ($this->getCurrentZoneInfo('mode') !== 'country') {
+            throw new \Exception(sprintf('current i18n mode is "%s" and does not support country adapter.', $this->getCurrentZoneInfo('mode')));
+        }
+
+        if (!$this->currentZone['country_adapter'] instanceof CountryInterface) {
+            throw new \Exception(sprintf('country adapter is invalid. given country adapter is "%s"', get_class($this->currentZone['country_adapter'])));
+        }
+
+        return $this->currentZone['country_adapter'];
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
+     */
+    public function isInZone()
+    {
+        return $this->isInZone;
     }
 
     /**
@@ -293,7 +309,6 @@ class ZoneManager
 
         if ($this->getCurrentZoneInfo('mode') === 'country') {
             $validCountries = $this->getCurrentZoneCountryAdapter()->getActiveCountries();
-
             if (!empty($docCountryIso) && array_search($docCountryIso, array_column($validCountries, 'isoCode')) === FALSE) {
                 return FALSE;
             }

@@ -3,7 +3,7 @@ services:
     # adapter: country
     i18n.adapter.country.abstract:
         abstract: true
-        class: I18nBundle\Adapter\Language\AbstractCountry
+        class: I18nBundle\Adapter\Country\AbstractCountry
     i18n.adapter.country.system:
         parent: 'i18n.adapter.country.abstract'
         class: I18nBundle\Adapter\Country\System
@@ -25,7 +25,6 @@ services:
         tags:
             - { name: i18n.adapter.language }
 
-
     # adapter: pathGenerator
     i18n.adapter.path.abstract:
         abstract: true
@@ -46,7 +45,6 @@ services:
         class: I18nBundle\Adapter\PathGenerator\Document
         tags:
             - { name: i18n.adapter.path.generator }
-
 
     # adapter: context
     i18n.adapter.context.abstract:

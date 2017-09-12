@@ -6,9 +6,9 @@ use I18nBundle\Definitions;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
-use Pimcore\Bundle\CoreBundle\EventListener\Frontend\AbstractFrontendListener;
-use Pimcore\Service\Request\DocumentResolver as DocumentResolverService;
-use Pimcore\Service\Request\PimcoreContextResolver;
+use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
+use Pimcore\Http\Request\Resolver\DocumentResolver as DocumentResolverService;
+use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Templating\Helper\HeadLink;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -17,8 +17,10 @@ use Symfony\Component\HttpKernel\KernelEvents;
 /**
  * Adds Meta Data entries of document to HeadMeta view helper
  */
-class HeadLinkListener extends AbstractFrontendListener implements EventSubscriberInterface
+class HeadLinkListener implements EventSubscriberInterface
 {
+    use PimcoreContextAwareTrait;
+
     /**
      * @var DocumentResolverService
      */
