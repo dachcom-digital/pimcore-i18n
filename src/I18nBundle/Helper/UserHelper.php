@@ -3,7 +3,6 @@
 namespace I18nBundle\Helper;
 
 use GeoIp2\Database\Reader;
-use I18nBundle\Configuration\ZoneManager;
 
 class UserHelper
 {
