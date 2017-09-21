@@ -5,9 +5,6 @@
 ## Requirements
 * Pimcore 5. Only with Build 108 or greater.
 
-#### Pimcore 4 
-Get the Pimcore4 Version [here](https://github.com/dachcom-digital/pimcore-i18n/tree/pimcore4).
-
 ## Introduction
 Pimcore already comes with some great features to build internationalized websites. But there are some gaps we have to handle by ourselves: search engine guidelines, geo based redirects and a dynamic link handling for internal documents. 
 This Bundle helps you mastering this challenges and gives you freedom to elaborating complex country based localization strategies.
