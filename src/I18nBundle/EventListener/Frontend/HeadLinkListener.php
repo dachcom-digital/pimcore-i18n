@@ -95,10 +95,6 @@ class HeadLinkListener implements EventSubscriberInterface
             return;
         }
 
-        if ($this->zoneManager->getCurrentZoneInfo('mode') !== 'country') {
-            return;
-        }
-
         $document = $this->documentResolverService->getDocument($request);
         $hrefLinks = $this->pathGeneratorManager->getPathGenerator()->getUrls($document);
 
