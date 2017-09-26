@@ -1,24 +1,14 @@
 services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
 
     # manager: zone
-    i18n.manager.zone:
-        class: I18nBundle\Manager\ZoneManager
-        arguments:
-            - '@pimcore.service.request.site_resolver'
-            - '@i18n.configuration'
-            - '@i18n.registry.language'
-            - '@i18n.registry.country'
+    I18nBundle\Manager\ZoneManager: ~
 
     # manager: path_generator
-    i18n.manager.path_generator:
-        class: I18nBundle\Manager\PathGeneratorManager
-        arguments:
-            - '@i18n.configuration'
-            - '@i18n.registry.path.generator'
+    I18nBundle\Manager\PathGeneratorManager: ~
 
     # manager: context
-    i18n.manager.context:
-        class: I18nBundle\Manager\ContextManager
-        arguments:
-            - '@i18n.configuration'
-            - '@i18n.registry.context'
+    I18nBundle\Manager\ContextManager: ~

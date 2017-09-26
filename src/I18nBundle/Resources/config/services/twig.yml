@@ -1,11 +1,11 @@
 services:
 
-    # twig extensions
-    i18n.twig.extension.pagination:
-        class: I18nBundle\Twig\Extension\I18nExtension
+    _defaults:
+        autowire: true
+        autoconfigure: true
         public: false
-        arguments:
-            - '@i18n.manager.zone'
-            - '@i18n.manager.context'
+
+    # twig extensions
+    I18nBundle\Twig\Extension\I18nExtension:
         tags:
             - { name: twig.extension }

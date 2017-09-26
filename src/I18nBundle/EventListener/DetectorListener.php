@@ -200,7 +200,6 @@ class DetectorListener implements EventSubscriberInterface
         $this->initI18nSystem($this->request);
 
         $this->i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
-
         $this->validLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getActiveLanguages();
         $this->defaultLanguage = $this->zoneManager->getCurrentZoneLanguageAdapter()->getDefaultLanguage();
 

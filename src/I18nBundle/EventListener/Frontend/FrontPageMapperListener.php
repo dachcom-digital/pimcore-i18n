@@ -12,7 +12,6 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class FrontPageMapperListener implements EventSubscriberInterface
 {
-
     use PimcoreContextAwareTrait;
 
     /**

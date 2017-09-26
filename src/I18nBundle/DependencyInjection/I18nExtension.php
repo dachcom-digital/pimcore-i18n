@@ -2,13 +2,12 @@
 
 namespace I18nBundle\DependencyInjection;
 
-use Symfony\Component\DependencyInjection\Alias;
+use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use I18nBundle\Configuration\Configuration as BundleConfiguration;
-use Symfony\Component\Yaml\Yaml;
 
 class I18nExtension extends Extension
 {
@@ -25,7 +24,7 @@ class I18nExtension extends Extension
         $loader->load('services.yml');
         $loader->load('profiler.yml');
 
-        $configManagerDefinition = $container->getDefinition('i18n.configuration');
+        $configManagerDefinition = $container->getDefinition(BundleConfiguration::class);
         $configManagerDefinition->addMethodCall('setConfig', [ $config ]);
 
         if(file_exists(BundleConfiguration::SYSTEM_CONFIG_FILE_PATH)) {

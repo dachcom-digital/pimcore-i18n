@@ -1,13 +1,2 @@
 imports:
     - { resource: services/*.yml }
-
-services:
-
-    # finder: path check if current path is in right (hard link) context
-    i18n.finder.path:
-        class: I18nBundle\Finder\PathFinder
-        arguments:
-            - '@request_stack'
-            - '@pimcore.locale'
-            - '@i18n.manager.zone'
-        public: false

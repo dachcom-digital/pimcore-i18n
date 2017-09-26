@@ -2,6 +2,7 @@
 
 namespace I18nBundle;
 
+use I18nBundle\Tool\Install;
 use I18nBundle\DependencyInjection\Compiler\ContextAdapterPass;
 use I18nBundle\DependencyInjection\Compiler\CountryAdapterPass;
 use I18nBundle\DependencyInjection\Compiler\LanguageAdapterPass;
@@ -27,6 +28,6 @@ class I18nBundle extends AbstractPimcoreBundle
      */
     public function getInstaller()
     {
-        return $this->container->get('i18n.tool.installer');
+        return $this->container->get(Install::class);
     }
 }

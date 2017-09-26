@@ -43,7 +43,7 @@ class ContextManager
      */
     public function initContext($contextIdentifier)
     {
-        $contextId = 'i18n.adapter.context.' . $contextIdentifier;
+        $contextId = $contextIdentifier;
 
         if (!empty($this->currentContext)) {
             //throw new \Exception('context already defined');
@@ -51,7 +51,7 @@ class ContextManager
         }
 
         if(!$this->contextRegistry->has($contextId)) {
-            throw new \Exception(sprintf('context adapter "%s" is not available. please use "%s" tag to register new adapter.', $contextId, 'i18n.adapter.context'));
+            throw new \Exception(sprintf('context adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.', $contextId, 'i18n.adapter.context', $contextId));
         }
 
         $this->currentContext = $this->contextRegistry->get($contextId);

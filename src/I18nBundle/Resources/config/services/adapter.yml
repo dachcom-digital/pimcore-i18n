@@ -1,67 +1,68 @@
 services:
 
     # adapter: country
-    i18n.adapter.country.abstract:
+    I18nBundle\Adapter\Country\AbstractCountry:
         abstract: true
-        class: I18nBundle\Adapter\Country\AbstractCountry
-    i18n.adapter.country.system:
-        parent: 'i18n.adapter.country.abstract'
-        class: I18nBundle\Adapter\Country\System
+        public: false
+
+    I18nBundle\Adapter\Country\System:
+        parent: I18nBundle\Adapter\Country\AbstractCountry
+        public: false
         tags:
-            - { name: i18n.adapter.country }
-    i18n.adapter.country.coreshop:
-        parent: 'i18n.adapter.country.abstract'
-        class: I18nBundle\Adapter\Country\CoreShop
+            - { name: i18n.adapter.country, alias: system }
+
+    I18nBundle\Adapter\Country\CoreShop:
+        parent: I18nBundle\Adapter\Country\AbstractCountry
+        public: false
         tags:
-            - { name: i18n.adapter.country }
+            - { name: i18n.adapter.country, alias: coreshop }
 
     # adapter: language
-    i18n.adapter.language.abstract:
+    I18nBundle\Adapter\Language\AbstractLanguage:
         abstract: true
-        class: I18nBundle\Adapter\Language\AbstractLanguage
-    i18n.adapter.language.system:
-        parent: 'i18n.adapter.language.abstract'
-        class: I18nBundle\Adapter\Language\System
+        public: false
+
+    I18nBundle\Adapter\Language\System:
+        parent: I18nBundle\Adapter\Language\AbstractLanguage
+        public: false
         tags:
-            - { name: i18n.adapter.language }
+            - { name: i18n.adapter.language, alias: system }
 
     # adapter: pathGenerator
-    i18n.adapter.path.abstract:
+    I18nBundle\Adapter\PathGenerator\AbstractPathGenerator:
         abstract: true
-        class: I18nBundle\Adapter\PathGenerator\AbstractPathGenerator
-        arguments:
-            - '@i18n.manager.zone'
-            - '@i18n.helper.document'
-    i18n.adapter.path.generator.staticroute:
-        parent: 'i18n.adapter.path.abstract'
-        class: I18nBundle\Adapter\PathGenerator\StaticRoute
+        public: false
+        autowire: true
+
+    I18nBundle\Adapter\PathGenerator\StaticRoute:
+        parent: I18nBundle\Adapter\PathGenerator\AbstractPathGenerator
+        public: false
         tags:
-            - { name: i18n.adapter.path.generator }
+            - { name: i18n.adapter.path.generator, alias: static_route }
         calls:
             - ['setUrlGenerator', ['@router']]
             - ['setRequest', ['@request_stack']]
-    i18n.adapter.path.generator.document:
-        parent: 'i18n.adapter.path.abstract'
-        class: I18nBundle\Adapter\PathGenerator\Document
+
+    I18nBundle\Adapter\PathGenerator\Document:
+        parent: I18nBundle\Adapter\PathGenerator\AbstractPathGenerator
+        public: false
         tags:
-            - { name: i18n.adapter.path.generator }
+            - { name: i18n.adapter.path.generator, alias: document }
 
     # adapter: context
-    i18n.adapter.context.abstract:
+    I18nBundle\Adapter\Context\AbstractContext:
         abstract: true
-        class: I18nBundle\Adapter\Context\AbstractContext
-        arguments:
-            - '@i18n.manager.zone'
-            - '@i18n.manager.path_generator'
-            - '@i18n.helper.document'
-            - '@i18n.helper.user'
-    i18n.adapter.context.country:
-        parent: 'i18n.adapter.context.abstract'
-        class: I18nBundle\Adapter\Context\Country
+        public: false
+        autowire: true
+
+    I18nBundle\Adapter\Context\Country:
+        parent: I18nBundle\Adapter\Context\AbstractContext
+        public: false
         tags:
-            - { name: i18n.adapter.context }
-    i18n.adapter.context.language:
-        parent: 'i18n.adapter.context.abstract'
-        class: I18nBundle\Adapter\Context\Language
+            - { name: i18n.adapter.context, alias: country }
+
+    I18nBundle\Adapter\Context\Language:
+        parent: I18nBundle\Adapter\Context\AbstractContext
+        public: false
         tags:
-            - { name: i18n.adapter.context }
+            - { name: i18n.adapter.context, alias: language }

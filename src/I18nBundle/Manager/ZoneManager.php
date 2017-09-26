@@ -234,8 +234,8 @@ class ZoneManager
     {
         if (!empty($config['country_adapter']) && !$this->countryRegistry->has($config['country_adapter'])) {
             throw new \Exception(sprintf(
-                    'country adapter "%s" is not available. please use "%s" tag to register new adapter.',
-                    $config['country_adapter'], 'i18n.adapter.country')
+                    'country adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.',
+                    $config['country_adapter'], 'i18n.adapter.country', $config['country_adapter'])
             );
         }
 

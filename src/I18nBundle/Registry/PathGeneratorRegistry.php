@@ -26,7 +26,7 @@ class PathGeneratorRegistry
     /**
      * {@inheritdoc}
      */
-    public function register($identifier, $service)
+    public function register($service, $alias)
     {
         if (!in_array($this->interface, class_implements($service), TRUE)) {
             throw new \InvalidArgumentException(
@@ -34,27 +34,27 @@ class PathGeneratorRegistry
             );
         }
 
-        $this->adapter[$identifier] = $service;
+        $this->adapter[$alias] = $service;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function has($identifier)
+    public function has($alias)
     {
-        return isset($this->adapter[$identifier]);
+        return isset($this->adapter[$alias]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function get($identifier)
+    public function get($alias)
     {
-        if (!$this->has($identifier)) {
-            throw new \Exception('"' . $identifier . '" PathGenerator Identifier does not exist');
+        if (!$this->has($alias)) {
+            throw new \Exception('"' . $alias . '" PathGenerator Identifier does not exist');
         }
 
-        return $this->adapter[$identifier];
+        return $this->adapter[$alias];
     }
 
 }

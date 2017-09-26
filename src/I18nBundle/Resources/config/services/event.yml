@@ -20,7 +20,7 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
-    # event: check frontend path staticroute
+    # event: check frontend path static route
     I18nBundle\EventListener\Frontend\FrontendPathStaticRouteListener:
         tags:
             - { name: kernel.event_subscriber }

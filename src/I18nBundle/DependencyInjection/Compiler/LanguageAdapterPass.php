@@ -2,9 +2,11 @@
 
 namespace I18nBundle\DependencyInjection\Compiler;
 
+use I18nBundle\Registry\LanguageRegistry;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\PriorityTaggedServiceTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 final class LanguageAdapterPass implements CompilerPassInterface
 {
@@ -15,8 +17,11 @@ final class LanguageAdapterPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        foreach ($this->findAndSortTaggedServices('i18n.adapter.language', $container) as $id => $reference) {
-            $container->getDefinition('i18n.registry.language')->addMethodCall('register', [(string)$reference, $reference]);
+        foreach ($container->findTaggedServiceIds('i18n.adapter.language', TRUE) as $id => $tags) {
+            $definition = $container->getDefinition(LanguageRegistry::class);
+            foreach ($tags as $attributes) {
+                $definition->addMethodCall('register', [new Reference($id), $attributes['alias']]);
+            }
         }
     }
 }

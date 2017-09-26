@@ -15,14 +15,13 @@ use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Templating\Renderer\ActionRenderer;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 
-use Pimcore\Bundle\CoreBundle\EventListener\AbstractContextAwareListener;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-class ResponseExceptionListener extends AbstractContextAwareListener implements EventSubscriberInterface
+class ResponseExceptionListener implements EventSubscriberInterface
 {
     use PimcoreContextAwareTrait;
 

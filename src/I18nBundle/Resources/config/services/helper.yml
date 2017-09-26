@@ -1,12 +1,12 @@
 services:
 
-    # helper
-    i18n.helper.document:
-        class: I18nBundle\Helper\DocumentHelper
+    _defaults:
+        autowire: false
+        autoconfigure: false
         public: false
-    i18n.helper.zone:
-         class: I18nBundle\Helper\ZoneHelper
-         public: false
-    i18n.helper.user:
-        class: I18nBundle\Helper\UserHelper
-        public: false
+
+    I18nBundle\Helper\DocumentHelper: ~
+
+    I18nBundle\Helper\ZoneHelper: ~
+
+    I18nBundle\Helper\UserHelper: ~

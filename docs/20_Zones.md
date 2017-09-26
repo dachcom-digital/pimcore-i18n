@@ -13,10 +13,10 @@ i18n:
     mode: language
 
     # define a language adapter (system|custom)
-    language_adapter: i18n.adapter.language.system
+    language_adapter: system
 
     # define a country adapter (system|coreshop|custom)
-    country_adapter: i18n.adapter.country.system
+    country_adapter: system
 
     # define a global prefix (like de-global or de-int)
     global_prefix: ~
@@ -37,7 +37,7 @@ i18n:
                 - 'pimcore5-domain3.dev'
             config:
                 mode: language
-                language_adapter: i18n.adapter.language.system
+                language_adapter: system
                 country_adapter: ~
                 global_prefix: ~
                 translations: ~
@@ -52,8 +52,8 @@ i18n:
                 - 'pimcore5-domain6.dev'
             config:
                 mode: country
-                language_adapter: i18n.adapter.language.system
-                country_adapter: i18n.adapter.country.system
+                language_adapter: system
+                country_adapter: system
                 global_prefix: ~
                 translations: ~
 
@@ -65,7 +65,7 @@ i18n:
                 - 'pimcore5-domain7.dev'
             config:
                 mode: language
-                language_adapter: i18n.adapter.language.system
+                language_adapter: system
                 country_adapter: ~
                 global_prefix: ~
                 translations: ~

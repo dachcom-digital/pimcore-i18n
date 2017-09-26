@@ -1,10 +1,11 @@
 services:
-    i18n.profiler.collector.context:
-        class: I18nBundle\DataCollector\I18nDataCollector
-        arguments:
-            - '@i18n.manager.zone'
-            - '@pimcore.http.request_helper'
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
         public: false
+
+    I18nBundle\DataCollector\I18nDataCollector:
         tags:
             -
                 name:     data_collector

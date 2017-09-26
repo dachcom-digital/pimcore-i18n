@@ -1,25 +1,26 @@
 services:
 
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
     # registry: language
-    i18n.registry.language:
-        class: I18nBundle\Registry\LanguageRegistry
+    I18nBundle\Registry\LanguageRegistry:
         arguments:
-            - I18nBundle\Adapter\Language\LanguageInterface
+            $interface: I18nBundle\Adapter\Language\LanguageInterface
 
     # registry: country
-    i18n.registry.country:
-        class: I18nBundle\Registry\CountryRegistry
+    I18nBundle\Registry\CountryRegistry:
         arguments:
-            - I18nBundle\Adapter\Country\CountryInterface
+            $interface: I18nBundle\Adapter\Country\CountryInterface
 
     # registry: path generator
-    i18n.registry.path.generator:
-        class: I18nBundle\Registry\PathGeneratorRegistry
+    I18nBundle\Registry\PathGeneratorRegistry:
         arguments:
-            - I18nBundle\Adapter\PathGenerator\PathGeneratorInterface
+            $interface: I18nBundle\Adapter\PathGenerator\PathGeneratorInterface
 
     # registry: context
-    i18n.registry.context:
-        class: I18nBundle\Registry\ContextRegistry
+    I18nBundle\Registry\ContextRegistry:
         arguments:
-            - I18nBundle\Adapter\Context\ContextInterface
+            $interface: I18nBundle\Adapter\Context\ContextInterface

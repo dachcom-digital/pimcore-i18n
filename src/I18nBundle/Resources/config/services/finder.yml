@@ -1,0 +1,9 @@
+services:
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # finder: path check if current path is in right (hard link) context
+    I18nBundle\Finder\PathFinder: ~

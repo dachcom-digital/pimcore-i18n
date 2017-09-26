@@ -34,16 +34,16 @@ class PathGeneratorManager
     }
 
     /**
-     * @param $pimcoreRequestSource
+     * @param $contextIdentifier
      *
      * @throws \Exception
      */
-    public function initPathGenerator($pimcoreRequestSource)
+    public function initPathGenerator($contextIdentifier)
     {
-        if($pimcoreRequestSource === 'staticroute') {
-            $contextId = 'i18n.adapter.path.generator.' . $pimcoreRequestSource;
+        if($contextIdentifier === 'staticroute') {
+            $contextId = 'static_route';
         } else {
-            $contextId = 'i18n.adapter.path.generator.document';
+            $contextId = 'document';
         }
 
         if (!empty($this->currentContext)) {
@@ -51,7 +51,7 @@ class PathGeneratorManager
         }
 
         if(!$this->pathGeneratorRegistry->has($contextId)) {
-            throw new \Exception(sprintf('path.generator adapter "%s" is not available. please use "%s" tag to register new adapter.', $contextId, 'i18n.adapter.path.generator'));
+            throw new \Exception(sprintf('path.generator adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.', $contextId, 'i18n.adapter.path.generator', $contextId));
         }
 
         $this->currentPathGenerator = $this->pathGeneratorRegistry->get($contextId);
