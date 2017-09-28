@@ -425,7 +425,7 @@ class ZoneManager
         $urlInfo = parse_url($domain);
 
         $port = '';
-        if ($urlInfo['port'] !== 80) {
+        if (isset($urlInfo['port']) && $urlInfo['port'] !== 80) {
             $port = $urlInfo['port'];
         }
 

@@ -132,13 +132,12 @@ class HeadLinkListener implements EventSubscriberInterface
         foreach ($hrefLinks as $link) {
 
             $countryIsoTag = NULL;
-
             if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country') {
                 $countryIsoTag = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
             }
 
-            if ($link['language'] === $defaultLanguage && $link['country'] === $countryIsoTag) {
-                $hrefUrl = $link['href'];
+            if ($link['languageIso'] === $defaultLanguage && $link['countryIso'] === $countryIsoTag) {
+                $hrefUrl = $link['url'];
                 break;
             }
         }
