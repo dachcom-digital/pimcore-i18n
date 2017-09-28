@@ -127,6 +127,7 @@ class HeadLinkListener implements EventSubscriberInterface
             return $hrefUrl;
         }
 
+        //@todo: define a default language via zones.
         $defaultLanguage = $this->zoneManager->getCurrentZoneLanguageAdapter()->getDefaultLanguage();
 
         foreach ($hrefLinks as $link) {
@@ -136,6 +137,7 @@ class HeadLinkListener implements EventSubscriberInterface
                 $countryIsoTag = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
             }
 
+            //@todo: define a default country for xDefault via zones
             if ($link['languageIso'] === $defaultLanguage && $link['countryIso'] === $countryIsoTag) {
                 $hrefUrl = $link['url'];
                 break;
