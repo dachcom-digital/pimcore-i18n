@@ -11,7 +11,6 @@ We're only show you a example with countries, if you need to do this with langua
 # in app/config/services.yml
 AppBundle\Services\I18nBundle\CountryAdapter\Special:
     parent: I18nBundle\Adapter\Context\AbstractContext
-    autowire: true
     public: false
     tags:
         - { name: i18n.adapter.country, alias: special }
