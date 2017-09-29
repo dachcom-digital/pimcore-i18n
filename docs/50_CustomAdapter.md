@@ -9,9 +9,8 @@ We're only show you a example with countries, if you need to do this with langua
 
 ```yaml
 # in app/config/services.yml
-app.i18n.adapter.country.special:
+AppBundle\Services\I18nBundle\CountryAdapter\Special:
     public: true
-    class: AppBundle\Services\I18nBundle\CountryAdapter\Special
     tags:
         - { name: i18n.adapter.country }
 ```

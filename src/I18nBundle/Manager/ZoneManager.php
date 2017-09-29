@@ -60,8 +60,12 @@ class ZoneManager
      * @param LanguageRegistry $languageRegistry
      * @param CountryRegistry  $countryRegistry
      */
-    public function __construct(SiteResolver $siteResolver, Configuration $configuration, LanguageRegistry $languageRegistry, CountryRegistry $countryRegistry)
-    {
+    public function __construct(
+        SiteResolver $siteResolver,
+        Configuration $configuration,
+        LanguageRegistry $languageRegistry,
+        CountryRegistry $countryRegistry
+    ) {
         $this->siteResolver = $siteResolver;
         $this->configuration = $configuration;
         $this->languageRegistry = $languageRegistry;
