@@ -1,7 +1,35 @@
 # Zones
-Learn how to use i18n Zones.
 
 ![zone](https://user-images.githubusercontent.com/700119/28177968-0a3e592e-67fd-11e7-99a3-52b8f77683a4.jpg)
+
+By default the i18nBundle works with the global settings (see example below). 
+But you may need some more complex structures, so we implemented the zone manager.
+
+### Default Configuration Options
+
+| Name | Description |
+|------|-------------|
+| mode | Set mode (`language` or `country`) |
+| language_adapter | Language Adapter (`system`, by default) |
+| country_adapter | Country Adapter (`system`, by default) |
+| default_language | Define a default country (ISO-Code, lowercase) |
+| default_country | Define a default country (ISO-Code, uppercase) |
+| global_prefix | Define a global prefix (like de-global or de-int) |
+| translations | Static Route translations |
+| zones | Array for complex Zones |
+
+### Zone Configuration Options
+Basically there are the same options as in the default configuration, except that you can't define zones within zones.
+
+| Name | Description |
+|------|-------------|
+| mode | Set mode (`language` or `country`) |
+| language_adapter | Language Adapter (`system`, by default) |
+| country_adapter | Country Adapter (`system`, by default) |
+| default_language | Define a default country (ISO-Code, lowercase) |
+| default_country | Define a default country (ISO-Code, uppercase) |
+| global_prefix | Define a global prefix (like de-global or de-int) |
+| translations | Static Route translations |
 
 
 ### Configuration
@@ -17,6 +45,12 @@ i18n:
 
     # define a country adapter (system|coreshop|custom)
     country_adapter: system
+
+    # define a default language - this value is optional and does not to be defined
+    default_language: 'en'
+
+    # define a default country - this value is optional and does not to be defined
+    default_country: 'US'
 
     # define a global prefix (like de-global or de-int)
     global_prefix: ~

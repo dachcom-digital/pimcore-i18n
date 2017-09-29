@@ -2,5 +2,7 @@ i18n:
     mode: language
     language_adapter: system
     country_adapter: ~ # system|coreshop
+    default_language: ~
+    default_country: ~
     translations: ~
     zones: ~

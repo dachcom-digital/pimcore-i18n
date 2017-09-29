@@ -2,7 +2,6 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
-use I18nBundle\Definitions;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
@@ -111,9 +110,9 @@ class HeadLinkListener implements EventSubscriberInterface
     }
 
     /**
-     * Define xDefault Url based on crawled pages.
-     * country mode: get global page and default language from system settings
-     * language mode: get page with default language from system settings
+     * Define x-default url based on crawled pages.
+     * country mode: get global page and default language from default/system settings
+     * language mode: get page with default language from default/system settings
      *
      * @param array $hrefLinks
      *
@@ -127,18 +126,15 @@ class HeadLinkListener implements EventSubscriberInterface
             return $hrefUrl;
         }
 
-        //@todo: define a default language via zones.
+        $defaultCountry = NULL;
         $defaultLanguage = $this->zoneManager->getCurrentZoneLanguageAdapter()->getDefaultLanguage();
 
         foreach ($hrefLinks as $link) {
-
             $countryIsoTag = NULL;
             if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country') {
-                $countryIsoTag = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
+                $defaultCountry = $this->zoneManager->getCurrentZoneCountryAdapter()->getDefaultCountry();
             }
-
-            //@todo: define a default country for xDefault via zones
-            if ($link['languageIso'] === $defaultLanguage && $link['countryIso'] === $countryIsoTag) {
+            if ($link['languageIso'] === $defaultLanguage && $link['countryIso'] === $defaultCountry) {
                 $hrefUrl = $link['url'];
                 break;
             }

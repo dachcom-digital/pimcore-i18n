@@ -170,6 +170,11 @@ class ZoneManager
         return $this->currentZone[$slot];
     }
 
+    /**
+     * @param bool $flatten
+     *
+     * @return array|null
+     */
     public function getCurrentZoneDomains($flatten = FALSE)
     {
         if (empty($this->currentZone)) {
@@ -248,8 +253,8 @@ class ZoneManager
             ? $this->languageRegistry->get($config['language_adapter'])
             : NULL;
 
-        if (!is_null($languageAdapter) && !is_null($zoneId)) {
-            $languageAdapter->setCurrentZoneId($zoneId);
+        if (!is_null($languageAdapter)) {
+            $languageAdapter->setCurrentZoneConfig($zoneId, $this->setZoneConfiguration($config));
         }
 
         /** @var AbstractCountry $countryAdapter */
@@ -257,8 +262,8 @@ class ZoneManager
             ? $this->countryRegistry->get($config['country_adapter'])
             : NULL;
 
-        if (!is_null($countryAdapter) && !is_null($zoneId)) {
-            $countryAdapter->setCurrentZoneId($zoneId);
+        if (!is_null($countryAdapter)) {
+            $countryAdapter->setCurrentZoneConfig($zoneId, $this->setZoneConfiguration($config));
         }
 
         $mapData = $this->currentZone = [
@@ -426,9 +431,8 @@ class ZoneManager
 
     private function getDomainPort($domain)
     {
-        $urlInfo = parse_url($domain);
-
         $port = '';
+        $urlInfo = parse_url($domain);
         if (isset($urlInfo['port']) && $urlInfo['port'] !== 80) {
             $port = $urlInfo['port'];
         }
@@ -439,25 +443,36 @@ class ZoneManager
     private function flattenDomainTree($zoneDomains)
     {
         $elements = [];
-
         foreach ($zoneDomains as $domain) {
-
             if (!empty($domain['subPages'])) {
                 foreach ($domain['subPages'] as $subPage) {
                     $elements[] = $subPage;
                 }
             }
-
+            //remove sub pages now
             unset($domain['subPages']);
-
             if (empty($domain['countryIso']) && empty($domain['languageIso'])) {
                 continue;
             }
-
             $elements[] = $domain;
         }
 
         return $elements;
+    }
+
+    /**
+     * create config array for adapter classes
+     *
+     * @param $config
+     *
+     * @return array
+     */
+    private function setZoneConfiguration($config)
+    {
+        $blackList = ['zones', 'mode', 'language_adapter', 'country_adapter'];
+        $validConfig = array_diff_key($config, array_flip($blackList));
+
+        return $validConfig;
     }
 
 }

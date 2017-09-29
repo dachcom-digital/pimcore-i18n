@@ -41,6 +41,11 @@ class DetectorListener implements EventSubscriberInterface
     private $defaultLanguage = NULL;
 
     /**
+     * @var string
+     */
+    private $defaultCountry = NULL;
+
+    /**
      * @var array
      */
     private $validLanguages = [];
@@ -205,6 +210,7 @@ class DetectorListener implements EventSubscriberInterface
 
         if ($this->i18nType === 'country') {
             $this->validCountries = $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
+            $this->defaultCountry = $this->zoneManager->getCurrentZoneCountryAdapter()->getDefaultCountry();
         }
 
         $globalPrefix = $this->zoneManager->getCurrentZoneInfo('global_prefix');
@@ -367,7 +373,8 @@ class DetectorListener implements EventSubscriberInterface
             $this->zoneManager->getCurrentZoneDomains(TRUE),
             $userLanguageIso,
             $this->defaultLanguage,
-            $userCountryIso
+            $userCountryIso,
+            $this->defaultCountry
         );
 
         return $matchUrl;

@@ -6,10 +6,11 @@ interface LanguageInterface
 {
     /**
      * @param $zoneId
+     * @param $zoneConfig
      *
      * @return void
      */
-    function setCurrentZoneId($zoneId);
+    function setCurrentZoneConfig($zoneId, $zoneConfig);
 
     /**
      * Get Active Languages
@@ -28,5 +29,5 @@ interface LanguageInterface
     /**
      * @return string
      */
-    function getDefaultLanguage(): string;
+    function getDefaultLanguage();
 }

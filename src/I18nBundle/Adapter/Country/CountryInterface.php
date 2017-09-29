@@ -6,16 +6,22 @@ interface CountryInterface
 {
     /**
      * @param $zoneId
+     * @param $zoneConfig
      *
      * @return void
      */
-    function setCurrentZoneId($zoneId);
+    function setCurrentZoneConfig($zoneId, $zoneConfig);
 
     /**
      * Get Active Countries
      * @return array
      */
     function getActiveCountries(): array;
+
+    /**
+     * @return string
+     */
+    function getDefaultCountry();
 
     /**
      * @param $isoCode
