@@ -10,12 +10,24 @@ We're only show you a example with countries, if you need to do this with langua
 ```yaml
 # in app/config/services.yml
 AppBundle\Services\I18nBundle\CountryAdapter\Special:
-    public: true
+    parent: I18nBundle\Adapter\Context\AbstractContext
+    autowire: true
+    public: false
     tags:
-        - { name: i18n.adapter.country }
+        - { name: i18n.adapter.country, alias: special }
 ```
 
-### 2. Create a class
+### 2. Set Country Adapter in your Configuration
+
+```yaml
+# in app/config/config.yml
+i18n:
+    mode: country
+    language_adapter: system
+    country_adapter: special
+```
+
+### 3. Create a class
 
 Create a class, extend it from `AbstractCountry` and implement the `CountryInterface`.
 In this example, we define some countries and we'll deliver some other countries if we're in a different zone.

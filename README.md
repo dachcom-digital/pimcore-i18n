@@ -28,8 +28,8 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 - frontpage mapping for hardlink trees
 
 ### Preparation
-- If you're using `i18n.adapter.language.system` as your language adapter, which is the default, you need to enable all global languages in pimcore system settings
-- If you're using `i18n.adapter.country.system` as your country adapter, which is the default, you need to enable all global countries (also called languages in pimcore) in pimcore system settings
+- If you're using `system` as your language adapter, which is the default, you need to enable all global languages in pimcore system settings
+- If you're using `system` as your country adapter, which is the default, you need to enable all global countries (also called languages in pimcore) in pimcore system settings
 - Always be sure that every document translation is connected via the [localization tool](https://www.pimcore.org/docs/5.0.0/Multi_Language_i18n/Localize_your_Documents.html).
 
 ### Zones
