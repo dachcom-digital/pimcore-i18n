@@ -3,6 +3,7 @@
 namespace I18nBundle\Adapter\Country;
 
 use I18nBundle\Definitions;
+use Pimcore\Config;
 use Pimcore\Tool;
 
 class System extends AbstractCountry
@@ -11,6 +12,11 @@ class System extends AbstractCountry
      * @var null
      */
     protected $validCountries = NULL;
+
+    /**
+     * @var bool|null|string
+     */
+    protected $defaultCountry = FALSE;
 
     /**
      * @return array
@@ -57,6 +63,35 @@ class System extends AbstractCountry
         }
 
         return NULL;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDefaultCountry()
+    {
+        if ($this->defaultCountry !== FALSE) {
+            return $this->defaultCountry;
+        }
+
+        $defaultCountry = NULL;
+        $configDefaultCountry = $this->currentZoneConfig['default_country'];
+
+        if(!is_null($configDefaultCountry)) {
+            $defaultCountry = $configDefaultCountry;
+        } else {
+            $config = Config::getSystemConfig();
+            $defaultLanguage = $config->general->defaultLanguage;
+            if (strpos($defaultLanguage, '_') === FALSE) {
+                $defaultCountry = $this->getGlobalInfo()['isoCode'];
+            } else {
+                $defaultCountry = end(explode('_', $defaultLanguage));
+            }
+        }
+
+        $this->defaultCountry = $defaultCountry;
+
+        return $this->defaultCountry;
     }
 
     /**

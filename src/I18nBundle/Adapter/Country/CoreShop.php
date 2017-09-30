@@ -8,6 +8,11 @@ use I18nBundle\Definitions;
 class CoreShop extends AbstractCountry
 {
     /**
+     * @var bool|null|string
+     */
+    protected $defaultCountry = FALSE;
+
+    /**
      * @return array
      */
     public function getActiveCountries() : array
@@ -56,6 +61,14 @@ class CoreShop extends AbstractCountry
         }
 
         return $data;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function getDefaultCountry()
+    {
+        throw new \Exception('not implemented');
     }
 
     /**

@@ -15,12 +15,12 @@ i18n will generate a x-default link, based on default values:
 - First, the i18nBundle will search for the `default_language` config.
 - If not defined, the default system language will be used
 - If not defined, NULL will be returned (which means, no x-default tag)
-> **Note**: It's possible to override the `getDefaultLanguage()` method within a custom language adapter since it's placed in the abstract class.
+> **Note**: It's possible to override the `getDefaultLanguage()` method within a custom language adapter.
 
 ### default country workflow
 - First, the i18nBundle will search for the `default_country` config.
 - If not defined, the default system country (for example, en_US => US) will be used
 - If not defined, NULL will be returned
-> **Note**: It's possible to override the `getDefaultCountry()` method within a custom country adapter since it's placed in the abstract class.
+> **Note**: It's possible to override the `getDefaultCountry()` method within a custom country adapter.
 
 **Important:** Be sure that both default values (language, country) are valid (in current zone). Otherwise no x-default tag will be generated.
