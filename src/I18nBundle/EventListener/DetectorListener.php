@@ -158,7 +158,7 @@ class DetectorListener implements EventSubscriberInterface
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
-        if($event->isMasterRequest() === FALSE) {
+        if ($event->isMasterRequest() === FALSE) {
             return;
         }
 
@@ -254,6 +254,7 @@ class DetectorListener implements EventSubscriberInterface
         $validCountry = !empty($documentCountry) && array_search(strtoupper($documentCountry), array_column($this->validCountries, 'isoCode')) !== FALSE;
         $validLanguage = !empty($documentLanguage) && array_search($documentLanguage, array_column($this->validLanguages, 'isoCode')) !== FALSE;
 
+        // @todo: currently, redirect works only with pimcore documents and static routes. symfony routes will be ignored.
         if ($validRoute) {
             if ($this->i18nType === 'language') {
                 //first get valid language
@@ -271,23 +272,24 @@ class DetectorListener implements EventSubscriberInterface
                     $event->setResponse(new RedirectResponse($url));
                     return;
                 }
-
-                $currentCountry = strtoupper($documentCountry);
             }
+        }
 
+        //Set Locale.
+        if ($validLanguage === TRUE) {
             if (strpos($documentLanguage, '_') !== FALSE) {
                 $parts = explode('_', $documentLanguage);
                 $currentLanguage = $parts[0];
             } else {
                 $currentLanguage = $documentLanguage;
             }
+
+            Cache\Runtime::set('i18n.languageIso', strtolower($currentLanguage));
         }
 
-        //Set Locale.
-        Cache\Runtime::set('i18n.languageIso', strtolower($currentLanguage));
-
         //Set Country. This variable is only !false if i18n country is active
-        if ($currentCountry !== FALSE) {
+        if ($validCountry === TRUE) {
+            $currentCountry = strtoupper($documentCountry);
             Cache\Runtime::set('i18n.countryIso', $currentCountry);
         }
 
