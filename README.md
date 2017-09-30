@@ -3,7 +3,7 @@
 ![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
 
 ## Requirements
-* Pimcore 5. Only with Build 108 or greater.
+* Pimcore 5.
 
 ## Introduction
 Pimcore already comes with some great features to build internationalized websites. But there are some gaps we have to handle by ourselves: search engine guidelines, geo based redirects and a dynamic link handling for internal documents. 
