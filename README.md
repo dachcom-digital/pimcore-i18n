@@ -44,4 +44,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 
 ## Copyright and License
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
-For licensing details please visit [LICENSE.md](LICENSE.md)  
+For licensing details please visit [LICENSE.md](LICENSE.md)
+
+## Upgrade Info
+Before updating, please [check our upgrade notes!](UPGRADE.md)  

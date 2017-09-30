@@ -2,6 +2,7 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
+use I18nBundle\I18nEvents;
 use Pimcore\Model\Document as PimcoreDocument;
 use Pimcore\Model\Staticroute as PimcoreStaticRoute;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -98,7 +99,7 @@ class StaticRoute extends AbstractPathGenerator
         ]);
 
         \Pimcore::getEventDispatcher()->dispatch(
-            'i18n.path.staticRoute.alternate',
+            I18nEvents::PATH_ALTERNATE_STATIC_ROUTE,
             $event
         );
 
@@ -116,7 +117,6 @@ class StaticRoute extends AbstractPathGenerator
                         }
 
                         //$staticRouteParams['siteIsLanguageRoot'] = $routeInfo['siteIsLanguageRoot'];
-
                         $link = $this->urlGenerator->generate($staticRouteName, $staticRouteParams);
 
                         $finalStoreData = [

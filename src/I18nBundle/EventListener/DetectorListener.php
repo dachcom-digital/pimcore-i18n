@@ -6,6 +6,7 @@ use I18nBundle\Definitions;
 use I18nBundle\Helper\DocumentHelper;
 use I18nBundle\Helper\UserHelper;
 use I18nBundle\Helper\ZoneHelper;
+use I18nBundle\I18nEvents;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
@@ -301,15 +302,19 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * @todo: language switch detection will not work in cross-domain environment
+     * @todo: respect zone id - submit zone id to event, user should be able to implement custom logic in case of zone switches.
      *
      * @param $currentLanguage
      * @param $currentCountry
      *
-     * @return bool
+     * @return void
      */
     private function detectLanguageOrCountrySwitch($currentLanguage, $currentCountry)
     {
+        if (!$this->isValidI18nCheckRequest()) {
+            return;
+        }
+
         $session = $this->getSessionData();
 
         $languageHasSwitched = FALSE;
@@ -353,15 +358,14 @@ class DetectorListener implements EventSubscriberInterface
                 'params' => $params
             ]);
 
-            //@todo: website.i18nSwitch old
             \Pimcore::getEventDispatcher()->dispatch(
-                'i18n.switch', $event
+                I18nEvents::CONTEXT_SWITCH,
+                $event
             );
         }
     }
 
     /**
-     * @todo: implement multi-country-domain
      * Returns absolute Url to website with language-country context.
      * Because this could be a different domain, absolute url is necessary
      * @return bool|string
@@ -434,6 +438,10 @@ class DetectorListener implements EventSubscriberInterface
      */
     private function updateSessionData($languageData = FALSE, $countryData = FALSE)
     {
+        if (!$this->isValidI18nCheckRequest()) {
+            return;
+        }
+
         /** @var \Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag $bag */
         $bag = $this->request->getSession()->getBag('i18n_session');
 
