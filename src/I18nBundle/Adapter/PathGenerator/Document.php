@@ -116,10 +116,15 @@ class Document extends AbstractPathGenerator
             }
         } else {
 
+            $hardLinksToCheck = [];
             $service = new PimcoreDocument\Service;
             $translations = $service->getTranslations($currentDocument);
 
-            $hardLinksToCheck = [];
+            //if no translation has been found, add document itself:
+            if(empty($translations) && $currentDocument->hasProperty('language')) {
+                $translations = [$currentDocument->getProperty('language') => $currentDocument->getId()];
+            }
+
 
             foreach ($tree as $pageInfo) {
                 if (empty($pageInfo['languageIso']) || empty($pageInfo['countryIso'])) {
