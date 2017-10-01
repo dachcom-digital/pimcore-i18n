@@ -331,7 +331,7 @@ class DetectorListener implements EventSubscriberInterface
             $languageHasSwitched = TRUE;
         }
 
-        if (is_null($session['lastCountry']) || (!is_null($session['lastCountry']) && $currentCountry !== $session['lastCountry'])) {
+        if ($session['lastCountry'] !== FALSE && (!is_null($session['lastCountry']) && $currentCountry !== $session['lastCountry'])) {
             $countryHasSwitched = TRUE;
         }
 
