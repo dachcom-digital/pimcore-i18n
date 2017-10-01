@@ -22,10 +22,10 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 ## Features
 - Geo redirects
 - Thanks to the hardlink element you can easily create copies of webpages with additional country information without adding and maintain duplicate content
-- Manage href-lang tags
-- Handle internal link redirects based on hardlink context
+- Manage [href-lang](docs/25_HrefLang.md) tags
+- [Handle](docs/90_InternalLinkRewriter.md) internal link redirects based on hardlink context
 - Domain mapping (`domain.com`) and/or language slug (`/en`) strategies
-- front page mapping for hardlink trees
+- [front page mapping](docs/30_FrontPageMapping.md) for hardlink trees
 
 ### Preparation
 - If you're using `system` as your language adapter, which is the default, you need to enable all global languages in pimcore system settings
