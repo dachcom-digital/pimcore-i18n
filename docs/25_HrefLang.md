@@ -6,18 +6,18 @@ The i18nBundle will handle the href lang tags for you which are very important f
 ## Prearrangement
 It's very important, that you're connect your localized documents using the [pimcore localization service](https://pimcore.com/docs/5.0.x/Multi_Language_i18n/Localize_your_Documents.html#page_Localization_Tool).
 
-> **Note**: If you're **not** localizing your documents, no hreflang tags will be generated which will lead to a negative impact on your SEO strategies.  
+> **Note**: If you're **not** localizing your documents, no hreflang tags will be generated which will lead to a negative impact on your SEO strategies. There is, however, some magic if your using the [country mode](27_Countries.md).
 
-## x-default
+## X-Default
 i18n will generate a x-default link, based on default values:
 
-### default language workflow
+### Default Language Workflow
 - First, the i18nBundle will search for the `default_language` config.
 - If not defined, the default system language will be used
 - If not defined, NULL will be returned (which means, no x-default tag)
 > **Note**: It's possible to override the `getDefaultLanguage()` method within a custom language adapter.
 
-### default country workflow
+### Default Country Workflow
 - First, the i18nBundle will search for the `default_country` config.
 - If not defined, the default system country (for example, en_US => US) will be used
 - If not defined, NULL will be returned
