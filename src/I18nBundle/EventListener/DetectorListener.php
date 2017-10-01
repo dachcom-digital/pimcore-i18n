@@ -183,17 +183,11 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         $this->request = $event->getRequest();
-
-        if (strpos($this->request->getLocale(), '-') !== FALSE) {
-            $this->request->setLocale(str_replace('-', '_', $this->request->getLocale()));
-        }
-
         if (!$this->matchesPimcoreContext($this->request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
             return;
         }
 
         $this->document = $this->documentResolver->getDocument($this->request);
-
         if (!$this->document) {
             return;
         }
@@ -224,6 +218,17 @@ class DetectorListener implements EventSubscriberInterface
         } else {
             $documentCountry = $this->document->getProperty('country');
             $documentLanguage = $this->document->getProperty('language');
+        }
+
+        /**
+         * If a hardlink is requested e.g. /en-us, pimcore gets the locale from the source, which is "quite" wrong.
+         */
+        $requestLocale = $this->request->getLocale();
+        if($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
+            $hardLinkSourceLanguage = $this->document->getHardLinkSource()->getProperty('language');
+            if(!empty($hardLinkSourceLanguage) && $hardLinkSourceLanguage !== $requestLocale) {
+                $this->request->setLocale($hardLinkSourceLanguage);
+            }
         }
 
         $currentRouteName = $this->request->get('_route');
