@@ -34,6 +34,10 @@ class Country extends AbstractContext
      */
     public function getCountryNameByIsoCode($countryIso, $locale = NULL)
     {
+        if($countryIso === FALSE) {
+            return NULL;
+        }
+
         if ($countryIso === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
             return Translation\Website::getByKeyLocalized('International', TRUE, TRUE);
         }
