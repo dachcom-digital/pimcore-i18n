@@ -41,8 +41,9 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 - [Localized Error Documents](docs/40_LocaleErrorDocument.md): Learn how to create localized error documents.
 - [Custom Adapter](docs/50_CustomAdapter.md): Learn how to create a custom adapter.
 - [Code Examples](docs/60_CodeExamples.md): See some examples.
-- [Context Switch Event](docs/70_ContextSwitch.md): Detect Zone/Language/Country Switches.
-- [Canonical Links](docs/80_CanonicalLinks.md): Canonical Links in Hardlinks.
+- [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
+- [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in Hardlinks.
+- [Internal Links](docs/90_InternalLinkRewriter.md): Rewrite Internal Links.
 
 ## Copyright and License
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  

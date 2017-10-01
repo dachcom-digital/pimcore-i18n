@@ -1,7 +1,7 @@
-# Country
+# create a website with country context
 This is only required if you're using i18n with a country adapter.
-There are two ways to implement a country page like `en-us`:
 
+There are two ways to implement a country page like `en-us`:
 1. Copy and paste the `en` document tree and rename `en` to `en-us`.
 2. Create a hardlink, call it `en-us` and set the reference to `en`.
 

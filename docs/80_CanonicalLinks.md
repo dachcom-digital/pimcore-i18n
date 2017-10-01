@@ -18,7 +18,7 @@ link: <https://pimcore5-domain4.dev/en/news>; rel="canonical"
 ```
 
 But in this case, we want to remove the canonical link because we need country specific content and we'll tell search engines about the references via [href-lang tags](25_HrefLang.md) anyway.
-So the i18nBundle will remove this canonical tag automatically for your. If you check your http request after installing this bundle, the canonical link will be gone.
+So the i18nBundle will remove this canonical tag automatically for you. If you check your http request after installing this bundle, the canonical link will be gone.
 
 ## Oh no!
 **But!** What if you have some hardlinks inside the country site? For Example:
