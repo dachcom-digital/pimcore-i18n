@@ -1,5 +1,5 @@
 # Front Page Mapping
-Sometimes you want to clone a page and expand it with some country information. For example:
+Sometimes you want to clone a page and expand it with some [country](27_Countries.md) information. For example:
 
 ```text
 - /en
@@ -16,7 +16,8 @@ If you want to override the team content you just need to copy your `/en/team` i
 But what if you want to override the front page content? That's a tricky one since `en-us` is just a hardlink.
 
 ### i18n to the rescue
-Just add a new (document) property  named `front_page_map` to your hardlink and assign a custom document. you can leave the document unpublished, so it stays private.
+Just add a new (document) property  named `front_page_map` to your hardlink and assign a custom document. 
+You can leave the document unpublished, so it stays private.
 
 > This property should be available in your predefined properties since it gets automatically installed.
 

@@ -18,6 +18,8 @@ Otherwise just create a document as you would normally do.
 2. Apply the property to all your global pages (like `/de`, `/en`) and set the value to `GLOBAL`
 3. Apply the property to all your real website hardlinks/documents and set the desired country ISO-Code (uppercase)
 
+> This property should be available in your predefined properties since it gets automatically installed, you may extend the default configuration.
+
 ## Magic
 All hardlink references will be generated automatically.
 So if you have have a page in `/en/about-us` the href-lang generator or context helper searches in all available hardlinks.
