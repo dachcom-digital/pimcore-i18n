@@ -1,4 +1,4 @@
-# create a website with country context
+# Create a website with country context
 This is only required if you're using i18n with a country adapter.
 
 There are two ways to implement a country page like `en-us`:
