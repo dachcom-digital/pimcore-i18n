@@ -122,7 +122,6 @@ class Document extends AbstractPathGenerator
             $hardLinksToCheck = [];
 
             foreach ($tree as $pageInfo) {
-
                 if (empty($pageInfo['languageIso']) || empty($pageInfo['countryIso'])) {
                     continue;
                 }
@@ -160,9 +159,7 @@ class Document extends AbstractPathGenerator
             if (!empty($hardLinksToCheck)) {
 
                 foreach ($hardLinksToCheck as $hardLinkWrapper) {
-
                     $sameLanguageContext = array_search($hardLinkWrapper['languageIso'], array_column($routes, 'languageIso'));
-
                     if ($sameLanguageContext === FALSE || !isset($routes[$sameLanguageContext])) {
                         continue;
                     }

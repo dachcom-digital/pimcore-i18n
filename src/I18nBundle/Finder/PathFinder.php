@@ -76,6 +76,7 @@ class PathFinder
         $currentCountryIso = $document->getProperty('country');
         $currentLanguageIso = $document->getProperty('language');
 
+        //only extract language fragment.
         if(strpos($currentLanguageIso, '_') !== FALSE) {
             $parts = explode('_', $currentLanguageIso);
             $currentLanguageIso = $parts[0];
@@ -100,11 +101,11 @@ class PathFinder
 
         $localePart = array_shift($urlPathFragments);
 
-        //check if localePart is a valid i18n part
-        if ($this->hasI18nContext($localePart)) {
-
+        //check if localePart is a valid country i18n part
+        if ($this->hasDelimiterContext($localePart)) {
             //explode first path fragment, assuming that the first part is language/country slug
-            $pathElements = explode('-', $localePart);
+            $delimiter = strpos($localePart, '_') !== FALSE ? '_' : '-';
+            $pathElements = explode($delimiter, $localePart);
 
             //invalid i18n format
             if (count($pathElements) !== 2) {
@@ -121,26 +122,24 @@ class PathFinder
         }
 
         if ($currentCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
-            $this->localeFragment = [$currentLanguageIso . '-' . $currentCountryIso];
+            $formatting = $this->getContextFormatting($document->getKey());
+            $formattedCountryIso = !$formatting['uppercase'] ? strtolower($currentCountryIso) : $currentCountryIso;
+            $this->localeFragment = [$currentLanguageIso . $formatting['delimiter'] . $formattedCountryIso];
         } else {
             $this->localeFragment = [$currentLanguageIso];
         }
 
         $newFrontEndPath = $this->buildLocaleUrl($urlPathFragments);
-
-        //same same. return false.
         if ($newFrontEndPath === $frontEndPath) {
             return FALSE;
         }
-
-        //\Pimcore\Logger::log('i18n path: ' . $frontEndPath . ' => ' . $newFrontEndPath);
 
         return $newFrontEndPath;
     }
 
     private function buildLocaleUrl($url = [])
     {
-        return strtolower('/' . join('/', array_merge($this->localeFragment, $url)));
+        return '/' . join('/', array_merge($this->localeFragment, $url));
     }
 
     /**
@@ -148,9 +147,9 @@ class PathFinder
      *
      * @return bool
      */
-    private function hasI18nContext($path)
+    private function hasDelimiterContext($path)
     {
-        return strpos($path, '-') !== FALSE;
+        return strpos($path, '-') !== FALSE || strpos($path, '_') !== FALSE;
     }
 
     /**
@@ -181,5 +180,16 @@ class PathFinder
     private function getValidCountries()
     {
         return $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
+    }
+
+    private function getContextFormatting($key)
+    {
+        $delimiter = strpos($key, '_') !== FALSE ? '_' : '-';
+        $country = end(explode($delimiter, $key));
+
+        return [
+            'delimiter' => $delimiter,
+            'uppercase' => ctype_upper($country)
+        ];
     }
 }

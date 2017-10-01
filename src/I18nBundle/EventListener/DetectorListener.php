@@ -184,7 +184,6 @@ class DetectorListener implements EventSubscriberInterface
 
         $this->request = $event->getRequest();
 
-        //@fixme if pimcore hardlink context issue has been fixed.
         if (strpos($this->request->getLocale(), '-') !== FALSE) {
             $this->request->setLocale(str_replace('-', '_', $this->request->getLocale()));
         }
@@ -263,7 +262,6 @@ class DetectorListener implements EventSubscriberInterface
                     if ($this->canRedirect() && $this->i18nType === 'language') {
                         $url = $this->getRedirectUrl($this->getLanguageUrl());
                         $event->setResponse(new RedirectResponse($url));
-
                         return;
                     }
                 }
@@ -272,7 +270,6 @@ class DetectorListener implements EventSubscriberInterface
                 if ($this->canRedirect() && (!$validCountry || !$validLanguage)) {
                     $url = $this->getRedirectUrl($this->getCountryUrl());
                     $event->setResponse(new RedirectResponse($url));
-
                     return;
                 }
             }
