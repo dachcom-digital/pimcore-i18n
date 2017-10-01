@@ -41,6 +41,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 - [Localized Error Documents](docs/40_LocaleErrorDocument.md): Learn how to create localized error documents.
 - [Custom Adapter](docs/50_CustomAdapter.md): Learn how to create a custom adapter.
 - [Code Examples](docs/60_CodeExamples.md): See some examples.
+- [Context Switch Event](docs/70_ContextSwitch.md): Detect Zone/Language/Country Switches.
 
 ## Copyright and License
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  

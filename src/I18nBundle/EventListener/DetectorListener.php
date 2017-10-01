@@ -3,6 +3,7 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Definitions;
+use I18nBundle\Event\ContextSwitchEvent;
 use I18nBundle\Helper\DocumentHelper;
 use I18nBundle\Helper\UserHelper;
 use I18nBundle\Helper\ZoneHelper;
@@ -17,7 +18,6 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
 
 use Pimcore\Cache;
 use Pimcore\Logger;
@@ -263,6 +263,7 @@ class DetectorListener implements EventSubscriberInterface
                     if ($this->canRedirect() && $this->i18nType === 'language') {
                         $url = $this->getRedirectUrl($this->getLanguageUrl());
                         $event->setResponse(new RedirectResponse($url));
+
                         return;
                     }
                 }
@@ -271,6 +272,7 @@ class DetectorListener implements EventSubscriberInterface
                 if ($this->canRedirect() && (!$validCountry || !$validLanguage)) {
                     $url = $this->getRedirectUrl($this->getCountryUrl());
                     $event->setResponse(new RedirectResponse($url));
+
                     return;
                 }
             }
@@ -294,22 +296,26 @@ class DetectorListener implements EventSubscriberInterface
             Cache\Runtime::set('i18n.countryIso', $currentCountry);
         }
 
-        //check if language or country has been changed, trigger event for 3th party.
-        $this->detectLanguageOrCountrySwitch($currentLanguage, $currentCountry);
+        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zoneId');
+
+        //check if zone, language or country has been changed, trigger event for 3th party.
+        $this->detectContextSwitch($currentZoneId, $currentLanguage, $currentCountry);
 
         //update session
-        $this->updateSessionData($currentLanguage, $currentCountry);
+        $this->updateSessionData($currentZoneId, $currentLanguage, $currentCountry);
     }
 
     /**
-     * @todo: respect zone id - submit zone id to event, user should be able to implement custom logic in case of zone switches.
+     * Important: ContextSwitch only works in same domain levels.
+     * Since there is no way for simple cross-domain session ids, the zone switch will be sort of useless most of the time. :(
      *
+     * @param $currentZoneId
      * @param $currentLanguage
      * @param $currentCountry
      *
      * @return void
      */
-    private function detectLanguageOrCountrySwitch($currentLanguage, $currentCountry)
+    private function detectContextSwitch($currentZoneId, $currentLanguage, $currentCountry)
     {
         if (!$this->isValidI18nCheckRequest()) {
             return;
@@ -319,48 +325,70 @@ class DetectorListener implements EventSubscriberInterface
 
         $languageHasSwitched = FALSE;
         $countryHasSwitched = FALSE;
+        $zoneHasSwitched = FALSE;
 
         if (is_null($session['lastLanguage']) || (!is_null($session['lastLanguage']) && $currentLanguage !== $session['lastLanguage'])) {
             $languageHasSwitched = TRUE;
         }
 
-        if ($this->i18nType === 'country' && (is_null($session['lastCountry']) || (!is_null($session['lastCountry']) && $currentCountry !== $session['lastCountry']))) {
+        if (is_null($session['lastCountry']) || (!is_null($session['lastCountry']) && $currentCountry !== $session['lastCountry'])) {
             $countryHasSwitched = TRUE;
         }
 
-        if ($languageHasSwitched || $countryHasSwitched) {
-            if ($languageHasSwitched === TRUE) {
-                Logger::log('switch language! from ' . $session['lastLanguage'] . ' to ' . $currentLanguage . ' triggered by: ' . $_SERVER['REQUEST_URI']);
-            }
+        if ($currentZoneId !== $session['lastZoneId']) {
+            $zoneHasSwitched = TRUE;
+        }
+
+        if ($zoneHasSwitched || $languageHasSwitched || $countryHasSwitched) {
 
             $params = [
+                'zoneHasSwitched'     => $zoneHasSwitched,
+                'zoneFrom'            => $session['lastZoneId'],
+                'zoneTo'              => $currentZoneId,
                 'languageHasSwitched' => $languageHasSwitched,
                 'languageFrom'        => $session['lastLanguage'],
                 'languageTo'          => $currentLanguage,
+                'countryHasSwitched'  => $countryHasSwitched,
+                'countryFrom'         => $session['lastCountry'],
+                'countryTo'           => $currentCountry
             ];
 
-            if ($this->i18nType === 'country') {
-                $params = array_merge(
-                    $params,
-                    [
-                        'countryHasSwitched' => $countryHasSwitched,
-                        'countryFrom'        => $session['lastCountry'],
-                        'countryTo'          => $currentCountry,
-                    ]
+            if ($zoneHasSwitched === TRUE) {
+                Logger::log(
+                    sprintf(
+                        'switch zone: from %s to %s. triggered by: %s',
+                        $session['lastZoneId'],
+                        $currentZoneId,
+                        $this->request->getRequestUri()
+                    )
                 );
-
-                if ($countryHasSwitched === TRUE) {
-                    Logger::log('switch country! from ' . $session['lastCountry'] . ' to ' . $currentCountry . ' triggered by: ' . $_SERVER['REQUEST_URI']);
-                }
             }
 
-            $event = new GenericEvent($this, [
-                'params' => $params
-            ]);
+            if ($languageHasSwitched === TRUE) {
+                Logger::log(
+                    sprintf(
+                        'switch language: from %s to %s. triggered by: %s',
+                        $session['lastLanguage'],
+                        $currentLanguage,
+                        $this->request->getRequestUri()
+                    )
+                );
+            }
+
+            if ($countryHasSwitched === TRUE) {
+                Logger::log(
+                    sprintf(
+                        'switch country: from %s to %s. triggered by: %s',
+                        $session['lastCountry'],
+                        $currentCountry,
+                        $this->request->getRequestUri()
+                    )
+                );
+            }
 
             \Pimcore::getEventDispatcher()->dispatch(
                 I18nEvents::CONTEXT_SWITCH,
-                $event
+                new ContextSwitchEvent($params)
             );
         }
     }
@@ -413,30 +441,34 @@ class DetectorListener implements EventSubscriberInterface
         /** @var \Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag $bag */
         $bag = $this->request->getSession()->getBag('i18n_session');
 
-        $data = ['lastLanguage' => NULL];
+        $data = [
+            'lastLanguage' => NULL,
+            'lastCountry' => NULL,
+            'lastZoneId'   => NULL
+        ];
 
         if ($bag->has('lastLanguage')) {
             $data['lastLanguage'] = $bag->get('lastLanguage');
         }
 
-        if ($this->i18nType == 'country') {
-            $data['lastCountry'] = NULL;
-
-            if ($bag->get('lastCountry')) {
-                $data['lastCountry'] = $bag->get('lastCountry');
-            }
+        if ($bag->get('lastCountry')) {
+            $data['lastCountry'] = $bag->get('lastCountry');
         }
+
+        //if no zone as been defined, zone id is always NULL.
+        $data['lastZoneId'] = $bag->get('lastZoneId');
 
         return $data;
     }
 
     /**
-     * @param bool $languageData
-     * @param bool $countryData
+     * @param null|int $currentZoneId
+     * @param bool     $languageData
+     * @param bool     $countryData
      *
      * @return void
      */
-    private function updateSessionData($languageData = FALSE, $countryData = FALSE)
+    private function updateSessionData($currentZoneId = NULL, $languageData = FALSE, $countryData = FALSE)
     {
         if (!$this->isValidI18nCheckRequest()) {
             return;
@@ -449,11 +481,11 @@ class DetectorListener implements EventSubscriberInterface
             $bag->set('lastLanguage', $languageData);
         }
 
-        if ($this->i18nType == 'country') {
-            if ($countryData !== FALSE) {
-                $bag->set('lastCountry', $countryData);
-            }
+        if ($countryData !== FALSE) {
+            $bag->set('lastCountry', $countryData);
         }
+
+        $bag->set('lastZoneId', $currentZoneId);
     }
 
     /**
