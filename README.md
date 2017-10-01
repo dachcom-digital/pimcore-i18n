@@ -42,6 +42,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 - [Custom Adapter](docs/50_CustomAdapter.md): Learn how to create a custom adapter.
 - [Code Examples](docs/60_CodeExamples.md): See some examples.
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect Zone/Language/Country Switches.
+- [Canonical Links](docs/80_CanonicalLinks.md): Canonical Links in Hardlinks.
 
 ## Copyright and License
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  

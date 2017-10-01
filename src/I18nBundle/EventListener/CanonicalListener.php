@@ -38,14 +38,16 @@ class CanonicalListener implements EventSubscriberInterface
         ];
     }
 
+    /**
+     * @param FilterResponseEvent $event
+     */
     public function onKernelResponse(FilterResponseEvent $event)
     {
-        $request = $event->getRequest();
-
         if (!$event->isMasterRequest()) {
             return;
         }
 
+        $request = $event->getRequest();
         if (!$this->matchesPimcoreContext($request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
             return;
         }
@@ -55,9 +57,11 @@ class CanonicalListener implements EventSubscriberInterface
             return;
         }
 
-        //@todo: check if it's a real i18n hardlink element.
         if ($document instanceof WrapperInterface && !Staticroute::getCurrentRoute()) {
-            $event->getResponse()->headers->remove('Link');
+            //only remove canonical link, if hardlink source is the country wrapper:
+            if($document->getHardLinkSource()->getPath() === '/') {
+                $event->getResponse()->headers->remove('Link');
+            }
         }
     }
 }

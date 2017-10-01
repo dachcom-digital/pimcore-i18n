@@ -1,5 +1,4 @@
 # Front Page Mapping
-
 Sometimes you want to clone a page and expand it with some country information. For example:
 
 ```text
@@ -8,6 +7,8 @@ Sometimes you want to clone a page and expand it with some country information. 
     - team
 - /en-us -> that's your hardlink with a en_US locale. 
 ```
+
+> Note: Learn how to implement a country site based on hardlinks by [clicking here](27_Countries.md).
 
 Now you have a brand new shiny website. If you open the `/en-us/team` page, it will automatically load the content from `/en/team`. That's nice.
 If you want to override the team content you just need to copy your `/en/team` into the `/en-us/` tree. Now you're good to go to add some additional content.
