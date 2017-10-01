@@ -26,5 +26,5 @@ So if you have have a page in `/en/about-us` the href-lang generator or context 
 If you'r having a `/en-us` hardlink, a link to `/en-us/about-us` will be automatically generated (for href-lang and the `getLinkedLanguages` [context helper](60_CodeExamples.md) for example).
 In case, you don't want to have a `about-us` page in `/en-us`, just create the page `/en-us/about-us` and disable it.
 
-There is also some further magic you need to know about: If you have just one language but multiple countries, your unable to link them via the localization tool.
+There is also some further magic you need to know about: If you have just one language but multiple countries, you're unable to link them via the localization tool.
 I81nBundle will then try to generate all hardlinks references automatically.
