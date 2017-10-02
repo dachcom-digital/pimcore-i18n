@@ -15,7 +15,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 
 ```json
 "require" : {
-    "dachcom-digital/i18n" : "dev-master",
+    "dachcom-digital/i18n" : "~2.0.0"
 }
 ```
 
@@ -44,6 +44,9 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
 - [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in Hardlinks.
 - [Internal Links](docs/90_InternalLinkRewriter.md): Rewrite Internal Links.
+
+## Why is there no Version 1?
+We already have build a i18n plugin for pimcore4 which is not public. With Pimcore5 we decided to move this project to a public gitub repository. You're welcome. :)
 
 ## Copyright and License
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
