@@ -35,9 +35,15 @@ class System extends AbstractCountry
             }
 
             $parts = explode('_', $language);
+            $isoCode = $parts[1];
+
+            //skip country if it's already in the list.
+            if (array_search($isoCode, array_column($validCountries, 'isoCode')) !== FALSE) {
+                continue;
+            }
 
             $validCountries[] = [
-                'isoCode' => $parts[1],
+                'isoCode' => $isoCode,
                 'id'      => $id,
                 'zone'    => NULL,
                 'object'  => NULL
@@ -77,7 +83,7 @@ class System extends AbstractCountry
         $defaultCountry = NULL;
         $configDefaultCountry = $this->currentZoneConfig['default_country'];
 
-        if(!is_null($configDefaultCountry)) {
+        if (!is_null($configDefaultCountry)) {
             $defaultCountry = $configDefaultCountry;
         } else {
             $config = Config::getSystemConfig();

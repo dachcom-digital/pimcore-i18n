@@ -4,6 +4,8 @@ namespace I18nBundle\Configuration;
 
 class Configuration
 {
+    const SYSTEM_CONFIG_DIR_PATH = PIMCORE_PRIVATE_VAR . '/bundles/I18nBundle';
+
     const SYSTEM_CONFIG_FILE_PATH = PIMCORE_PRIVATE_VAR . '/bundles/I18nBundle/config.yml';
 
     /**

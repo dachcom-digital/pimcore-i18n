@@ -12,6 +12,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class I18nBundle extends AbstractPimcoreBundle
 {
+    const BUNDLE_VERSION = '2.0.1';
+
     /**
      * @inheritDoc
      */
@@ -21,6 +23,14 @@ class I18nBundle extends AbstractPimcoreBundle
         $container->addCompilerPass(new LanguageAdapterPass());
         $container->addCompilerPass(new PathGeneratorAdapterPass());
         $container->addCompilerPass(new ContextAdapterPass());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVersion()
+    {
+        return self::BUNDLE_VERSION;
     }
 
     /**

@@ -34,7 +34,7 @@ class Country extends AbstractContext
      */
     public function getCountryNameByIsoCode($countryIso, $locale = NULL)
     {
-        if($countryIso === FALSE) {
+        if ($countryIso === FALSE) {
             return NULL;
         }
 
@@ -94,7 +94,6 @@ class Country extends AbstractContext
         $userLanguage = $this->userHelper->guessLanguage($activeLanguages);
 
         if (!empty($activeCountries)) {
-
             foreach ($activeCountries as $country) {
 
                 if (is_null($country['isoCode']) | $country['isoCode'] === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
