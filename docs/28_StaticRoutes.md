@@ -10,7 +10,7 @@ First you need to create a valid route.
 
 | Pattern | Reverse |
 |---------|-------------|
-| `/([a-zA-Z0-9-_]*)\/(?:news|artikel)\/(.*?)$/` | `/{%_locale}/@news/%entry` |
+| `/([a-zA-Z0-9-_]*)\/(?:news\|artikel)\/(.*?)$/` | `/{%_locale}/@news/%entry` |
 
 This static route allows structures like:
 
