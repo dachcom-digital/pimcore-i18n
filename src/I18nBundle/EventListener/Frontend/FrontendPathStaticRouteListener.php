@@ -100,6 +100,11 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
         }
 
         if($throw === TRUE) {
+
+            if(\Pimcore\Tool::isFrontendRequestByAdmin()) {
+                return $key;
+            }
+
             throw new \Exception(sprintf(
                 'i18n static route translation error: no valid translation key for "%s" in locale "%s" found. please add it to your i18n translation config',
                 $key, $locale));
