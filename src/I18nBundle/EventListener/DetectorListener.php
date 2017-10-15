@@ -57,11 +57,6 @@ class DetectorListener implements EventSubscriberInterface
     private $validCountries = [];
 
     /**
-     * @var null
-     */
-    private $globalPrefix = NULL;
-
-    /**
      * @var \Pimcore\Model\Document
      */
     private $document = NULL;
@@ -198,6 +193,9 @@ class DetectorListener implements EventSubscriberInterface
 
         $this->initI18nSystem($this->request);
 
+        $currentRouteName = $this->request->get('_route');
+        $requestSource = $this->request->attributes->get('pimcore_request_source');
+
         $this->i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
         $this->validLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getActiveLanguages();
         $this->defaultLanguage = $this->zoneManager->getCurrentZoneLanguageAdapter()->getDefaultLanguage();
@@ -205,11 +203,6 @@ class DetectorListener implements EventSubscriberInterface
         if ($this->i18nType === 'country') {
             $this->validCountries = $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
             $this->defaultCountry = $this->zoneManager->getCurrentZoneCountryAdapter()->getDefaultCountry();
-        }
-
-        $globalPrefix = $this->zoneManager->getCurrentZoneInfo('global_prefix');
-        if ($globalPrefix !== FALSE) {
-            $this->globalPrefix = $globalPrefix;
         }
 
         if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
@@ -221,20 +214,20 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         /**
-         * If a hardlink is requested e.g. /en-us, pimcore gets the locale from the source, which is "quite" wrong.
+         * 1.   If a hardlink is requested e.g. /en-us, pimcore gets the locale from the source, which is "quite" wrong.
+         * 2.   If we're in staticroute context , we need to check the request locale since it could be a invalid one from the url (like en-us).
+         *      Always use the document locale then!
          */
         $requestLocale = $this->request->getLocale();
         if($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            $hardLinkSourceLanguage = $this->document->getHardLinkSource()->getProperty('language');
-            if(!empty($hardLinkSourceLanguage) && $hardLinkSourceLanguage !== $requestLocale) {
-                $this->request->setLocale($hardLinkSourceLanguage);
+            if(!empty($documentLanguage) && $documentLanguage !== $requestLocale) {
+                $this->request->setLocale($documentLanguage);
             }
+        } elseif($requestSource === 'staticroute' && $requestLocale !== $documentLanguage) {
+            $this->request->setLocale($documentLanguage);
         }
 
-        $currentRouteName = $this->request->get('_route');
-        $requestSource = $this->request->attributes->get('pimcore_request_source');
         $validRoute = FALSE;
-
         if ($requestSource === 'staticroute' || $currentRouteName === 'document_' . $this->document->getId()) {
             $validRoute = TRUE;
         }

@@ -14,8 +14,7 @@ But you may need some more complex structures, so we implemented the zone manage
 | country_adapter | Country Adapter (`system`, by default) |
 | default_language | Define a default country (ISO-Code, lowercase) |
 | default_country | Define a default country (ISO-Code, uppercase) |
-| global_prefix | Define a global prefix (like de-global or de-int) |
-| translations | Static Route translations |
+| translations | [Static Route translations](28_StaticRoutes.md) |
 | zones | Array for complex Zones |
 
 ### Zone Configuration Options
@@ -28,9 +27,7 @@ Basically there are the same options as in the default configuration, except tha
 | country_adapter | Country Adapter (`system`, by default) |
 | default_language | Define a default country (ISO-Code, lowercase) |
 | default_country | Define a default country (ISO-Code, uppercase) |
-| global_prefix | Define a global prefix (like de-global or de-int) |
-| translations | Static Route translations |
-
+| translations | [Static Route translations](28_StaticRoutes.md) |
 
 ### Configuration
 
@@ -52,9 +49,6 @@ i18n:
     # define a default country - this value is optional and does not to be defined
     default_country: 'US'
 
-    # define a global prefix (like de-global or de-int)
-    global_prefix: ~
-
     # static route translations
     translations: ~
 
@@ -73,7 +67,6 @@ i18n:
                 mode: language
                 language_adapter: system
                 country_adapter: ~
-                global_prefix: ~
                 translations: ~
 
         # zone 2: language and country
@@ -88,7 +81,6 @@ i18n:
                 mode: country
                 language_adapter: system
                 country_adapter: system
-                global_prefix: ~
                 translations: ~
 
         # zone 3: no language switch. just a simple website.
@@ -101,6 +93,5 @@ i18n:
                 mode: language
                 language_adapter: system
                 country_adapter: ~
-                global_prefix: ~
                 translations: ~
 ```

@@ -9,38 +9,12 @@ use Symfony\Component\HttpFoundation\Request;
 class System
 {
     /**
-     * @param string $type
-     *
-     * @return bool
-     */
-    public static function isEnvironment($type = 'Development')
-    {
-        $environment = \Pimcore\Config::getEnvironment();
-
-        if (is_array($type) && in_array($environment, $type)) {
-            return TRUE;
-        }
-
-        return $environment === $type;
-    }
-
-    /**
      * @param Request $request
      *
      * @return bool
      */
     public static function isInBackend(Request $request)
     {
-        $editMode = $request->attributes->get(EditmodeResolver::ATTRIBUTE_EDITMODE);
-        return Tool::isFrontend($request) === FALSE || $editMode === TRUE;
-    }
-
-    public static function isFrontendRequestByAdmin(Request $request)
-    {
-        if (Tool::isFrontendRequestByAdmin($request)) {
-            return TRUE;
-        }
-
         $editMode = $request->attributes->get(EditmodeResolver::ATTRIBUTE_EDITMODE);
         return Tool::isFrontend($request) === FALSE || $editMode === TRUE;
     }
@@ -55,17 +29,22 @@ class System
 
     /**
      * @param $fragments
+     * @param $addStartSlash
      *
      * @return string
      */
-    public static function joinPath($fragments)
+    public static function joinPath($fragments, $addStartSlash = FALSE)
     {
         $f = [];
+        $addStartSlash = $addStartSlash === TRUE || substr($fragments[0], 0, 1) === DIRECTORY_SEPARATOR;
         foreach ($fragments as $fragment) {
-            $f[] = trim($fragment, '/');
+            if(empty($fragment)) {
+                continue;
+            }
+            $f[] = trim($fragment, DIRECTORY_SEPARATOR);
         }
 
-        return join('/', $f);
+        return ($addStartSlash ? DIRECTORY_SEPARATOR : '') . join(DIRECTORY_SEPARATOR, $f);
     }
 
 }

@@ -4,8 +4,13 @@ This is only required if you're using i18n with a country adapter.
 There are two ways to implement a country page like `en-us`:
 1. Copy and paste the `en` document tree and rename `en` to `en-us`.
 2. Create a hardlink, call it `en-us` and set the reference to `en`.
+3. Change language to `en_US`.
 
-If you're using a hardlink, check out the [canonical information part](80_CanonicalLinks.md).
+> If you're using a hardlink, check out the [canonical information part](80_CanonicalLinks.md).
+
+## Naming Convention
+You might be wondering why we named the hard link `en-us`. For default documents, that's not a problem. 
+But you'll run into serious troubles if you need to build static routes with it. Read [this section](28_StaticRoutes.md) to solve this bravely.
 
 ## Preparation
 Localize your [documents first](26_Languages.md).
@@ -19,6 +24,8 @@ Otherwise just create a document as you would normally do.
 3. Apply the property to all your real website hardlinks/documents and set the desired country ISO-Code (uppercase)
 
 > This property should be available in your predefined properties since it gets automatically installed, you may extend the default configuration.
+ 
+Read more about the [static route configuration](28_StaticRoutes.md).
 
 ## Magic
 All hardlink references will be generated automatically.

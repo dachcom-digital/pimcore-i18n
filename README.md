@@ -35,15 +35,16 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 ## Further Information
 - [Zones](docs/20_Zones.md): Learn more about i18n zones and how to manage them.
 - [Href-Lang](docs/25_HrefLang.md): Find out more about the href-lang tag generator.
-- [Language Configuration](docs/26_Languages.md): Configure Languages.
-- [Country Configuration](docs/27_Countries.md): Configure Countries.
+- [Language Configuration](docs/26_Languages.md): Configure languages.
+- [Country Configuration](docs/27_Countries.md): Configure countries.
+- [Static Routes](docs/28_StaticRoutes.md): Configure translatable static routes and implement href-lang tags.
 - [Front Page Mapping](docs/30_FrontPageMapping.md): Learn how to map a custom front page.
 - [Localized Error Documents](docs/40_LocaleErrorDocument.md): Learn how to create localized error documents.
 - [Custom Adapter](docs/50_CustomAdapter.md): Learn how to create a custom adapter.
 - [Code Examples](docs/60_CodeExamples.md): See some examples.
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
-- [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in Hardlinks.
-- [Internal Links](docs/90_InternalLinkRewriter.md): Rewrite Internal Links.
+- [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in hardlinks.
+- [Internal Links](docs/90_InternalLinkRewriter.md): Rewrite Internal links.
 
 ## Why is there no Version 1?
 There is already a i18n plugin for pimcore4 which is not public. With Pimcore5 we decided to move this project to a public gitub repository. You're welcome. :)

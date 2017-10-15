@@ -37,12 +37,14 @@ class ZoneManager
 
     /**
      * Stores the current Zone info
+     *
      * @var
      */
     protected $currentZone = NULL;
 
     /**
      * Stores the current Zone domains
+     *
      * @var
      */
     protected $currentZoneDomains = NULL;
@@ -148,6 +150,7 @@ class ZoneManager
             }
         }
 
+        $this->addLocaleUrlMappingToConfig($zoneDomains);
         $this->currentZoneDomains = $zoneDomains;
     }
 
@@ -270,7 +273,6 @@ class ZoneManager
             'zoneId'           => $zoneId,
             'zoneName'         => $zoneName,
             'mode'             => $config['mode'],
-            'global_prefix'    => $config['global_prefix'],
             'translations'     => $config['translations'],
             'language_adapter' => $languageAdapter,
             'country_adapter'  => $countryAdapter
@@ -279,6 +281,11 @@ class ZoneManager
         return $mapData;
     }
 
+    /**
+     * @param $domain
+     * @param $rootId
+     * @return array|bool
+     */
     private function mapDomainData($domain, $rootId)
     {
         $scheme = \Pimcore\Tool::getRequestScheme();
@@ -331,6 +338,7 @@ class ZoneManager
             }
         } else {
             $children = $domainDoc->getChildren();
+
             /** @var Document $child */
             foreach ($children as $child) {
 
@@ -357,7 +365,7 @@ class ZoneManager
                     $prefix = $prefix . ':' . $domainPort;
                 }
 
-                $url = $prefix . '/' . $urlKey;
+                $url = rtrim($prefix . DIRECTORY_SEPARATOR . $urlKey, DIRECTORY_SEPARATOR);
 
                 $realLang = explode('_', $childLanguageIso);
                 $hrefLang = strtolower($realLang[0]);
@@ -366,17 +374,17 @@ class ZoneManager
                 }
 
                 $subPages[] = [
-                    'id'          => $child->getId(),
-                    'host'        => $domain,
-                    'realHost'    => $domainHost,
-                    'locale'      => $childLanguageIso,
-                    'countryIso'  => $childCountryIso,
-                    'languageIso' => $realLang[0],
-                    'hrefLang'    => $hrefLang,
-                    'key'         => $urlKey,
-                    'url'         => $url,
-                    'fullPath'    => $child->getRealFullPath(),
-                    'type'        => $child->getType()
+                    'id'               => $child->getId(),
+                    'host'             => $domain,
+                    'realHost'         => $domainHost,
+                    'locale'           => $childLanguageIso,
+                    'countryIso'       => $childCountryIso,
+                    'languageIso'      => $realLang[0],
+                    'hrefLang'         => $hrefLang,
+                    'localeUrlMapping' => $urlKey,
+                    'url'              => $url,
+                    'fullPath'         => $child->getRealFullPath(),
+                    'type'             => $child->getType()
                 ];
             }
         }
@@ -392,6 +400,7 @@ class ZoneManager
 
         $hrefLang = '';
         $docRealLanguageIso = '';
+
         if (!empty($docLanguageIso)) {
             $realLang = explode('_', $docLanguageIso);
             $docRealLanguageIso = $realLang[0];
@@ -402,22 +411,41 @@ class ZoneManager
         }
 
         $domainData = [
-            'id'           => $rootId,
-            'host'         => $domain,
-            'realHost'     => $domainHost,
-            'isRootDomain' => $isRootDomain,
-            'locale'       => $docLanguageIso,
-            'countryIso'   => $docCountryIso,
-            'languageIso'  => $docRealLanguageIso,
-            'hrefLang'     => $hrefLang,
-            'key'          => NULL,
-            'url'          => $domainUrl,
-            'fullPath'     => $domainDoc->getRealFullPath(),
-            'type'         => $domainDoc->getType(),
-            'subPages'     => $subPages
+            'id'               => $rootId,
+            'host'             => $domain,
+            'realHost'         => $domainHost,
+            'isRootDomain'     => $isRootDomain,
+            'locale'           => $docLanguageIso,
+            'countryIso'       => $docCountryIso,
+            'languageIso'      => $docRealLanguageIso,
+            'hrefLang'         => $hrefLang,
+            'localeUrlMapping' => NULL,
+            'url'              => $domainUrl,
+            'fullPath'         => $domainDoc->getRealFullPath(),
+            'type'             => $domainDoc->getType(),
+            'subPages'         => $subPages
         ];
 
+
         return $domainData;
+    }
+
+    /**
+     * @param array $zoneDomains
+     */
+    private function addLocaleUrlMappingToConfig($zoneDomains = [])
+    {
+        $localeUrlMapping = [];
+        $domains = $this->flattenDomainTree($zoneDomains);
+
+        foreach ($domains as $domain) {
+            if (!empty($domain['locale'])) {
+                $localeUrlMapping[$domain['locale']] = $domain['localeUrlMapping'];
+            }
+        }
+
+        $this->currentZone['locale_url_mapping'] = $localeUrlMapping;
+
     }
 
     private function getDomainHost($domain)

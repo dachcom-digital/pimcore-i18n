@@ -3,13 +3,14 @@
 namespace I18nBundle\Adapter\PathGenerator;
 
 use I18nBundle\Definitions;
+use I18nBundle\Tool\System;
 use Pimcore\Model\Document as PimcoreDocument;
 
 class Document extends AbstractPathGenerator
 {
     /**
      * @param PimcoreDocument $currentDocument
-     * @param bool $onlyShowRootLanguages
+     * @param bool            $onlyShowRootLanguages
      *
      * @return array
      */
@@ -24,7 +25,7 @@ class Document extends AbstractPathGenerator
 
     /**
      * @param PimcoreDocument $currentDocument
-     * @param bool $onlyShowRootLanguages
+     * @param bool            $onlyShowRootLanguages
      *
      * @return array
      */
@@ -42,11 +43,12 @@ class Document extends AbstractPathGenerator
                 }
 
                 $routes[] = [
-                    'languageIso' => $pageInfo['languageIso'],
-                    'countryIso'  => NULL,
-                    'hrefLang'    => $pageInfo['hrefLang'],
-                    'key'         => $pageInfo['key'],
-                    'url'         => $pageInfo['url']
+                    'languageIso'      => $pageInfo['languageIso'],
+                    'countryIso'       => NULL,
+                    'hrefLang'         => $pageInfo['hrefLang'],
+                    'localeUrlMapping' => $pageInfo['localeUrlMapping'],
+                    'key'              => $pageInfo['key'],
+                    'url'              => $pageInfo['url']
                 ];
             }
 
@@ -62,7 +64,6 @@ class Document extends AbstractPathGenerator
                 }
 
                 $pageInfoLocale = $pageInfo['languageIso'];
-
                 if (isset($translations[$pageInfoLocale])) {
 
                     try {
@@ -76,11 +77,12 @@ class Document extends AbstractPathGenerator
                     }
 
                     $routes[] = [
-                        'languageIso' => $pageInfo['languageIso'],
-                        'countryIso'  => NULL,
-                        'hrefLang'    => $pageInfo['hrefLang'],
-                        'key'         => $document->getKey(),
-                        'url'         => rtrim($pageInfo['url'], '/') . '/' . $document->getKey()
+                        'languageIso'      => $pageInfo['languageIso'],
+                        'countryIso'       => NULL,
+                        'hrefLang'         => $pageInfo['hrefLang'],
+                        'localeUrlMapping' => $pageInfo['localeUrlMapping'],
+                        'key'              => $document->getKey(),
+                        'url'              => System::joinPath([$pageInfo['url'], $document->getKey()])
                     ];
                 }
             }
@@ -106,11 +108,12 @@ class Document extends AbstractPathGenerator
             foreach ($tree as $pageInfo) {
                 if (!empty($pageInfo['countryIso'])) {
                     $routes[] = [
-                        'languageIso' => $pageInfo['languageIso'],
-                        'countryIso'  => $pageInfo['countryIso'],
-                        'hrefLang'    => $pageInfo['hrefLang'],
-                        'key'         => $pageInfo['key'],
-                        'url'         => $pageInfo['url']
+                        'languageIso'      => $pageInfo['languageIso'],
+                        'countryIso'       => $pageInfo['countryIso'],
+                        'hrefLang'         => $pageInfo['hrefLang'],
+                        'localeUrlMapping' => $pageInfo['localeUrlMapping'],
+                        'key'              => $pageInfo['key'],
+                        'url'              => $pageInfo['url']
                     ];
                 }
             }
@@ -121,11 +124,11 @@ class Document extends AbstractPathGenerator
             $translations = $service->getTranslations($currentDocument);
 
             //if no translation has been found, add document itself:
-            if(empty($translations) && $currentDocument->hasProperty('language')) {
-                if($currentDocument instanceof PimcoreDocument\Hardlink\Wrapper\WrapperInterface) {
+            if (empty($translations) && $currentDocument->hasProperty('language')) {
+                if ($currentDocument instanceof PimcoreDocument\Hardlink\Wrapper\WrapperInterface) {
                     $locale = $currentDocument->getHardLinkSource()->getSourceDocument()->getProperty('language');
                 } else {
-                    $locale = $currentDocument->getProperty('language') ;
+                    $locale = $currentDocument->getProperty('language');
                 }
 
                 $translations = [$locale => $currentDocument->getId()];
@@ -154,11 +157,12 @@ class Document extends AbstractPathGenerator
                     }
 
                     $routes[] = [
-                        'languageIso' => $pageInfo['languageIso'],
-                        'countryIso'  => $pageInfo['countryIso'],
-                        'hrefLang'    => $pageInfo['hrefLang'],
-                        'key'         => $document->getKey(),
-                        'url'         => rtrim($pageInfo['url'], '/') . '/' . $document->getKey()
+                        'languageIso'      => $pageInfo['languageIso'],
+                        'countryIso'       => $pageInfo['countryIso'],
+                        'hrefLang'         => $pageInfo['hrefLang'],
+                        'localeUrlMapping' => $pageInfo['localeUrlMapping'],
+                        'key'              => $document->getKey(),
+                        'url'              => System::joinPath([$pageInfo['url'], $document->getKey()])
                     ];
                     //document does not exist.
                 } else {
@@ -167,7 +171,6 @@ class Document extends AbstractPathGenerator
             }
 
             if (!empty($hardLinksToCheck)) {
-
                 foreach ($hardLinksToCheck as $hardLinkWrapper) {
                     $sameLanguageContext = array_search($hardLinkWrapper['languageIso'], array_column($routes, 'languageIso'));
                     if ($sameLanguageContext === FALSE || !isset($routes[$sameLanguageContext])) {
@@ -175,7 +178,7 @@ class Document extends AbstractPathGenerator
                     }
 
                     $languageContext = $routes[$sameLanguageContext];
-                    $posGlobalPath = rtrim($hardLinkWrapper['fullPath'], '/') . '/' . $languageContext['key'];
+                    $posGlobalPath = System::joinPath([$hardLinkWrapper['fullPath'], $languageContext['key']]);
 
                     //always continue: could be disabled or isn't linked via translations.
                     if (PimcoreDocument\Service::pathExists($posGlobalPath)) {
@@ -183,13 +186,13 @@ class Document extends AbstractPathGenerator
                     }
 
                     $routes[] = [
-                        'languageIso' => $hardLinkWrapper['languageIso'],
-                        'countryIso'  => $hardLinkWrapper['countryIso'],
-                        'hrefLang'    => $hardLinkWrapper['hrefLang'],
-                        'key'         => $languageContext['key'],
-                        'url'         => rtrim($hardLinkWrapper['url'], '/') . '/' . $languageContext['key']
+                        'languageIso'      => $hardLinkWrapper['languageIso'],
+                        'countryIso'       => $hardLinkWrapper['countryIso'],
+                        'hrefLang'         => $hardLinkWrapper['hrefLang'],
+                        'localeUrlMapping' => $hardLinkWrapper['localeUrlMapping'],
+                        'key'              => $languageContext['key'],
+                        'url'              => System::joinPath([$hardLinkWrapper['url'], $languageContext['key']])
                     ];
-
                 }
             }
         }
