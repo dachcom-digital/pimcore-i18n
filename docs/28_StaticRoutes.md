@@ -23,6 +23,7 @@ This static route allows structures like:
 
 ### Translation Pattern
 In the reverse field you may have recognized the `@news` element. This element will get translated during the url generation.
+Please be sure that all translation keys are also available in the pattern section (`(?:news\|artikel|xy)` for example)
 Now we'll add some configuration to translate this fragment:
 
 ```yaml
@@ -47,6 +48,14 @@ i18n:
 
 > **Info:** Why not using the default pimcore translation service you may asking? We also thought about that. 
 > The reason is: It's quite dangerous to add routing translations to the backend since they could get changed by customers / translation services very easily which could lead to serious SEO problems.
+
+## Optional Locale in Url
+The I18nBundle allows you to have domains without a locale fragment in url. For Example:
+- `domain.com/about-us`
+- `domain.com/news`
+
+To achieve that you just set the language property to the `domain.com` document which is also a pimcore site. Easy! But for static routes, the pattern always requires the locale part.
+Pimcore allows [optional placeholders](https://pimcore.com/docs/5.0.x/MVC/Routing_and_URLs/Custom_Routes.html#page_Building_URLs_based_on_Custom_Routes) so instead of `%_locale` just add `{%_locale}` to your reverse element.
 
 ## href-lang Generator
 Now let's create a event listener to generate valid alternate links for our news entries:
