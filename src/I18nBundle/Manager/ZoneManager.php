@@ -288,9 +288,7 @@ class ZoneManager
      */
     private function mapDomainData($domain, $rootId)
     {
-        $scheme = \Pimcore\Tool::getRequestScheme();
         $domainHost = $this->getDomainHost($domain);
-        $domainPort = $this->getDomainPort($domain);
         $domainDoc = Document::getById($rootId);
 
         $valid = FALSE;
@@ -357,15 +355,11 @@ class ZoneManager
                     continue;
                 }
 
+                $domainUrl = $this->getDomainUrl($domain);
+
                 //we can't use the fullPath since PathFinder will transform all "out-of-context" paths.
                 $urlKey = $child->getKey();
-                $prefix = $scheme . '://' . $domainHost;
-
-                if (!empty($domainPort)) {
-                    $prefix = $prefix . ':' . $domainPort;
-                }
-
-                $url = rtrim($prefix . DIRECTORY_SEPARATOR . $urlKey, DIRECTORY_SEPARATOR);
+                $domainUrlWithKey = rtrim($domainUrl . DIRECTORY_SEPARATOR . $urlKey, DIRECTORY_SEPARATOR);
 
                 $realLang = explode('_', $childLanguageIso);
                 $hrefLang = strtolower($realLang[0]);
@@ -382,25 +376,17 @@ class ZoneManager
                     'languageIso'      => $realLang[0],
                     'hrefLang'         => $hrefLang,
                     'localeUrlMapping' => $urlKey,
-                    'url'              => $url,
+                    'url'              => $domainUrlWithKey,
+                    'domainUrl'        => $domainUrl,
                     'fullPath'         => $child->getRealFullPath(),
                     'type'             => $child->getType()
                 ];
             }
         }
 
-        $domainUrl = $domainHost;
-        if (strpos($domainUrl, 'http:') === FALSE) {
-            $domainUrl = $scheme . '://' . $domainUrl;
-        }
-
-        if (!empty($domainPort)) {
-            $domainUrl = $domainUrl . ':' . $domainPort;
-        }
 
         $hrefLang = '';
         $docRealLanguageIso = '';
-
         if (!empty($docLanguageIso)) {
             $realLang = explode('_', $docLanguageIso);
             $docRealLanguageIso = $realLang[0];
@@ -409,6 +395,8 @@ class ZoneManager
                 $hrefLang .= '-' . strtolower($docCountryIso);
             }
         }
+
+        $domainUrl = $this->getDomainUrl($domain);
 
         $domainData = [
             'id'               => $rootId,
@@ -421,11 +409,11 @@ class ZoneManager
             'hrefLang'         => $hrefLang,
             'localeUrlMapping' => NULL,
             'url'              => $domainUrl,
+            'domainUrl'        => $domainUrl,
             'fullPath'         => $domainDoc->getRealFullPath(),
             'type'             => $domainDoc->getType(),
             'subPages'         => $subPages
         ];
-
 
         return $domainData;
     }
@@ -446,6 +434,30 @@ class ZoneManager
 
         $this->currentZone['locale_url_mapping'] = $localeUrlMapping;
 
+    }
+
+    /**
+     * Get Domain Url of given domain based on current request scheme!
+     *
+     * @param $domain
+     * @return string
+     */
+    private function getDomainUrl($domain)
+    {
+        $scheme = \Pimcore\Tool::getRequestScheme();
+        $domainHost = $this->getDomainHost($domain);
+        $domainPort = $this->getDomainPort($domain);
+        $domainUrl = $domainHost;
+
+        if (strpos($domainUrl, 'http:') === FALSE) {
+            $domainUrl = $scheme . '://' . $domainUrl;
+        }
+
+        if (!empty($domainPort)) {
+            $domainUrl = $domainUrl . ':' . $domainPort;
+        }
+
+        return rtrim($domainUrl, DIRECTORY_SEPARATOR);
     }
 
     private function getDomainHost($domain)

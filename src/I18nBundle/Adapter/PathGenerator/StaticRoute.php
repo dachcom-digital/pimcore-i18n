@@ -69,6 +69,8 @@ class StaticRoute extends AbstractPathGenerator
         }
 
         $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
+
+        //create custom list for event ($i18nList) - do not include all the zone config stuff.
         foreach ($tree as $pageInfo) {
             if (!empty($pageInfo['languageIso'])) {
                 $i18nList[] = [
@@ -78,7 +80,8 @@ class StaticRoute extends AbstractPathGenerator
                     'hrefLang'         => $pageInfo['hrefLang'],
                     'localeUrlMapping' => $pageInfo['localeUrlMapping'],
                     'key'              => $pageInfo['key'],
-                    'url'              => $pageInfo['url']
+                    'url'              => $pageInfo['url'],
+                    'domainUrl'        => $pageInfo['domainUrl']
                 ];
             }
         }
@@ -116,17 +119,8 @@ class StaticRoute extends AbstractPathGenerator
                 $staticRouteParams = [];
             }
 
+            //generate static route with url generator.
             $link = $this->urlGenerator->generate($staticRouteName, $staticRouteParams);
-
-            //remove locale fragment since it's already included in beginning of url
-            if (!empty($routeInfo['localeUrlMapping'])) {
-                $fragments = array_values(array_filter(explode(DIRECTORY_SEPARATOR, $link)));
-                if ($fragments[0] === $routeInfo['localeUrlMapping']) {
-                    unset($fragments[0]);
-                    $addSlash = substr($link, 0, 1) === DIRECTORY_SEPARATOR;
-                    $link = System::joinPath($fragments, $addSlash);
-                }
-            }
 
             $finalStoreData = [
                 'languageIso'      => $routeInfo['languageIso'],
@@ -134,7 +128,8 @@ class StaticRoute extends AbstractPathGenerator
                 'hrefLang'         => $routeInfo['hrefLang'],
                 'localeUrlMapping' => $routeInfo['localeUrlMapping'],
                 'key'              => $routeInfo['key'],
-                'url'              => System::joinPath([$routeInfo['url'], $link])
+                # use domainUrl element since $link already comes with the locale part!
+                'url'              => System::joinPath([$routeInfo['domainUrl'], $link])
             ];
 
             $routes[] = $finalStoreData;
