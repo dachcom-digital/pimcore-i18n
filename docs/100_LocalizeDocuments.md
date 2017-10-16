@@ -32,7 +32,7 @@ If you're going to open one of those pages and check the source code you'll find
 | `domain4/nl-nl/producten` | It's a real document. |
 | `domain4/de-ch` | It's a hardlink. I18n Bundle will add this document automatically for you. That's the ["magic"](27_Countries.md#magic) we talked about earlier. |
 | `domain4/fr-ch` | Also a hardlink. I18n Bundle will add this document automatically for you. That's the ["magic"](27_Countries.md#magic) we talked about earlier. |
-| `domain4/en-us/products` | A hardlink! But now there is a dedicated document so you also need to add it to the translation service. If you want to hide it, just disable it. |
+| `domain4/en-us/products` | A hardlink! But now there is a dedicated document so you also need to add it to the translation service. If you want to hide it, skip the translation service and just disable it. |
 | `domain4/en_AU/products` | Also a hardlink. I18n Bundle will add this document automatically for you. That's the ["magic"](27_Countries.md#magic) we talked about earlier. |
 | `domain5/produits` | It's a real document. |
 | `domain6/it` | There is no product page, so no translation needed! |
