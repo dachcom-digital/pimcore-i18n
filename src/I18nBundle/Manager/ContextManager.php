@@ -57,6 +57,9 @@ class ContextManager
         $this->currentContext = $this->contextRegistry->get($contextId);
     }
 
+    /**
+     * @param $document
+     */
     public function setDocumentToCurrentContext($document)
     {
         $this->currentContext->setDocument($document);

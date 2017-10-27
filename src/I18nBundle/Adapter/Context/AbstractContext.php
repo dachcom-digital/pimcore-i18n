@@ -107,6 +107,35 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
+     * @param null $slot
+     * @param null $locale
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getCurrentContextInfo($slot = NULL, $locale = NULL)
+    {
+        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
+
+        if(empty($locale)) {
+            if($this->document instanceof Document) {
+                $locale = $this->document->getProperty('language');
+            }
+        }
+
+        if(empty($locale)) {
+            throw new \Exception('I18n: locale for current request not found');
+        }
+
+        $treeIndex = array_search($locale, array_column($tree, 'locale'));
+        if($treeIndex === FALSE) {
+            throw new \Exception(sprintf('I18n: no valid zone for locale "%s" found.'));
+        }
+
+        return $tree[$treeIndex][$slot];
+    }
+
+
+    /**
      * @param $languageIso
      * @param $countryIso
      * @param $href

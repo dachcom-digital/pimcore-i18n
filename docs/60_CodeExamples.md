@@ -5,22 +5,45 @@ Depending on your selected mode (language|country) there are several view helper
 ## Global 
 
 ```twig
-
 {# get current mode #}
 {{ i18n_zone_info('mode') }}
+
+{# get current language iso #}
+{{ dump(i18n_context('getCurrentLanguageIso')) }}
 
 {# get linked languages #}
 {{ dump(i18n_context('getLinkedLanguages')) }}
 
 {# get linked languages [true] only rootDocuments #}
 {{ dump(i18n_context('getLinkedLanguages', [true])) }}
-
 ```
+
+### Current Context (global)
+To get data from current context you may want to use this method:
+
+```twig
+{# get linked languages [true] only rootDocuments #}
+{{ dump(i18n_context('getCurrentContextInfo', ['url'])) }}
+```
+Available Options for the `getCurrentContextInfo` context helper:
+
+| Name | Description |
+|------|-------------|
+| host | For example: `www.pimcore5-domain4.dev` |
+| realHost | For example: `pimcore5-domain4.dev` |
+| locale | For example: `de_CH` |
+| countryIso | For example: `CH` |
+| languageIso | For example: `de` |
+| hrefLang | For example: `de-ch` |
+| localeUrlMapping | For example: `de-ch` |
+| url | For example: `https://pimcore5-domain4.dev/de-ch` |
+| domainUrl | For example: `https://pimcore5-domain4.dev` |
+| fullPath | For example: `domain4/de-ch` |
+| type | For example: `hardlink` |
 
 ## Language
 
 ```twig
-
 {# get current language iso #}
 {{ dump(i18n_context('getCurrentLanguageIso')) }}
 
@@ -32,7 +55,6 @@ Depending on your selected mode (language|country) there are several view helper
 
 ```
 ## Country
-
 
 ```twig
 
@@ -51,6 +73,43 @@ Depending on your selected mode (language|country) there are several view helper
 {# get active country localizations #}
 {{ dump(i18n_context('getActiveCountryLocalizations')) }}
 
+```
+
+## Implementation in PHP
+
+```php
+<?php
+
+namespace AppBundle\Service;
+
+use I18nBundle\Manager\ContextManager;
+
+class AppLocaleHelper
+{
+    protected $manager;
+
+    public function __construct(ContextManager $manager)
+    {
+        $this->manager = $manager;
+    }
+
+    public function getGlobalVars()
+    {
+        # global
+        $currentLanguageIso = $this->manager->getContext()->getCurrentLanguageIso();
+        $currentContextInfo = $this->manager->getContext()->getCurrentContextInfo();
+        
+        # if language mode
+        $currentLanguageIso = $this->manager->getContext()->getCurrentLanguageIso();
+        $activeLanguages = $this->manager->getContext()->getActiveLanguages();
+        $currentLanguageId = $this->manager->getContext()->getCurrentLanguageInfo('id');
+        
+        # if country mode
+        $currentCountryIso = $this->manager->getContext()->getCurrentCountryIso();
+        $activeLanguages = $this->manager->getContext()->getActiveLanguagesForCountry();
+        $currentCountryId = $this->manager->getContext()->getCurrentCountryInfo('id');
+    }
+}
 ```
 
 ## Implementation Examples
