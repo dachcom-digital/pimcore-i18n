@@ -18,11 +18,17 @@ Depending on your selected mode (language|country) there are several view helper
 ```
 
 ### Current Context (global)
-To get data from current context you may want to use this method:
+To get data from current context you may want to use the `getCurrentContextInfo` method. 
+Since the current context gets located via the current locale, be sure that locale is always available. 
+You can also pass it as a second argument.
 
 ```twig
-{# get linked languages [true] only rootDocuments #}
+{# get current context info: no locale passed, the method will search within the current document - if available #}
 {{ dump(i18n_context('getCurrentContextInfo', ['url'])) }}
+
+{# get current context info with current request locale #}
+{{ dump(i18n_context('getCurrentContextInfo', ['localeUrlMapping', app.request.locale])) }}
+
 ```
 Available Options for the `getCurrentContextInfo` context helper:
 
