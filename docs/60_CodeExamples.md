@@ -82,7 +82,7 @@ Available Options for the `getCurrentContextInfo` context helper:
 Available Options for the `getCurrentCountryInfo` or `getCurrentLanguageInfo` context (from system adapter):
 
 > Please note: you probably never need those two methods. 
-> But if you're using a custom language or country adapter, you may find it helpful. 
+> But if you're using a custom language or country adapter, you might find it helpful. 
 
 | Name | Available | Description |
 |------|-----------|-------------|
