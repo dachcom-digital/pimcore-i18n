@@ -79,6 +79,17 @@ Available Options for the `getCurrentContextInfo` context helper:
 {{ dump(i18n_context('getActiveCountryLocalizations')) }}
 
 ```
+Available Options for the `getCurrentCountryInfo` or `getCurrentLanguageInfo` context (from system adapter):
+
+> Please note: you probably never need those two methods. 
+> But if you're using a custom language or country adapter, you may find it helpful. 
+
+| Name | Available | Description |
+|------|-----------|-------------|
+| id | country, language | Id |
+| isoCode | country, language | Iso Code |
+| zone | country | Zone (NULL in system adapter) |
+| object | country | Object (NULL in system adapter) |
 
 ## Implementation in PHP
 
