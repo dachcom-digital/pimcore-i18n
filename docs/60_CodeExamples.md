@@ -1,5 +1,4 @@
 # Code Examples
-
 Depending on your selected mode (language|country) there are several view helpers available.
 
 ## Global 
@@ -35,7 +34,7 @@ Available Options for the `getCurrentContextInfo` context helper:
 | countryIso | For example: `CH` |
 | languageIso | For example: `de` |
 | hrefLang | For example: `de-ch` |
-| localeUrlMapping | For example: `de-ch` |
+| localeUrlMapping | For example: `de-ch`. Mostly used to build [static routes](https://github.com/dachcom-digital/pimcore-i18n/blob/master/docs/28_StaticRoutes.md#naming-convention-in-country-context). |
 | url | For example: `https://pimcore5-domain4.dev/de-ch` |
 | domainUrl | For example: `https://pimcore5-domain4.dev` |
 | fullPath | For example: `domain4/de-ch` |
@@ -83,21 +82,27 @@ Available Options for the `getCurrentContextInfo` context helper:
 namespace AppBundle\Service;
 
 use I18nBundle\Manager\ContextManager;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class AppLocaleHelper
 {
     protected $manager;
+    protected $requestStack;
 
-    public function __construct(ContextManager $manager)
+    public function __construct(ContextManager $manager, RequestStack $requestStack)
     {
         $this->manager = $manager;
+        $this->requestStack = $requestStack;
     }
 
     public function getGlobalVars()
-    {
+    {         
         # global
         $currentLanguageIso = $this->manager->getContext()->getCurrentLanguageIso();
-        $currentContextInfo = $this->manager->getContext()->getCurrentContextInfo();
+        
+        $locale = $this->requestStack->getCurrentRequest()->getLocale();
+        //locale parameter is optional: use it if you have some static routes without parent documents
+        $currentContextInfo = $this->manager->getContext()->getCurrentContextInfo('localeUrlMapping', $locale);
         
         # if language mode
         $currentLanguageIso = $this->manager->getContext()->getCurrentLanguageIso();
