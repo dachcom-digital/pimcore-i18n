@@ -340,7 +340,46 @@ class ZoneManager
             /** @var Document $child */
             foreach ($children as $child) {
 
-                if (!in_array($child->getType(), ['page', 'hardlink']) || !$child->isPublished()) {
+                if (!in_array($child->getType(), ['page', 'hardlink', 'link'])) {
+                    continue;
+                }
+
+                $urlKey = $child->getKey();
+                $docUrl = $urlKey;
+                $validPath = TRUE;
+                $loopDetector = [];
+
+                //if page is link, move to target page.
+                if ($child->getType() === 'link') {
+
+                    while ($child->getType() === 'link') {
+
+                        if (in_array($child->getPath(), $loopDetector)) {
+                            $validPath = FALSE;
+                            break;
+                        }
+
+                        if ($child->getLinktype() !== 'internal') {
+                            $validPath = FALSE;
+                            break;
+                        } elseif ($child->getInternalType() !== 'document') {
+                            $validPath = FALSE;
+                            break;
+                        }
+
+                        $loopDetector[] = $child->getPath();
+                        $child = Document::getById($child->getInternal());
+                        if (!$child instanceof Document || !$child->isPublished()) {
+                            $validPath = FALSE;
+                            break;
+                        }
+
+                        // we can't use getFullPath since i18n will transform the path since it could be a "out-of-context" link.
+                        $docUrl = ltrim($child->getPath(), DIRECTORY_SEPARATOR) . $child->getKey();
+                    }
+                }
+
+                if ($validPath === FALSE || !$child->isPublished()) {
                     continue;
                 }
 
@@ -356,10 +395,8 @@ class ZoneManager
                 }
 
                 $domainUrl = $this->getDomainUrl($domain);
-
-                //we can't use the fullPath since PathFinder will transform all "out-of-context" paths.
-                $urlKey = $child->getKey();
                 $domainUrlWithKey = rtrim($domainUrl . DIRECTORY_SEPARATOR . $urlKey, DIRECTORY_SEPARATOR);
+                $homeDomainUrlWithKey = rtrim($domainUrl . DIRECTORY_SEPARATOR . $docUrl, DIRECTORY_SEPARATOR);
 
                 $realLang = explode('_', $childLanguageIso);
                 $hrefLang = strtolower($realLang[0]);
@@ -377,13 +414,13 @@ class ZoneManager
                     'hrefLang'         => $hrefLang,
                     'localeUrlMapping' => $urlKey,
                     'url'              => $domainUrlWithKey,
+                    'homeUrl'          => $homeDomainUrlWithKey,
                     'domainUrl'        => $domainUrl,
                     'fullPath'         => $child->getRealFullPath(),
                     'type'             => $child->getType()
                 ];
             }
         }
-
 
         $hrefLang = '';
         $docRealLanguageIso = '';
@@ -409,6 +446,7 @@ class ZoneManager
             'hrefLang'         => $hrefLang,
             'localeUrlMapping' => NULL,
             'url'              => $domainUrl,
+            'homeUrl'          => $domainUrl,
             'domainUrl'        => $domainUrl,
             'fullPath'         => $domainDoc->getRealFullPath(),
             'type'             => $domainDoc->getType(),

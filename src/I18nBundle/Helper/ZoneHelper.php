@@ -71,6 +71,6 @@ class ZoneHelper
 
         $docData = $zoneDomains[$indexId];
 
-        return $docData['url'];
+        return $docData['homeUrl'];
     }
 }
