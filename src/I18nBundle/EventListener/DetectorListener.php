@@ -62,6 +62,16 @@ class DetectorListener implements EventSubscriberInterface
     private $document = NULL;
 
     /**
+     * @var null
+     */
+    private $documentLanguage = NULL;
+
+    /**
+     * @var null
+     */
+    private $documentCountry = NULL;
+
+    /**
      * @var ZoneManager
      */
     protected $zoneManager;
@@ -136,8 +146,11 @@ class DetectorListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            KernelEvents::EXCEPTION => ['onKernelException', 20], //before responseExceptionListener
-            KernelEvents::REQUEST   => ['onKernelRequest']
+            KernelEvents::EXCEPTION => ['onKernelException', 20],       //before responseExceptionListener
+            KernelEvents::REQUEST   => [
+                ['onKernelRequestLocale', 17],                          // before symfony LocaleListener
+                ['onKernelRequest', 2]                                  // after pimcore context resolver
+            ]
         ];
     }
 
@@ -167,27 +180,37 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
+     * If we're in static route context, we need to check the request locale since it could be a invalid one from the url (like en-us).
+     * Always use the document locale then!
+     *
+     * Since symfony tries to locate the current locale in LocaleListener via the request attribute "_locale", we need to trigger this event earlier!
+     *
+     * @param GetResponseEvent $event
+     *
+     * @throws \Exception
+     */
+    public function onKernelRequestLocale(GetResponseEvent $event)
+    {
+        if ($this->setValidRequest($event) === FALSE) {
+            return;
+        }
+
+        $requestSource = $this->request->attributes->get('pimcore_request_source');
+        if ($requestSource === 'staticroute' && !empty($this->documentLanguage) && $this->request->attributes->get('_locale') !== $this->documentLanguage) {
+            $this->request->attributes->set('_locale', $this->documentLanguage);
+        }
+    }
+
+    /**
+     * Apply this method after the pimcore context resolver
+     *
      * @param GetResponseEvent $event
      *
      * @throws \Exception
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
-        if ($event->isMasterRequest() === FALSE) {
-            return;
-        }
-
-        $this->request = $event->getRequest();
-        if (!$this->matchesPimcoreContext($this->request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
-            return;
-        }
-
-        $this->document = $this->documentResolver->getDocument($this->request);
-        if (!$this->document) {
-            return;
-        }
-
-        if (!$this->isValidI18nCheckRequest(TRUE)) {
+        if ($this->setValidRequest($event) === FALSE) {
             return;
         }
 
@@ -205,26 +228,15 @@ class DetectorListener implements EventSubscriberInterface
             $this->defaultCountry = $this->zoneManager->getCurrentZoneCountryAdapter()->getDefaultCountry();
         }
 
-        if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            $documentCountry = $this->document->getHardLinkSource()->getProperty('country');
-            $documentLanguage = $this->document->getHardLinkSource()->getProperty('language');
-        } else {
-            $documentCountry = $this->document->getProperty('country');
-            $documentLanguage = $this->document->getProperty('language');
-        }
-
         /**
-         * 1.   If a hardlink is requested e.g. /en-us, pimcore gets the locale from the source, which is "quite" wrong.
-         * 2.   If we're in staticroute context , we need to check the request locale since it could be a invalid one from the url (like en-us).
-         *      Always use the document locale then!
+         * If a root node hardlink is requested e.g. /en-us, pimcore gets the locale from the source, which is "quite" wrong.
          */
         $requestLocale = $this->request->getLocale();
-        if($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            if(!empty($documentLanguage) && $documentLanguage !== $requestLocale) {
-                $this->request->setLocale($documentLanguage);
+        if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
+            if (!empty($this->documentLanguage) && $this->documentLanguage !== $requestLocale) {
+                $this->request->attributes->set('_locale', $this->documentLanguage);
+                $this->request->setLocale($this->documentLanguage);
             }
-        } elseif($requestSource === 'staticroute' && $requestLocale !== $documentLanguage) {
-            $this->request->setLocale($documentLanguage);
         }
 
         $validRoute = FALSE;
@@ -232,7 +244,7 @@ class DetectorListener implements EventSubscriberInterface
             $validRoute = TRUE;
         }
 
-        if ($validRoute === TRUE && empty($documentLanguage)) {
+        if ($validRoute === TRUE && empty($this->documentLanguage)) {
 
             $siteId = 1;
             if (\Pimcore\Model\Site::isSiteRequest() === TRUE) {
@@ -249,8 +261,8 @@ class DetectorListener implements EventSubscriberInterface
         $currentCountry = FALSE;
         $currentLanguage = FALSE;
 
-        $validCountry = !empty($documentCountry) && array_search(strtoupper($documentCountry), array_column($this->validCountries, 'isoCode')) !== FALSE;
-        $validLanguage = !empty($documentLanguage) && array_search($documentLanguage, array_column($this->validLanguages, 'isoCode')) !== FALSE;
+        $validCountry = !empty($this->documentCountry) && array_search(strtoupper($this->documentCountry), array_column($this->validCountries, 'isoCode')) !== FALSE;
+        $validLanguage = !empty($this->documentLanguage) && array_search($this->documentLanguage, array_column($this->validLanguages, 'isoCode')) !== FALSE;
 
         // @todo: currently, redirect works only with pimcore documents and static routes. symfony routes will be ignored.
         if ($validRoute) {
@@ -263,7 +275,7 @@ class DetectorListener implements EventSubscriberInterface
                         return;
                     }
                 }
-            } else if ($this->i18nType === 'country') {
+            } elseif ($this->i18nType === 'country') {
                 //we are wrong. redirect user!
                 if ($this->canRedirect() && (!$validCountry || !$validLanguage)) {
                     $url = $this->getRedirectUrl($this->getCountryUrl());
@@ -275,11 +287,11 @@ class DetectorListener implements EventSubscriberInterface
 
         //Set Locale.
         if ($validLanguage === TRUE) {
-            if (strpos($documentLanguage, '_') !== FALSE) {
-                $parts = explode('_', $documentLanguage);
+            if (strpos($this->documentLanguage, '_') !== FALSE) {
+                $parts = explode('_', $this->documentLanguage);
                 $currentLanguage = $parts[0];
             } else {
-                $currentLanguage = $documentLanguage;
+                $currentLanguage = $this->documentLanguage;
             }
 
             Cache\Runtime::set('i18n.languageIso', strtolower($currentLanguage));
@@ -287,7 +299,7 @@ class DetectorListener implements EventSubscriberInterface
 
         //Set Country. This variable is only !false if i18n country is active
         if ($validCountry === TRUE) {
-            $currentCountry = strtoupper($documentCountry);
+            $currentCountry = strtoupper($this->documentCountry);
             Cache\Runtime::set('i18n.countryIso', $currentCountry);
         }
 
@@ -391,6 +403,7 @@ class DetectorListener implements EventSubscriberInterface
     /**
      * Returns absolute Url to website with language-country context.
      * Because this could be a different domain, absolute url is necessary
+     *
      * @return bool|string
      */
     private function getCountryUrl()
@@ -412,6 +425,7 @@ class DetectorListener implements EventSubscriberInterface
     /**
      * Returns absolute Url to website with language context.
      * Because this could be a different domain, absolute url is necessary
+     *
      * @return bool|string
      */
     private function getLanguageUrl()
@@ -438,7 +452,7 @@ class DetectorListener implements EventSubscriberInterface
 
         $data = [
             'lastLanguage' => NULL,
-            'lastCountry' => NULL,
+            'lastCountry'  => NULL,
             'lastZoneId'   => NULL
         ];
 
@@ -518,5 +532,46 @@ class DetectorListener implements EventSubscriberInterface
     private function canRedirect()
     {
         return !System::isInBackend($this->request);
+    }
+
+    /**
+     * @param GetResponseEvent $event
+     *
+     * @return bool
+     */
+    private function setValidRequest(GetResponseEvent $event)
+    {
+        // already initialized.
+        if ($this->document instanceof Document) {
+            return TRUE;
+        }
+
+        if ($event->isMasterRequest() === FALSE) {
+            return FALSE;
+        }
+
+        $this->request = $event->getRequest();
+        if (!$this->matchesPimcoreContext($this->request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
+            return FALSE;
+        }
+
+        $this->document = $this->documentResolver->getDocument($this->request);
+        if (!$this->document) {
+            return FALSE;
+        }
+
+        if (!$this->isValidI18nCheckRequest(TRUE)) {
+            return FALSE;
+        }
+
+        if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
+            $this->documentCountry = $this->document->getHardLinkSource()->getProperty('country');
+            $this->documentLanguage = $this->document->getHardLinkSource()->getProperty('language');
+        } else {
+            $this->documentCountry = $this->document->getProperty('country');
+            $this->documentLanguage = $this->document->getProperty('language');
+        }
+
+        return TRUE;
     }
 }
