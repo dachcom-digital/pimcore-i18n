@@ -45,9 +45,10 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
 - [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in hardlinks.
 - [Internal Links](docs/90_InternalLinkRewriter.md): Rewrite Internal links.
+- [Navigation Caching](docs/110_NavigationCaching.md): Cache your navigation right!
 
 ## Why is there no Version 1?
-There is already a i18n plugin for pimcore4 which is not public. With Pimcore5 we decided to move this project to a public gitub repository. You're welcome. :)
+There is already a i18n plugin for pimcore4 which is not public. With Pimcore5 we decided to move this project to a public github repository. You're welcome. :)
 
 ## Copyright and License
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
