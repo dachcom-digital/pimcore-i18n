@@ -82,20 +82,10 @@ class Country extends AbstractContext
     /**
      * Helper: Get all active countries with all language related sites
      *
-     * @param boolean $force
-     *
      * @return array|mixed
      */
-    public function getActiveCountries($force = FALSE)
+    public function getActiveCountries()
     {
-        $cacheKey = 'Website_ActiveCountries' . $this->zoneManager->getCurrentZoneInfo('zoneId');
-        $cachedData = Cache::load($cacheKey);
-        $skipCache = \Pimcore\Tool::isFrontendRequestByAdmin() || $force === TRUE;
-
-        if ($cachedData !== FALSE && $skipCache == FALSE) {
-            return $cachedData;
-        }
-
         $countryData = [];
         $activeCountries = $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
         $activeLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getActiveLanguages();
@@ -134,22 +124,17 @@ class Country extends AbstractContext
             'languages'          => $this->getActiveLanguagesForCountry(Definitions::INTERNATIONAL_COUNTRY_NAMESPACE),
         ];
 
-        if (!$skipCache) {
-            Cache::save($countryData, $cacheKey, ['website', 'output']);
-        }
-
         return $countryData;
     }
 
     /**
      * @deprecated This method is deprecated and will be removed in i18n 2.2. Use getActiveCountries() instead!
-     * @param boolean $force
      *
      * @return array|mixed
      */
-    public function getActiveCountryLocalizations($force = FALSE)
+    public function getActiveCountryLocalizations()
     {
-        return $this->getActiveCountries($force);
+        return $this->getActiveCountries();
     }
 
     /**

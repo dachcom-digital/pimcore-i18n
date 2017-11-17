@@ -27,20 +27,10 @@ class Language extends AbstractContext
     /**
      * Helper: Get all active languages
      *
-     * @param boolean $force
-     *
      * @return array
      */
-    public function getActiveLanguages($force = FALSE)
+    public function getActiveLanguages()
     {
-        $cacheKey = 'Website_ActiveLanguages' . $this->zoneManager->getCurrentZoneInfo('zoneId');
-        $cachedData = Cache::load($cacheKey);
-        $skipCache = \Pimcore\Tool::isFrontendRequestByAdmin() || $force === TRUE;
-
-        if ($cachedData !== FALSE && $skipCache == FALSE) {
-            return $cachedData;
-        }
-
         $languages = [];
         $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
         $linkedLanguages = $this->getLinkedLanguages();
@@ -59,10 +49,6 @@ class Language extends AbstractContext
                 }
             }
             $languages[] = $languageData;
-        }
-
-        if (!$skipCache) {
-            Cache::save($languages, $cacheKey, ['website', 'output']);
         }
 
         return $languages;

@@ -9,6 +9,11 @@ use Pimcore\Model\Document as PimcoreDocument;
 class Document extends AbstractPathGenerator
 {
     /**
+     * @var array
+     */
+    protected $cachedUrls = [];
+
+    /**
      * @param PimcoreDocument $currentDocument
      * @param bool            $onlyShowRootLanguages
      *
@@ -16,11 +21,19 @@ class Document extends AbstractPathGenerator
      */
     public function getUrls(PimcoreDocument $currentDocument = NULL, $onlyShowRootLanguages = FALSE)
     {
-        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'language') {
-            return $this->documentUrlsFromLanguage($currentDocument, $onlyShowRootLanguages);
+        $urls = NULL;
+        if(isset($this->cachedUrls[$currentDocument->getId()])) {
+            return $this->cachedUrls[$currentDocument->getId()];
         }
 
-        return $this->documentUrlsFromCountry($currentDocument, $onlyShowRootLanguages);
+        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'language') {
+            $urls = $this->documentUrlsFromLanguage($currentDocument, $onlyShowRootLanguages);
+        } else {
+            $urls = $this->documentUrlsFromCountry($currentDocument, $onlyShowRootLanguages);
+        }
+
+        $this->cachedUrls[$currentDocument->getId()] = $urls;
+        return $urls;
     }
 
     /**

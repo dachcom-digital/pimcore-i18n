@@ -14,6 +14,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class StaticRoute extends AbstractPathGenerator
 {
     /**
+     * @var array
+     */
+    protected $cachedUrls = [];
+
+    /**
      * @var RequestStack
      */
     protected $requestStack;
@@ -48,6 +53,11 @@ class StaticRoute extends AbstractPathGenerator
      */
     public function getUrls(PimcoreDocument $currentDocument = NULL, $onlyShowRootLanguages = FALSE)
     {
+        $urls = NULL;
+        if(isset($this->cachedUrls[$currentDocument->getId()])) {
+            return $this->cachedUrls[$currentDocument->getId()];
+        }
+
         $i18nList = [];
         $routes = [];
 
@@ -136,6 +146,7 @@ class StaticRoute extends AbstractPathGenerator
 
         }
 
+        $this->cachedUrls[$currentDocument->getId()] = $routes;
         return $routes;
     }
 
