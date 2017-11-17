@@ -53,7 +53,6 @@ class StaticRoute extends AbstractPathGenerator
      */
     public function getUrls(PimcoreDocument $currentDocument = NULL, $onlyShowRootLanguages = FALSE)
     {
-        $urls = NULL;
         if(isset($this->cachedUrls[$currentDocument->getId()])) {
             return $this->cachedUrls[$currentDocument->getId()];
         }
