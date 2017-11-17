@@ -349,33 +349,33 @@ class ZoneManager
                 $validPath = TRUE;
                 $loopDetector = [];
 
-                //if page is link, move to target page.
+                //detect real doc url: if page is a link, move to target until we found a real document.
                 if ($child->getType() === 'link') {
+                    $linkChild = $child;
+                    while ($linkChild->getType() === 'link') {
 
-                    while ($child->getType() === 'link') {
-
-                        if (in_array($child->getPath(), $loopDetector)) {
+                        if (in_array($linkChild->getPath(), $loopDetector)) {
                             $validPath = FALSE;
                             break;
                         }
 
-                        if ($child->getLinktype() !== 'internal') {
+                        if ($linkChild->getLinktype() !== 'internal') {
                             $validPath = FALSE;
                             break;
-                        } elseif ($child->getInternalType() !== 'document') {
+                        } elseif ($linkChild->getInternalType() !== 'document') {
                             $validPath = FALSE;
                             break;
                         }
 
-                        $loopDetector[] = $child->getPath();
-                        $child = Document::getById($child->getInternal());
-                        if (!$child instanceof Document || !$child->isPublished()) {
+                        $loopDetector[] = $linkChild->getPath();
+                        $linkChild = Document::getById($linkChild->getInternal());
+                        if (!$linkChild instanceof Document || !$linkChild->isPublished()) {
                             $validPath = FALSE;
                             break;
                         }
 
                         // we can't use getFullPath since i18n will transform the path since it could be a "out-of-context" link.
-                        $docUrl = ltrim($child->getPath(), DIRECTORY_SEPARATOR) . $child->getKey();
+                        $docUrl = ltrim($linkChild->getPath(), DIRECTORY_SEPARATOR) . $linkChild->getKey();
                     }
                 }
 

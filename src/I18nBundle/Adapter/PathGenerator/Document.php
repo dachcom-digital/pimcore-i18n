@@ -32,10 +32,11 @@ class Document extends AbstractPathGenerator
     private function documentUrlsFromLanguage(PimcoreDocument $currentDocument, $onlyShowRootLanguages = FALSE)
     {
         $routes = [];
-
         $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
         $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'));
 
+        // case 1: no deep linking requested. only return root pages!
+        // case 2: current document is a root page ($rootDocumentId) - only return root pages!
         if ($onlyShowRootLanguages === TRUE || $rootDocumentId !== FALSE) {
             foreach ($tree as $pageInfo) {
                 if (empty($pageInfo['languageIso'])) {
@@ -52,39 +53,39 @@ class Document extends AbstractPathGenerator
                 ];
             }
 
-        } else {
+            return $routes;
+        }
 
-            $service = new PimcoreDocument\Service;
-            $translations = $service->getTranslations($currentDocument);
+        $service = new PimcoreDocument\Service;
+        $translations = $service->getTranslations($currentDocument);
 
-            foreach ($tree as $pageInfo) {
+        foreach ($tree as $pageInfo) {
 
-                if (empty($pageInfo['languageIso'])) {
+            if (empty($pageInfo['languageIso'])) {
+                continue;
+            }
+
+            $pageInfoLocale = $pageInfo['languageIso'];
+            if (isset($translations[$pageInfoLocale])) {
+
+                try {
+                    $document = PimcoreDocument::getById($translations[$pageInfoLocale]);
+                } catch (\Exception $e) {
                     continue;
                 }
 
-                $pageInfoLocale = $pageInfo['languageIso'];
-                if (isset($translations[$pageInfoLocale])) {
-
-                    try {
-                        $document = PimcoreDocument::getById($translations[$pageInfoLocale]);
-                    } catch (\Exception $e) {
-                        continue;
-                    }
-
-                    if (!$document->isPublished()) {
-                        continue;
-                    }
-
-                    $routes[] = [
-                        'languageIso'      => $pageInfo['languageIso'],
-                        'countryIso'       => NULL,
-                        'hrefLang'         => $pageInfo['hrefLang'],
-                        'localeUrlMapping' => $pageInfo['localeUrlMapping'],
-                        'key'              => $document->getKey(),
-                        'url'              => System::joinPath([$pageInfo['url'], $document->getKey()])
-                    ];
+                if (!$document->isPublished()) {
+                    continue;
                 }
+
+                $routes[] = [
+                    'languageIso'      => $pageInfo['languageIso'],
+                    'countryIso'       => NULL,
+                    'hrefLang'         => $pageInfo['hrefLang'],
+                    'localeUrlMapping' => $pageInfo['localeUrlMapping'],
+                    'key'              => $document->getKey(),
+                    'url'              => System::joinPath([$pageInfo['url'], $document->getKey()])
+                ];
             }
         }
 
