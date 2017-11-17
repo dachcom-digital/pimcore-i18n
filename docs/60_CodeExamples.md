@@ -133,16 +133,28 @@ class AppLocaleHelper
 
 ## Implementation Examples
 
-```html
-{# create a language dropdown #}
+### Language Dropdown
+```twig
 <nav id="navigation">
     <select>
         {% for language in i18n_context('getActiveLanguages') %}
-            <option {{ (i18n_context('getCurrentLanguageIso') == language.iso) ? 'selected' }} value="{{ language.href }}">{{ language.iso|upper }}</option>
+            <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
         {% endfor %}
     </select>
 </nav>
-
-
 ```
 
+### Complex Country Selection
+```twig
+{% for country in i18n_context('getActiveCountries') %}
+    <ul>
+        <li class="country">{{ country.countryTitle }}
+            <ul class="languages">
+                {% for language in country.languages %}
+                    <li{{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
+                {% endfor %}
+            </ul>
+        </li>
+    </ul>
+{% endfor %}
+```
