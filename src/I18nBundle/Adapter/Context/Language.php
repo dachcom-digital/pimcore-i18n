@@ -42,6 +42,7 @@ class Language extends AbstractContext
 
             $languageData = $this->mapLanguageInfo($domainElement['languageIso'], NULL, $domainElement['url']);
             $languageData['linkedHref'] = $domainElement['url'];
+            $languageData['active'] = $domainElement['languageIso'] === $this->getCurrentLanguageIso();
             foreach($linkedLanguages as $linkedLanguage) {
                 if($linkedLanguage['languageIso'] === $domainElement['languageIso']) {
                     $languageData['linkedHref'] = $linkedLanguage['url'];
