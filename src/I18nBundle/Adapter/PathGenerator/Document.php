@@ -22,7 +22,7 @@ class Document extends AbstractPathGenerator
     public function getUrls(PimcoreDocument $currentDocument = NULL, $onlyShowRootLanguages = FALSE)
     {
         $urls = NULL;
-        if(isset($this->cachedUrls[$currentDocument->getId()])) {
+        if (isset($this->cachedUrls[$currentDocument->getId()])) {
             return $this->cachedUrls[$currentDocument->getId()];
         }
 
@@ -91,13 +91,24 @@ class Document extends AbstractPathGenerator
                     continue;
                 }
 
+                if ($this->hasPrettyUrl($document) === TRUE) {
+                    $relativePath = $document->getPrettyUrl();
+                    $url = System::joinPath([$pageInfo['domainUrl'], $relativePath]);
+                } else {
+                    //map paths
+                    $documentPath = $document->getRealPath() . $document->getKey();
+                    $relativePath = preg_replace('/^' . preg_quote($pageInfo['fullPath'], '/') . '/', '', $documentPath);
+                    $url = System::joinPath([$pageInfo['url'], $relativePath]);
+                }
+
                 $routes[] = [
                     'languageIso'      => $pageInfo['languageIso'],
                     'countryIso'       => NULL,
                     'hrefLang'         => $pageInfo['hrefLang'],
                     'localeUrlMapping' => $pageInfo['localeUrlMapping'],
                     'key'              => $document->getKey(),
-                    'url'              => System::joinPath([$pageInfo['url'], $document->getKey()])
+                    'relativePath'     => $relativePath,
+                    'url'              => $url
                 ];
             }
         }
@@ -127,6 +138,7 @@ class Document extends AbstractPathGenerator
                         'hrefLang'         => $pageInfo['hrefLang'],
                         'localeUrlMapping' => $pageInfo['localeUrlMapping'],
                         'key'              => $pageInfo['key'],
+                        'relativePath'     => $pageInfo['key'],
                         'url'              => $pageInfo['url']
                     ];
                 }
@@ -170,13 +182,27 @@ class Document extends AbstractPathGenerator
                         continue;
                     }
 
+                    $hasPrettyUrl = FALSE;
+                    if ($this->hasPrettyUrl($document) === TRUE) {
+                        $hasPrettyUrl = TRUE;
+                        $relativePath = $document->getPrettyUrl();
+                        $url = System::joinPath([$pageInfo['domainUrl'], $relativePath]);
+                    } else {
+                        //map paths
+                        $documentPath = $document->getRealPath() . $document->getKey();
+                        $relativePath = preg_replace('/^' . preg_quote($pageInfo['fullPath'], '/') . '/', '', $documentPath);
+                        $url = System::joinPath([$pageInfo['url'], $relativePath]);
+                    }
+
                     $routes[] = [
                         'languageIso'      => $pageInfo['languageIso'],
                         'countryIso'       => $pageInfo['countryIso'],
                         'hrefLang'         => $pageInfo['hrefLang'],
                         'localeUrlMapping' => $pageInfo['localeUrlMapping'],
                         'key'              => $document->getKey(),
-                        'url'              => System::joinPath([$pageInfo['url'], $document->getKey()])
+                        'relativePath'     => $relativePath,
+                        'hasPrettyUrl'     => $hasPrettyUrl,
+                        'url'              => $url
                     ];
                     //document does not exist.
                 } else {
@@ -185,6 +211,7 @@ class Document extends AbstractPathGenerator
             }
 
             if (!empty($hardLinksToCheck)) {
+
                 foreach ($hardLinksToCheck as $hardLinkWrapper) {
                     $sameLanguageContext = array_search($hardLinkWrapper['languageIso'], array_column($routes, 'languageIso'));
                     if ($sameLanguageContext === FALSE || !isset($routes[$sameLanguageContext])) {
@@ -192,10 +219,11 @@ class Document extends AbstractPathGenerator
                     }
 
                     $languageContext = $routes[$sameLanguageContext];
-                    $posGlobalPath = System::joinPath([$hardLinkWrapper['fullPath'], $languageContext['key']]);
+                    $posGlobalPath = System::joinPath([$hardLinkWrapper['fullPath'], $languageContext['relativePath']]);
 
-                    //always continue: could be disabled or isn't linked via translations.
-                    if (PimcoreDocument\Service::pathExists($posGlobalPath)) {
+                    // case 1: only add hardlinks check if document has no pretty url => we can't guess pretty urls by magic.
+                    // case 2: always continue: could be disabled or isn't linked via translations.
+                    if ($languageContext['hasPrettyUrl'] === TRUE || PimcoreDocument\Service::pathExists($posGlobalPath)) {
                         continue;
                     }
 
@@ -205,12 +233,25 @@ class Document extends AbstractPathGenerator
                         'hrefLang'         => $hardLinkWrapper['hrefLang'],
                         'localeUrlMapping' => $hardLinkWrapper['localeUrlMapping'],
                         'key'              => $languageContext['key'],
-                        'url'              => System::joinPath([$hardLinkWrapper['url'], $languageContext['key']])
+                        'url'              => System::joinPath([$hardLinkWrapper['url'], $languageContext['relativePath']])
                     ];
                 }
             }
         }
 
         return $routes;
+    }
+
+    /**
+     * @param PimcoreDocument $document
+     * @return bool
+     */
+    private function hasPrettyUrl(PimcoreDocument $document)
+    {
+        if ($document instanceof PimcoreDocument\Page) {
+            return !empty($document->getPrettyUrl()) && strlen($document->getPrettyUrl()) > 0;
+        }
+
+        return FALSE;
     }
 }
