@@ -10,6 +10,8 @@ use I18nBundle\Definitions;
 class Country extends AbstractContext
 {
     /**
+     * Helper: Get current Country Info
+     *
      * @param $field
      *
      * @return string
@@ -27,6 +29,8 @@ class Country extends AbstractContext
     }
 
     /**
+     * Helper: Get Country Name by Iso Code
+     *
      * @param              $countryIso
      * @param string       $locale
      *
@@ -52,6 +56,8 @@ class Country extends AbstractContext
     }
 
     /**
+     * Helper: get current country and locale.
+     *
      * @param bool $returnAsString
      *
      * @return string|array
@@ -74,13 +80,15 @@ class Country extends AbstractContext
     }
 
     /**
+     * Helper: Get all active countries with all language related sites
+     *
      * @param boolean $force
      *
      * @return array|mixed
      */
-    public function getActiveCountryLocalizations($force = FALSE)
+    public function getActiveCountries($force = FALSE)
     {
-        $cacheKey = 'Website_ActiveCountryLocalizations' . $this->zoneManager->getCurrentZoneInfo('zoneId');
+        $cacheKey = 'Website_ActiveCountries' . $this->zoneManager->getCurrentZoneInfo('zoneId');
         $cachedData = Cache::load($cacheKey);
         $skipCache = \Pimcore\Tool::isFrontendRequestByAdmin() || $force === TRUE;
 
@@ -103,7 +111,7 @@ class Country extends AbstractContext
                 $countryIso = $country['isoCode'];
                 $languages = $this->getActiveLanguagesForCountry($countryIso);
 
-                if ($languages === FALSE) {
+                if (empty($languages)) {
                     continue;
                 }
 
@@ -133,15 +141,19 @@ class Country extends AbstractContext
         return $countryData;
     }
 
-    public function getLinkedLanguages($onlyShowRootLanguages = FALSE)
+    /**
+     * @deprecated This method is deprecated and will be removed in i18n 2.2. Use getActiveCountries() instead!
+     * @param boolean $force
+     *
+     * @return array|mixed
+     */
+    public function getActiveCountryLocalizations($force = FALSE)
     {
-        $currentDocument = $this->getDocument();
-        $urls = $this->pathGeneratorManager->getPathGenerator()->getUrls($currentDocument, $onlyShowRootLanguages);
-        return $urls;
+        return $this->getActiveCountries($force);
     }
 
     /**
-     * Get Global Languages for Country.
+     * Get languages for Country.
      * Only checks if root document in given country iso is accessible.
      *
      * @param null $countryIso
@@ -157,10 +169,19 @@ class Country extends AbstractContext
         }
 
         $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
+        $linkedLanguages = $this->getLinkedLanguages();
 
         foreach ($tree as $domainElement) {
             if ($domainElement['countryIso'] === $countryIso) {
-                $languages[] = $this->mapLanguageInfo($domainElement['languageIso'], $domainElement['countryIso'], $domainElement['url']);
+                $languageData = $this->mapLanguageInfo($domainElement['languageIso'], $domainElement['countryIso'], $domainElement['url']);
+                $languageData['linkedHref'] = $domainElement['url'];
+                foreach($linkedLanguages as $linkedLanguage) {
+                    if($linkedLanguage['languageIso'] === $domainElement['languageIso'] && $countryIso === $linkedLanguage['countryIso']) {
+                        $languageData['linkedHref'] = $linkedLanguage['url'];
+                        break;
+                    }
+                }
+                $languages[] = $languageData;
             }
         }
 

@@ -28,8 +28,8 @@ You can also pass it as a second argument.
 
 {# get current context info with current request locale #}
 {{ dump(i18n_context('getCurrentContextInfo', ['localeUrlMapping', app.request.locale])) }}
-
 ```
+
 Available Options for the `getCurrentContextInfo` context helper:
 
 | Name | Description |
@@ -57,27 +57,24 @@ Available Options for the `getCurrentContextInfo` context helper:
 
 {# get current language info (id) #}
 {{ dump(i18n_context('getCurrentLanguageInfo', ['id'])) }}
-
 ```
 ## Country
 
 ```twig
-
 {# get current language iso #}
 {{ dump(i18n_context('getCurrentLanguageIso')) }}
 
 {# get current country iso #}
 {{ dump(i18n_context('getCurrentCountryIso')) }}
 
+{# get active country localizations #}
+{{ dump(i18n_context('getActiveCountries')) }}
+
 {# get current country info (id) #}
 {{ dump(i18n_context('getCurrentCountryInfo', ['id'])) }}
 
 {# get country name by iso code #}
 {{ dump(i18n_context('getCountryNameByIsoCode', [ i18n_context('getCurrentCountryIso') ])) }}
-
-{# get active country localizations #}
-{{ dump(i18n_context('getActiveCountryLocalizations')) }}
-
 ```
 Available Options for the `getCurrentCountryInfo` or `getCurrentLanguageInfo` context (from system adapter):
 

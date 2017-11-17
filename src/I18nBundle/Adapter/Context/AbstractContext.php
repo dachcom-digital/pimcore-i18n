@@ -80,6 +80,8 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
+     * Helper: Get current Language Iso
+     *
      * @return string
      */
     public function getCurrentLanguageIso()
@@ -93,6 +95,8 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
+     * Helper: Get current Country Iso
+     *
      * Get valid Country Iso
      * @return bool|string
      */
@@ -107,6 +111,21 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
+     * Helper: Get all linked pages from current document
+     *
+     * @param bool $onlyShowRootLanguages
+     * @return array
+     */
+    public function getLinkedLanguages($onlyShowRootLanguages = FALSE)
+    {
+        $currentDocument = $this->getDocument();
+        $urls = $this->pathGeneratorManager->getPathGenerator()->getUrls($currentDocument, $onlyShowRootLanguages);
+        return $urls;
+    }
+
+    /**
+     * Helper: Get Information about current Context
+     *
      * @param null $slot
      * @param null $locale
      * @return mixed
@@ -142,7 +161,7 @@ abstract class AbstractContext implements ContextInterface
      *
      * @return array
      */
-    public function mapLanguageInfo($languageIso, $countryIso = NULL, $href)
+    protected function mapLanguageInfo($languageIso, $countryIso = NULL, $href)
     {
         return [
             'iso'         => $languageIso,
