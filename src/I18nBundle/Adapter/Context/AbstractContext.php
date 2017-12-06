@@ -142,12 +142,12 @@ abstract class AbstractContext implements ContextInterface
         }
 
         if(empty($locale)) {
-            throw new \Exception('I18n: locale for current request not found');
+            throw new \Exception('I18n: locale for current request not found.');
         }
 
         $treeIndex = array_search($locale, array_column($tree, 'locale'));
         if($treeIndex === FALSE) {
-            throw new \Exception(sprintf('I18n: no valid zone for locale "%s" found.'));
+            throw new \Exception(sprintf('I18n: no valid zone for locale "%s" found.', $locale));
         }
 
         return $tree[$treeIndex][$slot];
