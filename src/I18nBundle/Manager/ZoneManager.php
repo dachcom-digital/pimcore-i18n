@@ -126,6 +126,7 @@ class ZoneManager
 
     /**
      * @return null
+     * @throws \Exception
      */
     private function setupZoneDomains()
     {
@@ -175,8 +176,8 @@ class ZoneManager
 
     /**
      * @param bool $flatten
-     *
      * @return array|null
+     * @throws \Exception
      */
     public function getCurrentZoneDomains($flatten = FALSE)
     {
@@ -285,6 +286,7 @@ class ZoneManager
      * @param $domain
      * @param $rootId
      * @return array|bool
+     * @throws \Exception
      */
     private function mapDomainData($domain, $rootId)
     {
@@ -483,7 +485,7 @@ class ZoneManager
     private function getDomainUrl($domain)
     {
         $scheme = \Pimcore\Tool::getRequestScheme();
-        $domainHost = $this->getDomainHost($domain);
+        $domainHost = $this->getDomainHost($domain, FALSE);
         $domainPort = $this->getDomainPort($domain);
         $domainUrl = $domainHost;
 
@@ -498,15 +500,24 @@ class ZoneManager
         return rtrim($domainUrl, DIRECTORY_SEPARATOR);
     }
 
-    private function getDomainHost($domain)
+    /**
+     * @param      $domain
+     * @param bool $stripWWW
+     * @return string
+     */
+    private function getDomainHost($domain, $stripWWW = TRUE)
     {
         $urlInfo = parse_url($domain);
         $host = isset($urlInfo['host']) ? $urlInfo['host'] : $urlInfo['path'];
-        $host = preg_replace('/^www./', '', $host);
+        $host = $stripWWW ? preg_replace('/^www./', '', $host) : $host;
 
         return $host;
     }
 
+    /**
+     * @param $domain
+     * @return string
+     */
     private function getDomainPort($domain)
     {
         $port = '';
@@ -518,6 +529,10 @@ class ZoneManager
         return $port;
     }
 
+    /**
+     * @param $zoneDomains
+     * @return array
+     */
     private function flattenDomainTree($zoneDomains)
     {
         $elements = [];
