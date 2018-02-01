@@ -50,6 +50,7 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
                 ->arrayNode('zones')
+                    ->useAttributeAsKey('identifier')
                     ->prototype('array')
                         ->children()
                             ->integerNode('id')->isRequired()->end()
