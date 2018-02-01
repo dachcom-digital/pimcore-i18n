@@ -15,7 +15,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 
 ```json
 "require" : {
-    "dachcom-digital/i18n" : "~2.1.0"
+    "dachcom-digital/i18n" : "~2.2.0"
 }
 ```
 
