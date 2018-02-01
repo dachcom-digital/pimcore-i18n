@@ -1,7 +1,7 @@
 {
     "name": "dachcom-digital/i18n",
     "type": "pimcore-bundle",
-    "license": "GPL-3.0+",
+    "license": "GPL-3.0-or-later",
     "description": "Pimcore 5.x I18n Manager.",
     "keywords": ["pimcore", "i18n", "localization", "internationalization"],
     "homepage": "https://github.com/dachcom-digital/pimcore-i18n",
