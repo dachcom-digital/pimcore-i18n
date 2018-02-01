@@ -106,6 +106,14 @@ class I18nDataCollector extends DataCollector
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function reset()
+    {
+        $this->data = [];
+    }
+
+    /**
      * @return string|null
      */
     public function getI18nMode()
