@@ -15,7 +15,7 @@ zones:
         name: 'zone 2'
         [...]
 ```
-ues
+use
 ```yml
 zones:
     zone1:
