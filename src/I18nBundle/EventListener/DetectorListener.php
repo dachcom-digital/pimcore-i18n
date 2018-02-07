@@ -197,7 +197,7 @@ class DetectorListener implements EventSubscriberInterface
 
         $requestSource = $this->request->attributes->get('pimcore_request_source');
         if ($requestSource === 'staticroute' && !empty($this->documentLanguage) && $this->request->attributes->get('_locale') !== $this->documentLanguage) {
-            $this->request->attributes->set('_locale', $this->documentLanguage);
+            $this->adjustRequestLocale();
         }
     }
 
@@ -234,8 +234,7 @@ class DetectorListener implements EventSubscriberInterface
         $requestLocale = $this->request->getLocale();
         if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
             if (!empty($this->documentLanguage) && $this->documentLanguage !== $requestLocale) {
-                $this->request->attributes->set('_locale', $this->documentLanguage);
-                $this->request->setLocale($this->documentLanguage);
+                $this->adjustRequestLocale();
             }
         }
 
@@ -573,5 +572,23 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         return TRUE;
+    }
+
+    /**
+     * Adjust Request locale
+     */
+    private function adjustRequestLocale()
+    {
+        // set request locale
+        $this->request->attributes->set('_locale', $this->documentLanguage);
+        $this->request->setLocale($this->documentLanguage);
+
+        //set route param locale
+        $routeParams = $this->request->attributes->get('_route_params');
+        if (is_array($routeParams)) {
+            $routeParams = [];
+        }
+        $routeParams['_locale'] = $this->documentLanguage;
+        $this->request->attributes->set('_route_params', $routeParams);
     }
 }
