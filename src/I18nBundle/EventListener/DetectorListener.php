@@ -585,7 +585,7 @@ class DetectorListener implements EventSubscriberInterface
 
         //set route param locale
         $routeParams = $this->request->attributes->get('_route_params');
-        if (is_array($routeParams)) {
+        if (!is_array($routeParams)) {
             $routeParams = [];
         }
         $routeParams['_locale'] = $this->documentLanguage;
