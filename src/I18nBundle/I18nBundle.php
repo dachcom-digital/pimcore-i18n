@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class I18nBundle extends AbstractPimcoreBundle
 {
-    const BUNDLE_VERSION = '2.2.0';
+    const BUNDLE_VERSION = '2.2.1';
 
     /**
      * @inheritDoc
