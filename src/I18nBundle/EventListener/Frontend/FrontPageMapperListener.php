@@ -2,6 +2,7 @@
 
 namespace I18nBundle\EventListener;
 
+use I18nBundle\Definitions;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
