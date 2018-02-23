@@ -7,6 +7,7 @@ use I18nBundle\Manager\ZoneManager;
 use Pimcore\Localization\Locale;
 use Pimcore\Model\Document;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class PathFinder
@@ -61,7 +62,8 @@ class PathFinder
      */
     public function checkPath($frontEndPath = NULL)
     {
-        $document = $this->requestStack->getMasterRequest()->get(DynamicRouter::CONTENT_KEY);
+        $request = $this->requestStack->getMasterRequest();
+        $document = $request->get(DynamicRouter::CONTENT_KEY);
 
         if (!$document instanceof Document) {
             return FALSE;
@@ -69,7 +71,7 @@ class PathFinder
 
         if ($document instanceof Document\Hardlink\Wrapper\Page) {
             $document = $document->getHardLinkSource();
-        } else if ($document instanceof Document\Hardlink\Wrapper\Link) {
+        } elseif ($document instanceof Document\Hardlink\Wrapper\Link) {
             $document = $document->getHardLinkSource();
         }
 
@@ -77,7 +79,7 @@ class PathFinder
         $currentLanguageIso = $document->getProperty('language');
 
         //only extract language fragment.
-        if(strpos($currentLanguageIso, '_') !== FALSE) {
+        if (strpos($currentLanguageIso, '_') !== FALSE) {
             $parts = explode('_', $currentLanguageIso);
             $currentLanguageIso = $parts[0];
         }
@@ -110,19 +112,19 @@ class PathFinder
             //invalid i18n format
             if (count($pathElements) !== 2) {
                 return FALSE;
-            } else if (!$this->isValidLanguage($pathElements[0])) {
+            } elseif (!$this->isValidLanguage($pathElements[0])) {
                 return FALSE;
-            } else if (!$this->isValidCountry($pathElements[1])) {
+            } elseif (!$this->isValidCountry($pathElements[1])) {
                 return FALSE;
             }
 
             //check if language is valid, otherwise there is no locale context.
-        } else if (!$this->isValidLanguage($localePart)) {
+        } elseif (!$this->isValidLanguage($localePart)) {
             return FALSE;
         }
 
         if ($currentCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
-            $formatting = $this->getContextFormatting($document->getKey());
+            $formatting = $this->getContextFormatting($document, $request);
             $formattedCountryIso = !$formatting['uppercase'] ? strtolower($currentCountryIso) : $currentCountryIso;
             $this->localeFragment = [$currentLanguageIso . $formatting['delimiter'] . $formattedCountryIso];
         } else {
@@ -182,8 +184,22 @@ class PathFinder
         return $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
     }
 
-    private function getContextFormatting($key)
+    /**
+     * @param Document $document
+     * @param Request  $request
+     * @return array
+     */
+    private function getContextFormatting(Document $document, Request $request)
     {
+        $frontPageMappingAttribute = $request->attributes->get(Definitions::FRONT_PAGE_MAP);
+
+        // use key of real language document instead of mapped front page map!
+        if (is_array($frontPageMappingAttribute)) {
+            $key = $frontPageMappingAttribute['key'];
+        } else {
+            $key = $document->getKey();
+        }
+
         $delimiter = strpos($key, '_') !== FALSE ? '_' : '-';
         $country = end(explode($delimiter, $key));
 

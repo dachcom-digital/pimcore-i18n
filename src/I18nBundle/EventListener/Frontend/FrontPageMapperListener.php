@@ -64,6 +64,7 @@ class FrontPageMapperListener implements EventSubscriberInterface
             if ($document->getHardLinkSource()->getFullPath() === $document->getFullPath()) {
                 $mapDocument = $document->getHardLinkSource()->getProperty('front_page_map');
                 if (!empty($mapDocument)) {
+                    $request->attributes->set(Definitions::FRONT_PAGE_MAP, ['id' => $document->getId(), 'key' => $document->getKey()]);
                     $this->documentResolver->setDocument($request, $mapDocument);
                 }
             }
