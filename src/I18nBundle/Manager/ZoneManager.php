@@ -11,10 +11,16 @@ use I18nBundle\Definitions;
 use I18nBundle\Registry\CountryRegistry;
 use I18nBundle\Registry\LanguageRegistry;
 use Pimcore\Http\Request\Resolver\SiteResolver;
+use Pimcore\Http\RequestHelper;
 use Pimcore\Model\Document;
 
 class ZoneManager
 {
+    /**
+     * @var RequestHelper
+     */
+    protected $requestHelper;
+
     /**
      * @var SiteResolver
      */
@@ -57,17 +63,20 @@ class ZoneManager
     /**
      * ZoneManager constructor.
      *
+     * @param RequestHelper    $requestHelper
      * @param SiteResolver     $siteResolver
      * @param Configuration    $configuration
      * @param LanguageRegistry $languageRegistry
      * @param CountryRegistry  $countryRegistry
      */
     public function __construct(
+        RequestHelper $requestHelper,
         SiteResolver $siteResolver,
         Configuration $configuration,
         LanguageRegistry $languageRegistry,
         CountryRegistry $countryRegistry
     ) {
+        $this->requestHelper = $requestHelper;
         $this->siteResolver = $siteResolver;
         $this->configuration = $configuration;
         $this->languageRegistry = $languageRegistry;
@@ -292,6 +301,7 @@ class ZoneManager
     {
         $domainHost = $this->getDomainHost($domain);
         $domainDoc = Document::getById($rootId);
+        $isFrontendRequestByAdmin = $this->requestHelper->isFrontendRequestByAdmin();
 
         $valid = FALSE;
 
@@ -307,7 +317,8 @@ class ZoneManager
             $valid = TRUE;
         }
 
-        if ($valid === FALSE || $domainDoc->isPublished() === FALSE) {
+        $isPublishedMode = $domainDoc->isPublished() === TRUE || $isFrontendRequestByAdmin;
+        if ($valid === FALSE || $isPublishedMode === FALSE) {
             return FALSE;
         }
 
@@ -337,7 +348,7 @@ class ZoneManager
                 return FALSE;
             }
         } else {
-            $children = $domainDoc->getChildren();
+            $children = $domainDoc->getChildren(true);
 
             /** @var Document $child */
             foreach ($children as $child) {
@@ -371,7 +382,14 @@ class ZoneManager
 
                         $loopDetector[] = $linkChild->getPath();
                         $linkChild = Document::getById($linkChild->getInternal());
-                        if (!$linkChild instanceof Document || !$linkChild->isPublished()) {
+
+                        if (!$linkChild instanceof Document) {
+                            $validPath = FALSE;
+                            break;
+                        }
+
+                        $isPublishedMode = $linkChild->isPublished() === TRUE || $isFrontendRequestByAdmin;
+                        if ($isPublishedMode === FALSE) {
                             $validPath = FALSE;
                             break;
                         }
@@ -381,7 +399,8 @@ class ZoneManager
                     }
                 }
 
-                if ($validPath === FALSE || !$child->isPublished()) {
+                $isPublishedMode = $child->isPublished() === TRUE || $isFrontendRequestByAdmin;
+                if ($validPath === FALSE || $isPublishedMode === FALSE) {
                     continue;
                 }
 
