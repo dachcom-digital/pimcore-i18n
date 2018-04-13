@@ -60,13 +60,13 @@ class PathFinder
      *
      * @return string|bool
      */
-    public function checkPath($frontEndPath = NULL)
+    public function checkPath($frontEndPath = null)
     {
         $request = $this->requestStack->getMasterRequest();
         $document = $request->get(DynamicRouter::CONTENT_KEY);
 
         if (!$document instanceof Document) {
-            return FALSE;
+            return false;
         }
 
         if ($document instanceof Document\Hardlink\Wrapper\Page) {
@@ -75,22 +75,29 @@ class PathFinder
             $document = $document->getHardLinkSource();
         }
 
-        $currentCountryIso = $document->getProperty('country');
         $currentLanguageIso = $document->getProperty('language');
+        $currentCountryIso = null;
 
-        //only extract language fragment.
-        if (strpos($currentLanguageIso, '_') !== FALSE) {
+        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country') {
+            $currentCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
+        }
+
+        //extract locale fragments
+        if (strpos($currentLanguageIso, '_') !== false) {
             $parts = explode('_', $currentLanguageIso);
             $currentLanguageIso = $parts[0];
+            if (isset($parts[1]) && !empty($parts[1])) {
+                $currentCountryIso = $parts[1];
+            }
         }
 
         //only parse if country in i10n is active!
         if (is_null($currentCountryIso)) {
-            return FALSE;
+            return false;
         }
 
         if (!$this->locale->hasLocale()) {
-            return FALSE;
+            return false;
         }
 
         $urlPath = parse_url($frontEndPath, PHP_URL_PATH);
@@ -98,7 +105,7 @@ class PathFinder
 
         //no path given.
         if (empty($urlPathFragments)) {
-            return FALSE;
+            return false;
         }
 
         $localePart = array_shift($urlPathFragments);
@@ -106,21 +113,21 @@ class PathFinder
         //check if localePart is a valid country i18n part
         if ($this->hasDelimiterContext($localePart)) {
             //explode first path fragment, assuming that the first part is language/country slug
-            $delimiter = strpos($localePart, '_') !== FALSE ? '_' : '-';
+            $delimiter = strpos($localePart, '_') !== false ? '_' : '-';
             $pathElements = explode($delimiter, $localePart);
 
             //invalid i18n format
             if (count($pathElements) !== 2) {
-                return FALSE;
+                return false;
             } elseif (!$this->isValidLanguage($pathElements[0])) {
-                return FALSE;
+                return false;
             } elseif (!$this->isValidCountry($pathElements[1])) {
-                return FALSE;
+                return false;
             }
 
             //check if language is valid, otherwise there is no locale context.
         } elseif (!$this->isValidLanguage($localePart)) {
-            return FALSE;
+            return false;
         }
 
         if ($currentCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
@@ -133,7 +140,7 @@ class PathFinder
 
         $newFrontEndPath = $this->buildLocaleUrl($urlPathFragments);
         if ($newFrontEndPath === $frontEndPath) {
-            return FALSE;
+            return false;
         }
 
         return $newFrontEndPath;
@@ -151,7 +158,7 @@ class PathFinder
      */
     private function hasDelimiterContext($path)
     {
-        return strpos($path, '-') !== FALSE || strpos($path, '_') !== FALSE;
+        return strpos($path, '-') !== false || strpos($path, '_') !== false;
     }
 
     /**
@@ -161,7 +168,7 @@ class PathFinder
      */
     private function isValidLanguage($fragment)
     {
-        return array_search($fragment, array_column($this->getValidLanguages(), 'isoCode')) !== FALSE;
+        return array_search($fragment, array_column($this->getValidLanguages(), 'isoCode')) !== false;
     }
 
     /**
@@ -171,7 +178,7 @@ class PathFinder
      */
     private function isValidCountry($fragment)
     {
-        return array_search(strtoupper($fragment), array_column($this->getValidCountries(), 'isoCode')) !== FALSE;
+        return array_search(strtoupper($fragment), array_column($this->getValidCountries(), 'isoCode')) !== false;
     }
 
     private function getValidLanguages()
@@ -200,7 +207,7 @@ class PathFinder
             $key = $document->getKey();
         }
 
-        $delimiter = strpos($key, '_') !== FALSE ? '_' : '-';
+        $delimiter = strpos($key, '_') !== false ? '_' : '-';
         $country = end(explode($delimiter, $key));
 
         return [

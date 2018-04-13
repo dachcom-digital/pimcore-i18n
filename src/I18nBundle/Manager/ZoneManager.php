@@ -46,19 +46,19 @@ class ZoneManager
      *
      * @var
      */
-    protected $currentZone = NULL;
+    protected $currentZone = null;
 
     /**
      * Stores the current Zone domains
      *
      * @var
      */
-    protected $currentZoneDomains = NULL;
+    protected $currentZoneDomains = null;
 
     /**
      * @var bool
      */
-    protected $isInZone = FALSE;
+    protected $isInZone = false;
 
     /**
      * ZoneManager constructor.
@@ -100,28 +100,28 @@ class ZoneManager
         } else {
 
             //it's not a site request, zones are invalid. use the default settings.
-            if ($this->siteResolver->isSiteRequest() === FALSE) {
+            if ($this->siteResolver->isSiteRequest() === false) {
                 $this->currentZone = $this->mapData($this->configuration->getConfigNode());
             } else {
 
-                $validZone = FALSE;
+                $validZone = false;
                 $zoneConfig = [];
                 $currentSite = $this->siteResolver->getSite();
 
                 foreach ($zones as $zone) {
                     if (in_array($currentSite->getMainDomain(), $zone['domains'])) {
-                        $validZone = TRUE;
+                        $validZone = true;
                         $zoneConfig = $zone;
                         break;
                     }
                 }
 
                 //no valid zone found. use default one.
-                if ($validZone === FALSE) {
+                if ($validZone === false) {
                     $this->currentZone = $this->mapData($this->configuration->getConfigNode());
                 } else {
 
-                    $this->isInZone = TRUE;
+                    $this->isInZone = true;
                     $parsedZoneConfig = $this->mapData($zoneConfig['config'], $zoneConfig['id'], $zoneConfig['name']);
                     $parsedZoneConfig['valid_domains'] = $zoneConfig['domains'];
 
@@ -154,7 +154,7 @@ class ZoneManager
         } else {
             foreach ($availableSites as $site) {
                 $domainInfo = $this->mapDomainData($site['mainDomain'], $site['rootId']);
-                if ($domainInfo !== FALSE) {
+                if ($domainInfo !== false) {
                     $zoneDomains[] = $domainInfo;
                 }
             }
@@ -170,7 +170,7 @@ class ZoneManager
      * @return mixed
      * @throws \Exception
      */
-    public function getCurrentZoneInfo($slot = NULL)
+    public function getCurrentZoneInfo($slot = null)
     {
         if (empty($this->currentZone)) {
             $this->initZones();
@@ -188,7 +188,7 @@ class ZoneManager
      * @return array|null
      * @throws \Exception
      */
-    public function getCurrentZoneDomains($flatten = FALSE)
+    public function getCurrentZoneDomains($flatten = false)
     {
         if (empty($this->currentZone)) {
             $this->initZones();
@@ -252,7 +252,7 @@ class ZoneManager
      * @return array
      * @throws \Exception
      */
-    private function mapData($config, $zoneId = NULL, $zoneName = NULL)
+    private function mapData($config, $zoneId = null, $zoneName = null)
     {
         if (!empty($config['country_adapter']) && !$this->countryRegistry->has($config['country_adapter'])) {
             throw new \Exception(sprintf(
@@ -264,7 +264,7 @@ class ZoneManager
         /** @var AbstractLanguage $countryAdapter */
         $languageAdapter = $this->languageRegistry->has($config['language_adapter'])
             ? $this->languageRegistry->get($config['language_adapter'])
-            : NULL;
+            : null;
 
         if (!is_null($languageAdapter)) {
             $languageAdapter->setCurrentZoneConfig($zoneId, $this->setZoneConfiguration($config));
@@ -273,7 +273,7 @@ class ZoneManager
         /** @var AbstractCountry $countryAdapter */
         $countryAdapter = $this->countryRegistry->has($config['country_adapter'])
             ? $this->countryRegistry->get($config['country_adapter'])
-            : NULL;
+            : null;
 
         if (!is_null($countryAdapter)) {
             $countryAdapter->setCurrentZoneConfig($zoneId, $this->setZoneConfiguration($config));
@@ -303,49 +303,60 @@ class ZoneManager
         $domainDoc = Document::getById($rootId);
         $isFrontendRequestByAdmin = $this->requestHelper->isFrontendRequestByAdmin();
 
-        $valid = FALSE;
+        $valid = false;
 
         if ($this->isInZone() && !empty($this->getCurrentZoneInfo('valid_domains'))) {
             $validDomains = $this->getCurrentZoneInfo('valid_domains');
             foreach ($validDomains as $validDomain) {
                 if ($domainHost === $this->getDomainHost($validDomain)) {
-                    $valid = TRUE;
+                    $valid = true;
                     break;
                 }
             }
         } else {
-            $valid = TRUE;
+            $valid = true;
         }
 
-        $isPublishedMode = $domainDoc->isPublished() === TRUE || $isFrontendRequestByAdmin;
-        if ($valid === FALSE || $isPublishedMode === FALSE) {
-            return FALSE;
+        $isPublishedMode = $domainDoc->isPublished() === true || $isFrontendRequestByAdmin;
+        if ($valid === false || $isPublishedMode === false) {
+            return false;
         }
 
-        $isRootDomain = FALSE;
-        $subPages = FALSE;
+        $isRootDomain = false;
+        $subPages = false;
 
         $docLanguageIso = $domainDoc->getProperty('language');
-        $docCountryIso = $domainDoc->getProperty('country');
+        $docCountryIso = null;
 
-        $country = NULL;
-        $language = NULL;
+        if ($this->getCurrentZoneInfo('mode') === 'country' && !empty($docLanguageIso)) {
+            $docCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
+        }
+
+        if (strpos($docLanguageIso, '_') !== false) {
+            $parts = explode('_', $docLanguageIso);
+            if (isset($parts[1]) && !empty($parts[1])) {
+                $docCountryIso = $parts[1];
+            }
+        }
+
+        $country = null;
+        $language = null;
 
         $validCountries = [];
         $validLanguages = $this->getCurrentZoneLanguageAdapter()->getActiveLanguages();
 
         if ($this->getCurrentZoneInfo('mode') === 'country') {
             $validCountries = $this->getCurrentZoneCountryAdapter()->getActiveCountries();
-            if (!empty($docCountryIso) && array_search($docCountryIso, array_column($validCountries, 'isoCode')) === FALSE) {
-                return FALSE;
+            if (!empty($docCountryIso) && array_search($docCountryIso, array_column($validCountries, 'isoCode')) === false) {
+                return false;
             }
         }
 
         //domain has language, it's the root.
         if (!empty($docLanguageIso)) {
-            $isRootDomain = TRUE;
-            if (array_search($docLanguageIso, array_column($validLanguages, 'isoCode')) === FALSE) {
-                return FALSE;
+            $isRootDomain = true;
+            if (array_search($docLanguageIso, array_column($validLanguages, 'isoCode')) === false) {
+                return false;
             }
         } else {
             $children = $domainDoc->getChildren(true);
@@ -359,7 +370,7 @@ class ZoneManager
 
                 $urlKey = $child->getKey();
                 $docUrl = $urlKey;
-                $validPath = TRUE;
+                $validPath = true;
                 $loopDetector = [];
 
                 //detect real doc url: if page is a link, move to target until we found a real document.
@@ -368,15 +379,15 @@ class ZoneManager
                     while ($linkChild->getType() === 'link') {
 
                         if (in_array($linkChild->getPath(), $loopDetector)) {
-                            $validPath = FALSE;
+                            $validPath = false;
                             break;
                         }
 
                         if ($linkChild->getLinktype() !== 'internal') {
-                            $validPath = FALSE;
+                            $validPath = false;
                             break;
                         } elseif ($linkChild->getInternalType() !== 'document') {
-                            $validPath = FALSE;
+                            $validPath = false;
                             break;
                         }
 
@@ -384,13 +395,13 @@ class ZoneManager
                         $linkChild = Document::getById($linkChild->getInternal());
 
                         if (!$linkChild instanceof Document) {
-                            $validPath = FALSE;
+                            $validPath = false;
                             break;
                         }
 
-                        $isPublishedMode = $linkChild->isPublished() === TRUE || $isFrontendRequestByAdmin;
-                        if ($isPublishedMode === FALSE) {
-                            $validPath = FALSE;
+                        $isPublishedMode = $linkChild->isPublished() === true || $isFrontendRequestByAdmin;
+                        if ($isPublishedMode === false) {
+                            $validPath = false;
                             break;
                         }
 
@@ -399,19 +410,30 @@ class ZoneManager
                     }
                 }
 
-                $isPublishedMode = $child->isPublished() === TRUE || $isFrontendRequestByAdmin;
-                if ($validPath === FALSE || $isPublishedMode === FALSE) {
+                $isPublishedMode = $child->isPublished() === true || $isFrontendRequestByAdmin;
+                if ($validPath === false || $isPublishedMode === false) {
                     continue;
                 }
 
                 $childLanguageIso = $child->getProperty('language');
-                $childCountryIso = $child->getProperty('country');
+                $childCountryIso = null;
 
-                if (empty($childLanguageIso) || array_search($childLanguageIso, array_column($validLanguages, 'isoCode')) === FALSE) {
+                if ($this->getCurrentZoneInfo('mode') === 'country') {
+                    $childCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
+                }
+
+                if (strpos($childLanguageIso, '_') !== false) {
+                    $parts = explode('_', $childLanguageIso);
+                    if (isset($parts[1]) && !empty($parts[1])) {
+                        $childCountryIso = $parts[1];
+                    }
+                }
+
+                if (empty($childLanguageIso) || array_search($childLanguageIso, array_column($validLanguages, 'isoCode')) === false) {
                     continue;
                 }
 
-                if (!empty($childCountryIso) && array_search($childCountryIso, array_column($validCountries, 'isoCode')) === FALSE) {
+                if (!empty($childCountryIso) && array_search($childCountryIso, array_column($validCountries, 'isoCode')) === false) {
                     continue;
                 }
 
@@ -465,7 +487,7 @@ class ZoneManager
             'countryIso'       => $docCountryIso,
             'languageIso'      => $docRealLanguageIso,
             'hrefLang'         => $hrefLang,
-            'localeUrlMapping' => NULL,
+            'localeUrlMapping' => null,
             'url'              => $domainUrl,
             'homeUrl'          => $domainUrl,
             'domainUrl'        => $domainUrl,
@@ -504,11 +526,11 @@ class ZoneManager
     private function getDomainUrl($domain)
     {
         $scheme = \Pimcore\Tool::getRequestScheme();
-        $domainHost = $this->getDomainHost($domain, FALSE);
+        $domainHost = $this->getDomainHost($domain, false);
         $domainPort = $this->getDomainPort($domain);
         $domainUrl = $domainHost;
 
-        if (strpos($domainUrl, 'http:') === FALSE) {
+        if (strpos($domainUrl, 'http:') === false) {
             $domainUrl = $scheme . '://' . $domainUrl;
         }
 
@@ -524,7 +546,7 @@ class ZoneManager
      * @param bool $stripWWW
      * @return string
      */
-    private function getDomainHost($domain, $stripWWW = TRUE)
+    private function getDomainHost($domain, $stripWWW = true)
     {
         $urlInfo = parse_url($domain);
         $host = isset($urlInfo['host']) ? $urlInfo['host'] : $urlInfo['path'];

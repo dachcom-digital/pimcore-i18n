@@ -48,7 +48,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
     /**
      * @var bool
      */
-    protected $renderErrorPage = TRUE;
+    protected $renderErrorPage = true;
 
     /**
      * @param ActionRenderer       $actionRenderer
@@ -62,7 +62,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         ZoneManager $zoneManager,
         ContextManager $contextManager,
         PathGeneratorManager $pathGeneratorManager,
-        $renderErrorPage = TRUE
+        $renderErrorPage = true
     ) {
         $this->actionRenderer = $actionRenderer;
         $this->zoneManager = $zoneManager;
@@ -110,7 +110,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         }
 
         //re-init zones since we're in a kernelException.
-        $zoneDomains = $this->zoneManager->getCurrentZoneDomains(TRUE);
+        $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
         $exception = $event->getException();
 
         $statusCode = 500;
@@ -133,7 +133,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
             }));
 
         //maybe there is a localized host page.
-        $languageIndex = FALSE;
+        $languageIndex = false;
         if (!empty($possibleLocaleSlug)) {
             $languageIndex = array_keys(array_filter($zoneDomains,
                 function ($v) use ($host, $possibleLocaleSlug) {
@@ -141,13 +141,13 @@ class ResponseExceptionListener implements EventSubscriberInterface
                 }));
         }
 
-        if ($languageIndex !== FALSE) {
+        if ($languageIndex !== false) {
             $hostIndex = $languageIndex[0];
-        } else if ($hostIndex !== FALSE) {
+        } elseif ($hostIndex !== false) {
             $hostIndex = $hostIndex[0];
         }
 
-        $errorPath = NULL;
+        $errorPath = null;
 
         $defaultErrorPath = Config::getSystemConfig()->documents->error_pages->default;
         if (Site::isSiteRequest()) {
@@ -159,14 +159,14 @@ class ResponseExceptionListener implements EventSubscriberInterface
             }
         }
 
-        if ($hostIndex !== FALSE) {
+        if ($hostIndex !== false) {
 
             $guessedErrorPath = 'error';
 
             //if we have a default error page, try to use same name.
-            if(!empty($defaultErrorPath)) {
+            if (!empty($defaultErrorPath)) {
                 $defaultErrorPathFragments = array_filter(explode('/', $defaultErrorPath));
-                if(!empty($defaultErrorPathFragments)) {
+                if (!empty($defaultErrorPathFragments)) {
                     $guessedErrorPath = end($defaultErrorPathFragments);
                 }
             }
@@ -188,15 +188,22 @@ class ResponseExceptionListener implements EventSubscriberInterface
 
         $document = Document::getByPath($errorPath);
 
+        // default is home
         if (!$document instanceof Document\Page) {
-            // default is home
             $document = Document::getById(1);
         }
 
         //fix i18n language / country context.
         $docLang = explode('_', $document->getProperty('language'));
         Cache\Runtime::set('i18n.languageIso', strtolower($docLang[0]));
-        Cache\Runtime::set('i18n.countryIso', $document->getProperty('country') ? $document->getProperty('country') : Definitions::INTERNATIONAL_COUNTRY_NAMESPACE);
+
+        $countryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
+
+        if (count($docLang) > 1) {
+            $countryIso = $docLang[1];
+        }
+
+        Cache\Runtime::set('i18n.countryIso', $countryIso);
 
         try {
             $response = $this->actionRenderer->render($document);

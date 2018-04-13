@@ -2,6 +2,7 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
+use I18nBundle\Definitions;
 use I18nBundle\Event\AlternateStaticRouteEvent;
 use I18nBundle\I18nEvents;
 use I18nBundle\Tool\System;
@@ -51,9 +52,9 @@ class StaticRoute extends AbstractPathGenerator
      * @return array
      * @throws \Exception
      */
-    public function getUrls(PimcoreDocument $currentDocument = NULL, $onlyShowRootLanguages = FALSE)
+    public function getUrls(PimcoreDocument $currentDocument = null, $onlyShowRootLanguages = false)
     {
-        if(isset($this->cachedUrls[$currentDocument->getId()])) {
+        if (isset($this->cachedUrls[$currentDocument->getId()])) {
             return $this->cachedUrls[$currentDocument->getId()];
         }
 
@@ -69,7 +70,18 @@ class StaticRoute extends AbstractPathGenerator
         }
 
         $currentLanguage = $currentDocument->getProperty('language');
-        $currentCountry = strtolower($currentDocument->getProperty('country'));
+        $currentCountry = null;
+
+        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country') {
+            $currentCountry = strtolower(Definitions::INTERNATIONAL_COUNTRY_NAMESPACE);
+        }
+
+        if (strpos($currentLanguage, '_') !== false) {
+            $parts = explode('_', $currentLanguage);
+            if (isset($parts[1]) && !empty($parts[1])) {
+                $currentCountry = strtolower($parts[1]);
+            }
+        }
 
         $route = PimcoreStaticRoute::getCurrentRoute();
 
@@ -77,7 +89,7 @@ class StaticRoute extends AbstractPathGenerator
             return [];
         }
 
-        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
+        $tree = $this->zoneManager->getCurrentZoneDomains(true);
 
         //create custom list for event ($i18nList) - do not include all the zone config stuff.
         foreach ($tree as $pageInfo) {

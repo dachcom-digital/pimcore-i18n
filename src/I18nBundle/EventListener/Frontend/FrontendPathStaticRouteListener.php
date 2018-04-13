@@ -50,7 +50,7 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
         $locale = $params['_locale'];
         $urlMapping = $this->zoneManager->getCurrentZoneInfo('locale_url_mapping');
         $validLocaleIso = array_search($params['_locale'], $urlMapping);
-        if($validLocaleIso !== FALSE) {
+        if ($validLocaleIso !== false) {
             $locale = $validLocaleIso;
         }
 
@@ -87,21 +87,21 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
     private function translateKey($key, $locale)
     {
         $translationConfig = $this->zoneManager->getCurrentZoneInfo('translations');
-        $throw = FALSE;
-        $keyIndex = FALSE;
+        $throw = false;
+        $keyIndex = false;
 
         if (empty($translationConfig)) {
-            $throw = TRUE;
+            $throw = true;
         } else {
             $keyIndex = array_search($key, array_column($translationConfig, 'key'));
-            if ($keyIndex === FALSE || !isset($translationConfig[$keyIndex]['values'][$locale])) {
-                $throw = TRUE;
+            if ($keyIndex === false || !isset($translationConfig[$keyIndex]['values'][$locale])) {
+                $throw = true;
             }
         }
 
-        if($throw === TRUE) {
+        if ($throw === true) {
 
-            if(\Pimcore\Tool::isFrontendRequestByAdmin()) {
+            if (\Pimcore\Tool::isFrontendRequestByAdmin()) {
                 return $key;
             }
 
