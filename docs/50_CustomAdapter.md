@@ -9,69 +9,99 @@ We're only show you a example with countries, if you need to do this with langua
 
 ```yaml
 # in app/config/services.yml
-AppBundle\Services\I18nBundle\CountryAdapter\Special:
-    parent: I18nBundle\Adapter\Context\AbstractContext
+AppBundle\Services\I18nBundle\LocaleAdapter\Special:
+    parent: I18nBundle\Adapter\Context\Locale\AbstractLocale
+    decorates: I18nBundle\Adapter\Locale\System # use a decorator
     public: false
+    arguments:
+        - '@AppBundle\Services\I18nBundle\LocaleAdapter\Website.inner'
     tags:
-        - { name: i18n.adapter.country, alias: special }
+        - { name: i18n.adapter.locale, alias: special }
 ```
 
-### 2. Set Country Adapter in your Configuration
+### 2. Set Locale Adapter in your Configuration
 
 ```yaml
 # in app/config/config.yml
 i18n:
     mode: country
-    language_adapter: system
-    country_adapter: special
+    locale_adapter: special
 ```
 
 ### 3. Create a class
 
-Create a class, extend it from `AbstractCountry` and implement the `CountryInterface`.
+Create a class, extend it from `AbstractLocale`.
 In this example, we define some countries and we'll deliver some other countries if we're in a different zone.
+We're also using the `system` adapter as a decorator so we don't have to implement all methods again.
 
 ```php
 <?php
 
-namespace AppBundle\Services\I18nBundle\CountryAdapter;
+namespace AppBundle\Services\I18nBundle\LocaleAdapter;
 
-use I18nBundle\Adapter\Country\AbstractCountry;
-use I18nBundle\Adapter\Country\CountryInterface;
+use I18nBundle\Adapter\Locale\AbstractLocale;
 
-class Special extends AbstractCountry implements CountryInterface
+class Special extends AbstractLocale
 {
     var $countries = [
         [
             'isoCode' => 'AT',
             'id'      => 1,
-            'zone'    => NULL,
-            'object'  => NULL
+            'zone'    => null,
+            'object'  => null
         ],
         [
             'isoCode' => 'GLOBAL',
-            'id'      => NULL,
-            'zone'    => NULL,
-            'object'  => NULL
+            'id'      => null,
+            'zone'    => null,
+            'object'  => null
         ]
-         
-
     ];
 
     var $countries_zone_2 = [
         [
             'isoCode' => 'CH',
             'id'      => 1,
-            'zone'    => NULL,
-            'object'  => NULL
+            'zone'    => null,
+            'object'  => null
         ],
         [
             'isoCode' => 'GLOBAL',
-            'id'      => NULL,
-            'zone'    => NULL,
-            'object'  => NULL
+            'id'      => null,
+            'zone'    => null,
+            'object'  => null
         ]
     ];
+
+    /**
+     * @var System
+     */
+    protected $system;
+
+    /**
+     * @var null
+     */
+    protected $validLanguages = null;
+
+    public function __construct(System $system)
+    {
+        $this->system = $system;
+    }
+
+    public function getDefaultLocale()
+    {
+        return $this->system->getDefaultLocale();
+    }
+
+    public function getActiveLanguages(): array
+    {
+        return $this->system->getActiveLanguages();
+    }
+
+    public function getLanguageData($isoCode = '', $field = null)
+    {
+        return $this->system->getLanguageData($isoCode, $field);
+    }
 
     public function getActiveCountries(): array
     {
@@ -85,29 +115,14 @@ class Special extends AbstractCountry implements CountryInterface
         return $countries;
     }
 
-    public function getCountryData($isoCode = '', $field = NULL)
+    public function getCountryData($isoCode = '', $field = null)
     {
-        $config = $this->countries;
-
-        //no info for global, which means: international like (de,en)!
-        if ($isoCode === 'GLOBAL') {
-            return NULL;
-        }
-
-        if (isset($config[$isoCode])) {
-            if ($field && isset($config[$isoCode][$field])) {
-                return $config[$isoCode][$field];
-            }
-
-            return $config[$isoCode];
-        }
-
-        return NULL;
+        return $this->system->getCountryData($isoCode, $field);
     }
     
     public function getGlobalInfo()
     {
-        return $this->countries['GLOBAL'];
+        return $this->system->getGlobalInfo();
     }
 }
 ```
