@@ -1,32 +1,11 @@
 services:
 
-    # adapter: country
-    I18nBundle\Adapter\Country\AbstractCountry:
-        abstract: true
-        public: false
-
-    I18nBundle\Adapter\Country\System:
-        parent: I18nBundle\Adapter\Country\AbstractCountry
+    # adapter: locale
+    I18nBundle\Adapter\Locale\LocaleInterface: '@I18nBundle\Adapter\Locale\System'
+    I18nBundle\Adapter\Locale\System:
         public: false
         tags:
-            - { name: i18n.adapter.country, alias: system }
-
-    I18nBundle\Adapter\Country\CoreShop:
-        parent: I18nBundle\Adapter\Country\AbstractCountry
-        public: false
-        tags:
-            - { name: i18n.adapter.country, alias: coreshop }
-
-    # adapter: language
-    I18nBundle\Adapter\Language\AbstractLanguage:
-        abstract: true
-        public: false
-
-    I18nBundle\Adapter\Language\System:
-        parent: I18nBundle\Adapter\Language\AbstractLanguage
-        public: false
-        tags:
-            - { name: i18n.adapter.language, alias: system }
+            - { name: i18n.adapter.locale, alias: system }
 
     # adapter: pathGenerator
     I18nBundle\Adapter\PathGenerator\AbstractPathGenerator:
@@ -66,3 +45,27 @@ services:
         public: false
         tags:
             - { name: i18n.adapter.context, alias: language }
+
+    # adapter: redirector
+    I18nBundle\Adapter\Redirector\AbstractRedirector:
+        abstract: true
+        public: false
+        autowire: true
+
+    I18nBundle\Adapter\Redirector\CookieRedirector:
+        parent: I18nBundle\Adapter\Redirector\AbstractRedirector
+        public: false
+        tags:
+            - { name: i18n.adapter.redirector, alias: cookie, priority: 300 }
+
+    I18nBundle\Adapter\Redirector\GeoRedirector:
+        parent: I18nBundle\Adapter\Redirector\AbstractRedirector
+        public: false
+        tags:
+            - { name: i18n.adapter.redirector, alias: geo, priority: 200 }
+
+    I18nBundle\Adapter\Redirector\FallbackRedirector:
+        parent: I18nBundle\Adapter\Redirector\AbstractRedirector
+        public: false
+        tags:
+            - { name: i18n.adapter.redirector, alias: fallback, priority: 100 }

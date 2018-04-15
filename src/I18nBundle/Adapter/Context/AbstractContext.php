@@ -91,13 +91,14 @@ abstract class AbstractContext implements ContextInterface
             return $isoCode;
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
      * Helper: Get current Country Iso
      *
      * Get valid Country Iso
+     *
      * @return bool|string
      */
     public function getCurrentCountryIso()
@@ -107,7 +108,7 @@ abstract class AbstractContext implements ContextInterface
             return $isoCode;
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
@@ -116,7 +117,7 @@ abstract class AbstractContext implements ContextInterface
      * @param bool $onlyShowRootLanguages
      * @return array
      */
-    public function getLinkedLanguages($onlyShowRootLanguages = FALSE)
+    public function getLinkedLanguages($onlyShowRootLanguages = false)
     {
         $currentDocument = $this->getDocument();
         $urls = $this->pathGeneratorManager->getPathGenerator()->getUrls($currentDocument, $onlyShowRootLanguages);
@@ -131,22 +132,22 @@ abstract class AbstractContext implements ContextInterface
      * @return mixed
      * @throws \Exception
      */
-    public function getCurrentContextInfo($slot = NULL, $locale = NULL)
+    public function getCurrentContextInfo($slot = null, $locale = null)
     {
-        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
+        $tree = $this->zoneManager->getCurrentZoneDomains(true);
 
-        if(empty($locale)) {
-            if($this->document instanceof Document) {
+        if (empty($locale)) {
+            if ($this->document instanceof Document) {
                 $locale = $this->document->getProperty('language');
             }
         }
 
-        if(empty($locale)) {
+        if (empty($locale)) {
             throw new \Exception('I18n: locale for current request not found.');
         }
 
         $treeIndex = array_search($locale, array_column($tree, 'locale'));
-        if($treeIndex === FALSE) {
+        if ($treeIndex === false) {
             throw new \Exception(sprintf('I18n: no valid zone for locale "%s" found.', $locale));
         }
 
@@ -161,12 +162,12 @@ abstract class AbstractContext implements ContextInterface
      *
      * @return array
      */
-    protected function mapLanguageInfo($languageIso, $countryIso = NULL, $href)
+    protected function mapLanguageInfo($languageIso, $countryIso = null, $href)
     {
         return [
             'iso'         => $languageIso,
-            'titleNative' => Intl::getLanguageBundle()->getLanguageName($languageIso, $countryIso, $this->getCurrentLanguageIso()),
-            'title'       => Intl::getLanguageBundle()->getLanguageName($languageIso, $countryIso, $languageIso),
+            'titleNative' => Intl::getLanguageBundle()->getLanguageName($languageIso, $countryIso, $languageIso),
+            'title'       => Intl::getLanguageBundle()->getLanguageName($languageIso, $countryIso, $this->getCurrentLanguageIso()),
             'href'        => $href
         ];
     }

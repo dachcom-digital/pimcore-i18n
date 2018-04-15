@@ -19,9 +19,9 @@ class Document extends AbstractPathGenerator
      *
      * @return array
      */
-    public function getUrls(PimcoreDocument $currentDocument = NULL, $onlyShowRootLanguages = FALSE)
+    public function getUrls(PimcoreDocument $currentDocument = null, $onlyShowRootLanguages = false)
     {
-        $urls = NULL;
+        $urls = null;
         if (isset($this->cachedUrls[$currentDocument->getId()])) {
             return $this->cachedUrls[$currentDocument->getId()];
         }
@@ -42,15 +42,15 @@ class Document extends AbstractPathGenerator
      *
      * @return array
      */
-    private function documentUrlsFromLanguage(PimcoreDocument $currentDocument, $onlyShowRootLanguages = FALSE)
+    private function documentUrlsFromLanguage(PimcoreDocument $currentDocument, $onlyShowRootLanguages = false)
     {
         $routes = [];
-        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
+        $tree = $this->zoneManager->getCurrentZoneDomains(true);
         $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'));
 
         // case 1: no deep linking requested. only return root pages!
         // case 2: current document is a root page ($rootDocumentId) - only return root pages!
-        if ($onlyShowRootLanguages === TRUE || $rootDocumentId !== FALSE) {
+        if ($onlyShowRootLanguages === true || $rootDocumentId !== false) {
             foreach ($tree as $pageInfo) {
                 if (empty($pageInfo['languageIso'])) {
                     continue;
@@ -58,7 +58,8 @@ class Document extends AbstractPathGenerator
 
                 $routes[] = [
                     'languageIso'      => $pageInfo['languageIso'],
-                    'countryIso'       => NULL,
+                    'countryIso'       => null,
+                    'locale'           => $pageInfo['locale'],
                     'hrefLang'         => $pageInfo['hrefLang'],
                     'localeUrlMapping' => $pageInfo['localeUrlMapping'],
                     'key'              => $pageInfo['key'],
@@ -91,7 +92,7 @@ class Document extends AbstractPathGenerator
                     continue;
                 }
 
-                if ($this->hasPrettyUrl($document) === TRUE) {
+                if ($this->hasPrettyUrl($document) === true) {
                     $relativePath = $document->getPrettyUrl();
                     $url = System::joinPath([$pageInfo['domainUrl'], $relativePath]);
                 } else {
@@ -103,7 +104,8 @@ class Document extends AbstractPathGenerator
 
                 $routes[] = [
                     'languageIso'      => $pageInfo['languageIso'],
-                    'countryIso'       => NULL,
+                    'countryIso'       => null,
+                    'locale'           => $pageInfo['locale'],
                     'hrefLang'         => $pageInfo['hrefLang'],
                     'localeUrlMapping' => $pageInfo['localeUrlMapping'],
                     'key'              => $document->getKey(),
@@ -122,19 +124,20 @@ class Document extends AbstractPathGenerator
      *
      * @return array
      */
-    private function documentUrlsFromCountry(PimcoreDocument $currentDocument, $onlyShowRootLanguages = FALSE)
+    private function documentUrlsFromCountry(PimcoreDocument $currentDocument, $onlyShowRootLanguages = false)
     {
         $routes = [];
 
-        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
+        $tree = $this->zoneManager->getCurrentZoneDomains(true);
         $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'));
 
-        if ($onlyShowRootLanguages === TRUE || $rootDocumentId !== FALSE) {
+        if ($onlyShowRootLanguages === true || $rootDocumentId !== false) {
             foreach ($tree as $pageInfo) {
                 if (!empty($pageInfo['countryIso'])) {
                     $routes[] = [
                         'languageIso'      => $pageInfo['languageIso'],
                         'countryIso'       => $pageInfo['countryIso'],
+                        'locale'           => $pageInfo['locale'],
                         'hrefLang'         => $pageInfo['hrefLang'],
                         'localeUrlMapping' => $pageInfo['localeUrlMapping'],
                         'key'              => $pageInfo['key'],
@@ -182,9 +185,9 @@ class Document extends AbstractPathGenerator
                         continue;
                     }
 
-                    $hasPrettyUrl = FALSE;
-                    if ($this->hasPrettyUrl($document) === TRUE) {
-                        $hasPrettyUrl = TRUE;
+                    $hasPrettyUrl = false;
+                    if ($this->hasPrettyUrl($document) === true) {
+                        $hasPrettyUrl = true;
                         $relativePath = $document->getPrettyUrl();
                         $url = System::joinPath([$pageInfo['domainUrl'], $relativePath]);
                     } else {
@@ -214,7 +217,7 @@ class Document extends AbstractPathGenerator
 
                 foreach ($hardLinksToCheck as $hardLinkWrapper) {
                     $sameLanguageContext = array_search($hardLinkWrapper['languageIso'], array_column($routes, 'languageIso'));
-                    if ($sameLanguageContext === FALSE || !isset($routes[$sameLanguageContext])) {
+                    if ($sameLanguageContext === false || !isset($routes[$sameLanguageContext])) {
                         continue;
                     }
 
@@ -223,7 +226,7 @@ class Document extends AbstractPathGenerator
 
                     // case 1: only add hardlinks check if document has no pretty url => we can't guess pretty urls by magic.
                     // case 2: always continue: could be disabled or isn't linked via translations.
-                    if ($languageContext['hasPrettyUrl'] === TRUE || PimcoreDocument\Service::pathExists($posGlobalPath)) {
+                    if ($languageContext['hasPrettyUrl'] === true || PimcoreDocument\Service::pathExists($posGlobalPath)) {
                         continue;
                     }
 
@@ -252,6 +255,6 @@ class Document extends AbstractPathGenerator
             return !empty($document->getPrettyUrl()) && strlen($document->getPrettyUrl()) > 0;
         }
 
-        return FALSE;
+        return false;
     }
 }

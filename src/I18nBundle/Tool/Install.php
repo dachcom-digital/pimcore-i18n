@@ -3,9 +3,9 @@
 namespace I18nBundle\Tool;
 
 use I18nBundle\I18nBundle;
-use Pimcore\Config;
+use Pimcore\Model\Translation;
 use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
-
+use Pimcore\Tool\Admin;
 use Symfony\Component\Filesystem\Filesystem;
 use I18nBundle\Configuration\Configuration;
 use Pimcore\Model\Property;
@@ -40,6 +40,7 @@ class Install extends AbstractInstaller
     public function install()
     {
         $this->installOrUpdateConfigFile();
+        $this->installTranslations();
         $this->installProperties();
     }
 
@@ -50,6 +51,7 @@ class Install extends AbstractInstaller
     public function update()
     {
         $this->installOrUpdateConfigFile();
+        $this->installTranslations();
     }
 
     /**
@@ -94,7 +96,7 @@ class Install extends AbstractInstaller
      */
     public function needsReloadAfterInstall()
     {
-        return FALSE;
+        return false;
     }
 
     /**
@@ -102,11 +104,11 @@ class Install extends AbstractInstaller
      */
     public function canBeUpdated()
     {
-        $needUpdate = FALSE;
+        $needUpdate = false;
         if ($this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
             $config = Yaml::parse(file_get_contents(Configuration::SYSTEM_CONFIG_FILE_PATH));
-            if($config['version'] !== I18nBundle::BUNDLE_VERSION) {
-                $needUpdate = TRUE;
+            if ($config['version'] !== I18nBundle::BUNDLE_VERSION) {
+                $needUpdate = true;
             }
         }
 
@@ -118,7 +120,7 @@ class Install extends AbstractInstaller
      */
     private function installOrUpdateConfigFile()
     {
-        if(!$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_DIR_PATH)) {
+        if (!$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_DIR_PATH)) {
             $this->fileSystem->mkdir(Configuration::SYSTEM_CONFIG_DIR_PATH);
         }
 
@@ -132,16 +134,6 @@ class Install extends AbstractInstaller
      */
     private function installProperties()
     {
-        $countries = ['GLOBAL'];
-
-        $config = Config::getSystemConfig();
-        $languages = explode(',', $config->general->validLanguages);
-        foreach ($languages as $language) {
-            if (strpos($language, '_') !== FALSE) {
-                $countries[] = end(explode('_', $language));
-            }
-        }
-
         $properties = [
             'front_page_map' => [
                 'ctype'       => 'document',
@@ -149,13 +141,6 @@ class Install extends AbstractInstaller
                 'config'      => '',
                 'name'        => 'I18n: Front Page Mapping',
                 'description' => 'I18n: Use this property to map a custom front page.'
-            ],
-            'country'        => [
-                'ctype'       => 'document',
-                'type'        => 'select',
-                'config'      => join(',', $countries),
-                'name'        => 'I18n: Country Context',
-                'description' => ''
             ]
         ];
 
@@ -174,11 +159,21 @@ class Install extends AbstractInstaller
             $property->setDescription($propertyConfig['description']);
             $property->setCtype($propertyConfig['ctype']);
             $property->setConfig($propertyConfig['config']);
-            $property->setInheritable(FALSE);
+            $property->setInheritable(false);
             $property->save();
         }
 
-        return TRUE;
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    private function installTranslations()
+    {
+        $csvAdmin = $this->installSourcesPath . '/translations/admin.csv';
+        Translation\Admin::importTranslationsFromFile($csvAdmin, true, Admin::getLanguages());
+        return true;
     }
 
 }

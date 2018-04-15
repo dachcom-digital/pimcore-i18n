@@ -4,9 +4,9 @@ namespace I18nBundle\Adapter\Context;
 
 interface ContextInterface
 {
-    public function getLinkedLanguages($onlyShowRootLanguages = TRUE);
+    public function getLinkedLanguages($onlyShowRootLanguages = true);
 
-    public function getCurrentContextInfo($slot = NULL, $locale = NULL);
+    public function getCurrentContextInfo($slot = null, $locale = null);
 
     public function getCurrentLanguageIso();
 

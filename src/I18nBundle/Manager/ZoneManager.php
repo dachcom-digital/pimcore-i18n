@@ -2,17 +2,16 @@
 
 namespace I18nBundle\Manager;
 
-use I18nBundle\Adapter\Country\AbstractCountry;
-use I18nBundle\Adapter\Language\AbstractLanguage;
-use I18nBundle\Adapter\Language\LanguageInterface;
+use I18nBundle\Adapter\Locale\LocaleInterface;
 use I18nBundle\Configuration\Configuration;
-use I18nBundle\Adapter\Country\CountryInterface;
 use I18nBundle\Definitions;
-use I18nBundle\Registry\CountryRegistry;
-use I18nBundle\Registry\LanguageRegistry;
+use I18nBundle\Registry\LocaleRegistry;
+use Pimcore\Http\Request\Resolver\DocumentResolver;
+use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Http\RequestHelper;
 use Pimcore\Model\Document;
+use Pimcore\Model\Site;
 
 class ZoneManager
 {
@@ -24,7 +23,12 @@ class ZoneManager
     /**
      * @var SiteResolver
      */
-    private $siteResolver;
+    protected $siteResolver;
+
+    /**
+     * @var DocumentResolver
+     */
+    protected $documentResolver;
 
     /**
      * @var Configuration
@@ -32,14 +36,14 @@ class ZoneManager
     protected $configuration;
 
     /**
-     * @var LanguageRegistry
+     * @var LocaleRegistry
      */
-    protected $languageRegistry;
+    protected $localeRegistry;
 
     /**
-     * @var CountryRegistry
+     * @var EditmodeResolver
      */
-    protected $countryRegistry;
+    protected $editmodeResolver;
 
     /**
      * Stores the current Zone info
@@ -66,21 +70,24 @@ class ZoneManager
      * @param RequestHelper    $requestHelper
      * @param SiteResolver     $siteResolver
      * @param Configuration    $configuration
-     * @param LanguageRegistry $languageRegistry
-     * @param CountryRegistry  $countryRegistry
+     * @param LocaleRegistry   $localeRegistry
+     * @param EditmodeResolver $editmodeResolver
+     * @param DocumentResolver $documentResolver
      */
     public function __construct(
         RequestHelper $requestHelper,
         SiteResolver $siteResolver,
         Configuration $configuration,
-        LanguageRegistry $languageRegistry,
-        CountryRegistry $countryRegistry
+        LocaleRegistry $localeRegistry,
+        EditmodeResolver $editmodeResolver,
+        DocumentResolver $documentResolver
     ) {
         $this->requestHelper = $requestHelper;
         $this->siteResolver = $siteResolver;
         $this->configuration = $configuration;
-        $this->languageRegistry = $languageRegistry;
-        $this->countryRegistry = $countryRegistry;
+        $this->localeRegistry = $localeRegistry;
+        $this->editmodeResolver = $editmodeResolver;
+        $this->documentResolver = $documentResolver;
     }
 
     /**
@@ -99,14 +106,25 @@ class ZoneManager
             $this->currentZone = $this->mapData($this->configuration->getConfigNode());
         } else {
 
+            $site = null;
+            if (!$this->editmodeResolver->isEditmode()) {
+                if ($this->siteResolver->isSiteRequest()) {
+                    $site = $this->siteResolver->getSite();
+                }
+            } else {
+                // in backend we don't have any site request, we need to fetch it via document
+                $currentDocument = $this->documentResolver->getDocument();
+                $site = \Pimcore\Tool\Frontend::getSiteForDocument($currentDocument);
+            }
+
             //it's not a site request, zones are invalid. use the default settings.
-            if ($this->siteResolver->isSiteRequest() === false) {
+            if (!$site instanceof Site) {
                 $this->currentZone = $this->mapData($this->configuration->getConfigNode());
             } else {
 
                 $validZone = false;
                 $zoneConfig = [];
-                $currentSite = $this->siteResolver->getSite();
+                $currentSite = $site;
 
                 foreach ($zones as $zone) {
                     if (in_array($currentSite->getMainDomain(), $zone['domains'])) {
@@ -198,41 +216,20 @@ class ZoneManager
     }
 
     /**
-     * @return LanguageInterface
+     * @return LocaleInterface
      * @throws \Exception
      */
-    public function getCurrentZoneLanguageAdapter()
+    public function getCurrentZoneLocaleAdapter()
     {
         if (empty($this->currentZone)) {
             $this->initZones();
         }
 
-        if (!$this->currentZone['language_adapter'] instanceof LanguageInterface) {
-            throw new \Exception(sprintf('language adapter is invalid. given language adapter is "%s"', get_class($this->currentZone['language_adapter'])));
+        if (!$this->currentZone['locale_adapter'] instanceof LocaleInterface) {
+            throw new \Exception(sprintf('locale adapter is invalid. given locale adapter is "%s"', get_class($this->currentZone['locale_adapter'])));
         }
 
-        return $this->currentZone['language_adapter'];
-    }
-
-    /**
-     * @return CountryInterface
-     * @throws \Exception
-     */
-    public function getCurrentZoneCountryAdapter()
-    {
-        if (empty($this->currentZone)) {
-            $this->initZones();
-        }
-
-        if ($this->getCurrentZoneInfo('mode') !== 'country') {
-            throw new \Exception(sprintf('current i18n mode is "%s" and does not support country adapter.', $this->getCurrentZoneInfo('mode')));
-        }
-
-        if (!$this->currentZone['country_adapter'] instanceof CountryInterface) {
-            throw new \Exception(sprintf('country adapter is invalid. given country adapter is "%s"', get_class($this->currentZone['country_adapter'])));
-        }
-
-        return $this->currentZone['country_adapter'];
+        return $this->currentZone['locale_adapter'];
     }
 
     /**
@@ -254,38 +251,28 @@ class ZoneManager
      */
     private function mapData($config, $zoneId = null, $zoneName = null)
     {
-        if (!empty($config['country_adapter']) && !$this->countryRegistry->has($config['country_adapter'])) {
+        if (!empty($config['locale_adapter']) && !$this->localeRegistry->has($config['locale_adapter'])) {
             throw new \Exception(sprintf(
-                    'country adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.',
-                    $config['country_adapter'], 'i18n.adapter.country', $config['country_adapter'])
+                    'locale adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.',
+                    $config['locale_adapter'], 'i18n.adapter.locale', $config['locale'])
             );
         }
 
-        /** @var AbstractLanguage $countryAdapter */
-        $languageAdapter = $this->languageRegistry->has($config['language_adapter'])
-            ? $this->languageRegistry->get($config['language_adapter'])
+        /** @var LocaleInterface $localeAdapter */
+        $localeAdapter = $this->localeRegistry->has($config['locale_adapter'])
+            ? $this->localeRegistry->get($config['locale_adapter'])
             : null;
 
-        if (!is_null($languageAdapter)) {
-            $languageAdapter->setCurrentZoneConfig($zoneId, $this->setZoneConfiguration($config));
-        }
-
-        /** @var AbstractCountry $countryAdapter */
-        $countryAdapter = $this->countryRegistry->has($config['country_adapter'])
-            ? $this->countryRegistry->get($config['country_adapter'])
-            : null;
-
-        if (!is_null($countryAdapter)) {
-            $countryAdapter->setCurrentZoneConfig($zoneId, $this->setZoneConfiguration($config));
+        if (!is_null($localeAdapter)) {
+            $localeAdapter->setCurrentZoneConfig($zoneId, $this->setZoneConfiguration($config));
         }
 
         $mapData = $this->currentZone = [
-            'zoneId'           => $zoneId,
-            'zoneName'         => $zoneName,
-            'mode'             => $config['mode'],
-            'translations'     => $config['translations'],
-            'language_adapter' => $languageAdapter,
-            'country_adapter'  => $countryAdapter
+            'zoneId'         => $zoneId,
+            'zoneName'       => $zoneName,
+            'mode'           => $config['mode'],
+            'translations'   => $config['translations'],
+            'locale_adapter' => $localeAdapter,
         ];
 
         return $mapData;
@@ -343,10 +330,10 @@ class ZoneManager
         $language = null;
 
         $validCountries = [];
-        $validLanguages = $this->getCurrentZoneLanguageAdapter()->getActiveLanguages();
+        $validLanguages = $this->getCurrentZoneLocaleAdapter()->getActiveLanguages();
 
         if ($this->getCurrentZoneInfo('mode') === 'country') {
-            $validCountries = $this->getCurrentZoneCountryAdapter()->getActiveCountries();
+            $validCountries = $this->getCurrentZoneLocaleAdapter()->getActiveCountries();
             if (!empty($docCountryIso) && array_search($docCountryIso, array_column($validCountries, 'isoCode')) === false) {
                 return false;
             }
@@ -603,7 +590,7 @@ class ZoneManager
      */
     private function setZoneConfiguration($config)
     {
-        $blackList = ['zones', 'mode', 'language_adapter', 'country_adapter'];
+        $blackList = ['zones', 'mode', 'locale_adapter'];
         $validConfig = array_diff_key($config, array_flip($blackList));
 
         return $validConfig;

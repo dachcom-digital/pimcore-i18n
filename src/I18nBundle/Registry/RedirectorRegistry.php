@@ -2,7 +2,7 @@
 
 namespace I18nBundle\Registry;
 
-class CountryRegistry
+class RedirectorRegistry
 {
 
     /**
@@ -28,7 +28,11 @@ class CountryRegistry
      */
     public function register($service, $alias)
     {
-        if (!in_array($this->interface, class_implements($service), TRUE)) {
+        if(empty($alias)) {
+            throw new \InvalidArgumentException(sprintf('%s does not have a valid alias.', get_class($service)));
+        }
+
+        if (!in_array($this->interface, class_implements($service), true)) {
             throw new \InvalidArgumentException(
                 sprintf('%s needs to implement "%s", "%s" given.', get_class($service), $this->interface, implode(', ', class_implements($service)))
             );
@@ -51,10 +55,26 @@ class CountryRegistry
     public function get($alias)
     {
         if (!$this->has($alias)) {
-            throw new \Exception('"' . $alias . '" Country Identifier does not exist');
+            throw new \Exception('"' . $alias . '" Redirector Identifier does not exist');
         }
 
         return $this->adapter[$alias];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function all()
+    {
+        $list = [];
+        foreach ($this->adapter as $adapter) {
+            if (!$adapter->isEnabled()) {
+                continue;
+            }
+            $list[] = $adapter;
+        }
+
+        return $list;
     }
 
 }

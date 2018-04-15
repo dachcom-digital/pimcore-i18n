@@ -8,17 +8,18 @@ class Language extends AbstractContext
 {
     /**
      * Helper: Get current Language Info
+     *
      * @param $field
      *
      * @return string
      */
     public function getCurrentLanguageInfo($field = 'name')
     {
-        $languageData = NULL;
+        $languageData = null;
 
         if (Cache\Runtime::isRegistered('i18n.languageIso')) {
-            $countryIso = Cache\Runtime::get('i18n.languageIso');
-            $languageData = $this->zoneManager->getCurrentZoneLanguageAdapter()->getLanguageData($countryIso, $field);
+            $languageIso = Cache\Runtime::get('i18n.languageIso');
+            $languageData = $this->zoneManager->getCurrentZoneLocaleAdapter()->getLanguageData($languageIso, $field);
         }
 
         return $languageData;
@@ -32,19 +33,19 @@ class Language extends AbstractContext
     public function getActiveLanguages()
     {
         $languages = [];
-        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
+        $tree = $this->zoneManager->getCurrentZoneDomains(true);
         $linkedLanguages = $this->getLinkedLanguages();
 
         foreach ($tree as $domainElement) {
-            if(empty($domainElement['languageIso'])) {
+            if (empty($domainElement['languageIso'])) {
                 continue;
             }
 
-            $languageData = $this->mapLanguageInfo($domainElement['languageIso'], NULL, $domainElement['url']);
+            $languageData = $this->mapLanguageInfo($domainElement['languageIso'], null, $domainElement['url']);
             $languageData['linkedHref'] = $domainElement['url'];
             $languageData['active'] = $domainElement['languageIso'] === $this->getCurrentLanguageIso();
-            foreach($linkedLanguages as $linkedLanguage) {
-                if($linkedLanguage['languageIso'] === $domainElement['languageIso']) {
+            foreach ($linkedLanguages as $linkedLanguage) {
+                if ($linkedLanguage['languageIso'] === $domainElement['languageIso']) {
                     $languageData['linkedHref'] = $linkedLanguage['url'];
                     break;
                 }

@@ -101,11 +101,11 @@ class HeadLinkListener implements EventSubscriberInterface
         $xDefaultUrl = $this->getXDefaultLink($hrefLinks);
 
         if (!is_null($xDefaultUrl)) {
-            $this->headLink->appendAlternate($this->generateHrefLink($xDefaultUrl), FALSE, FALSE, ['hreflang' => 'x-default']);
+            $this->headLink->appendAlternate($this->generateHrefLink($xDefaultUrl), false, false, ['hreflang' => 'x-default']);
         }
 
         foreach ($hrefLinks as $route) {
-            $this->headLink->appendAlternate($this->generateHrefLink($route['url']), FALSE, FALSE, ['hreflang' => $route['hrefLang']]);
+            $this->headLink->appendAlternate($this->generateHrefLink($route['url']), false, false, ['hreflang' => $route['hrefLang']]);
         }
     }
 
@@ -120,21 +120,17 @@ class HeadLinkListener implements EventSubscriberInterface
      */
     private function getXDefaultLink($hrefLinks = [])
     {
-        $hrefUrl = NULL;
+        $hrefUrl = null;
 
         if (empty($hrefLinks)) {
             return $hrefUrl;
         }
 
-        $defaultCountry = NULL;
-        $defaultLanguage = $this->zoneManager->getCurrentZoneLanguageAdapter()->getDefaultLanguage();
+        $defaultCountry = null;
+        $defaultLocale = $this->zoneManager->getCurrentZoneLocaleAdapter()->getDefaultLocale();
 
         foreach ($hrefLinks as $link) {
-            $countryIsoTag = NULL;
-            if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country') {
-                $defaultCountry = $this->zoneManager->getCurrentZoneCountryAdapter()->getDefaultCountry();
-            }
-            if ($link['languageIso'] === $defaultLanguage && $link['countryIso'] === $defaultCountry) {
+            if ($link['locale'] === $defaultLocale) {
                 $hrefUrl = $link['url'];
                 break;
             }

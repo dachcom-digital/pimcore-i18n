@@ -146,6 +146,7 @@ class StaticRoute extends AbstractPathGenerator
             $finalStoreData = [
                 'languageIso'      => $routeInfo['languageIso'],
                 'countryIso'       => $routeInfo['countryIso'],
+                'locale'           => $routeInfo['locale'],
                 'hrefLang'         => $routeInfo['hrefLang'],
                 'localeUrlMapping' => $routeInfo['localeUrlMapping'],
                 'key'              => $routeInfo['key'],

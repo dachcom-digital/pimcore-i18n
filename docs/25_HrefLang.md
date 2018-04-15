@@ -13,19 +13,13 @@ It's very important, that you're connect your localized documents using the [pim
 ## X-Default
 i18n will generate a x-default link, based on default values:
 
-### Default Language Workflow
-- First, the i18nBundle will search for the `default_language` config.
-- If not defined, the default system language will be used
+### Default Locale Workflow
+- First, the i18nBundle will search for the `default_locale` config.
+- If not defined, the default system locale will be used
 - If not defined, NULL will be returned (which means, no x-default tag)
-> **Note**: It's possible to override the `getDefaultLanguage()` method within a custom language adapter.
+> **Note**: It's possible to override the `getDefaultLocale()` method within a custom locale adapter.
 
-### Default Country Workflow
-- First, the i18nBundle will search for the `default_country` config.
-- If not defined, the default system country (for example, en_US => US) will be used
-- If not defined, NULL will be returned
-> **Note**: It's possible to override the `getDefaultCountry()` method within a custom country adapter.
-
-**Important:** Be sure that both default values (language, country) are valid (in current zone). Otherwise no x-default tag will be generated.
+**Important:** Be sure that your defined default locale is valid (in current zone). Otherwise no x-default tag will be generated.
 
 ## Static Routes
 If you're using static routes, please [read this](28_StaticRoutes.md) to enable href-lang tags for dynamic routes.

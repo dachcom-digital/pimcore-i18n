@@ -2,30 +2,34 @@
 
 namespace I18nBundle\EventListener;
 
+use I18nBundle\Helper\CookieHelper;
+use Pimcore\Cache;
+use Pimcore\Http\Request\Resolver\EditmodeResolver;
+use Pimcore\Logger;
+use I18nBundle\Adapter\Redirector\RedirectorBag;
+use I18nBundle\Adapter\Redirector\RedirectorInterface;
+use I18nBundle\Configuration\Configuration;
 use I18nBundle\Definitions;
 use I18nBundle\Event\ContextSwitchEvent;
-use I18nBundle\Helper\DocumentHelper;
-use I18nBundle\Helper\UserHelper;
-use I18nBundle\Helper\ZoneHelper;
 use I18nBundle\I18nEvents;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Registry\RedirectorRegistry;
 use I18nBundle\Tool\System;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
-use Pimcore\Cache;
-use Pimcore\Logger;
-
 use Pimcore\Model\Document;
 use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
+use Symfony\Component\Templating\EngineInterface;
 
 class DetectorListener implements EventSubscriberInterface
 {
@@ -39,12 +43,7 @@ class DetectorListener implements EventSubscriberInterface
     /**
      * @var string
      */
-    private $defaultLanguage = null;
-
-    /**
-     * @var string
-     */
-    private $defaultCountry = null;
+    private $defaultLocale = null;
 
     /**
      * @var array
@@ -72,6 +71,26 @@ class DetectorListener implements EventSubscriberInterface
     private $documentCountry = null;
 
     /**
+     * @var EngineInterface
+     */
+    protected $templating;
+
+    /**
+     * @var Configuration
+     */
+    protected $configuration;
+
+    /**
+     * @var CookieHelper
+     */
+    protected $cookieHelper;
+
+    /**
+     * @var RedirectorRegistry
+     */
+    protected $redirectorRegistry;
+
+    /**
      * @var ZoneManager
      */
     protected $zoneManager;
@@ -92,19 +111,9 @@ class DetectorListener implements EventSubscriberInterface
     protected $documentResolver;
 
     /**
-     * @var DocumentHelper
+     * @var EditmodeResolver
      */
-    protected $documentHelper;
-
-    /**
-     * @var ZoneHelper
-     */
-    protected $zoneHelper;
-
-    /**
-     * @var UserHelper
-     */
-    protected $userHelper;
+    protected $editmodeResolver;
 
     /**
      * @var Request
@@ -114,30 +123,36 @@ class DetectorListener implements EventSubscriberInterface
     /**
      * DetectorListener constructor.
      *
+     * @param EngineInterface      $templating
+     * @param Configuration        $configuration
+     * @param CookieHelper         $cookieHelper
+     * @param RedirectorRegistry   $redirectorRegistry
      * @param DocumentResolver     $documentResolver
      * @param ZoneManager          $zoneManager
      * @param ContextManager       $contextManager
      * @param PathGeneratorManager $pathGeneratorManager
-     * @param DocumentHelper       $documentHelper
-     * @param ZoneHelper           $zoneHelper
-     * @param UserHelper           $userHelper
+     * @param EditmodeResolver     $editmodeResolver
      */
     public function __construct(
+        EngineInterface $templating,
+        Configuration $configuration,
+        CookieHelper $cookieHelper,
+        RedirectorRegistry $redirectorRegistry,
         DocumentResolver $documentResolver,
         ZoneManager $zoneManager,
         ContextManager $contextManager,
         PathGeneratorManager $pathGeneratorManager,
-        DocumentHelper $documentHelper,
-        ZoneHelper $zoneHelper,
-        UserHelper $userHelper
+        EditmodeResolver $editmodeResolver
     ) {
+        $this->templating = $templating;
+        $this->configuration = $configuration;
+        $this->cookieHelper = $cookieHelper;
+        $this->redirectorRegistry = $redirectorRegistry;
         $this->documentResolver = $documentResolver;
         $this->zoneManager = $zoneManager;
         $this->contextManager = $contextManager;
         $this->pathGeneratorManager = $pathGeneratorManager;
-        $this->documentHelper = $documentHelper;
-        $this->zoneHelper = $zoneHelper;
-        $this->userHelper = $userHelper;
+        $this->editmodeResolver = $editmodeResolver;
     }
 
     /**
@@ -150,10 +165,14 @@ class DetectorListener implements EventSubscriberInterface
             KernelEvents::REQUEST   => [
                 ['onKernelRequestLocale', 17],                          // before symfony LocaleListener
                 ['onKernelRequest', 2]                                  // after pimcore context resolver
-            ]
+            ],
+            KernelEvents::RESPONSE  => 'onKernelResponse'
         ];
     }
 
+    /**
+     * @param $request
+     */
     private function initI18nSystem($request)
     {
         //initialize all managers!
@@ -223,12 +242,11 @@ class DetectorListener implements EventSubscriberInterface
 
         $this->setDocumentLocale();
 
-        $this->validLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getActiveLanguages();
-        $this->defaultLanguage = $this->zoneManager->getCurrentZoneLanguageAdapter()->getDefaultLanguage();
+        $this->validLanguages = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLanguages();
+        $this->defaultLocale = $this->zoneManager->getCurrentZoneLocaleAdapter()->getDefaultLocale();
 
         if ($this->i18nType === 'country') {
-            $this->validCountries = $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
-            $this->defaultCountry = $this->zoneManager->getCurrentZoneCountryAdapter()->getDefaultCountry();
+            $this->validCountries = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveCountries();
         }
 
         /**
@@ -247,17 +265,7 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         if ($validRoute === true && empty($this->documentLanguage)) {
-
-            $siteId = 1;
-            if (\Pimcore\Model\Site::isSiteRequest() === true) {
-                $site = \Pimcore\Model\Site::getCurrentSite();
-                $siteId = $site->getRootId();
-            }
-
-            //if document is root, no language tag is required
-            if ($this->document->getId() !== $siteId) {
-                throw new \Exception(get_class($this->document) . ' (' . $this->document->getId() . ') does not have a valid language property!');
-            }
+            $this->setNotEditableAwareMessage($event);
         }
 
         $currentCountry = false;
@@ -266,24 +274,49 @@ class DetectorListener implements EventSubscriberInterface
         $validCountry = !empty($this->documentCountry) && array_search(strtoupper($this->documentCountry), array_column($this->validCountries, 'isoCode')) !== false;
         $validLanguage = !empty($this->documentLanguage) && array_search($this->documentLanguage, array_column($this->validLanguages, 'isoCode')) !== false;
 
-        // @todo: currently, redirect works only with pimcore documents and static routes. symfony routes will be ignored.
+        // @todo:
+        // currently, redirect works only with pimcore documents and static routes.
+        // symfony routes will be ignored.
         if ($validRoute) {
-            if ($this->i18nType === 'language') {
-                //first get valid language
-                if (!$validLanguage) {
-                    if ($this->canRedirect() && $this->i18nType === 'language') {
-                        $url = $this->getRedirectUrl($this->getLanguageUrl());
-                        $event->setResponse(new RedirectResponse($url));
-                        return;
+
+            $validForRedirect = false;
+            if ($this->i18nType === 'language' && !$validLanguage) {
+                $validForRedirect = true;
+            } elseif ($this->i18nType === 'country' && (!$validCountry || !$validLanguage)) {
+                $validForRedirect = true;
+            }
+
+            $redirectUrl = false;
+            if ($this->canRedirect() && $validForRedirect === true) {
+
+                $options = [
+                    'i18nType'         => $this->i18nType,
+                    'request'          => $this->request,
+                    'document'         => $this->document,
+                    'documentCountry'  => $this->documentCountry,
+                    'documentLanguage' => $this->documentLanguage,
+                    'defaultLocale'    => $this->defaultLocale
+                ];
+
+                $redirectorBag = new RedirectorBag($options);
+
+                /** @var RedirectorInterface $redirector */
+                foreach ($this->redirectorRegistry->all() as $redirector) {
+
+                    $redirector->makeDecision($redirectorBag);
+                    $decision = $redirector->getDecision();
+
+                    if ($decision['valid'] === true) {
+                        $redirectUrl = $decision['url'];
                     }
+
+                    $redirectorBag->addRedirectorDecisionToBag($redirector->getName(), $decision);
                 }
-            } elseif ($this->i18nType === 'country') {
-                //we are wrong. redirect user!
-                if ($this->canRedirect() && (!$validCountry || !$validLanguage)) {
-                    $url = $this->getRedirectUrl($this->getCountryUrl());
-                    $event->setResponse(new RedirectResponse($url));
-                    return;
-                }
+            }
+
+            if ($redirectUrl !== false) {
+                $event->setResponse(new RedirectResponse($this->getRedirectUrl($redirectUrl)));
+                return;
             }
         }
 
@@ -305,43 +338,104 @@ class DetectorListener implements EventSubscriberInterface
             Cache\Runtime::set('i18n.countryIso', $currentCountry);
         }
 
-        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zoneId');
-
         //check if zone, language or country has been changed, trigger event for 3th party.
-        $this->detectContextSwitch($currentZoneId, $currentLanguage, $currentCountry);
+        $this->detectContextSwitch($currentLanguage, $currentCountry);
 
         //update session
-        $this->updateSessionData($currentZoneId, $currentLanguage, $currentCountry);
+        $this->updateSessionData($currentLanguage, $currentCountry);
+    }
+
+    /**
+     * @param FilterResponseEvent $event
+     */
+    public function onKernelResponse(FilterResponseEvent $event)
+    {
+        if ($event->isMasterRequest() === false) {
+            return;
+        }
+
+        if ($event->getRequest()->getPathInfo() === '/') {
+            return;
+        }
+
+        $currentCountry = false;
+        $currentLanguage = false;
+
+
+        $registryConfig = $this->configuration->getConfig('registry');
+        $available = isset($registryConfig['redirector']['cookie'])
+            ? $registryConfig['redirector']['cookie']['enabled'] : true;
+
+        //check if we're allowed to bake a cookie at the first place!
+        if ($available === false) {
+            return;
+        }
+
+        if (Cache\Runtime::isRegistered('i18n.languageIso')) {
+            $currentLanguage = Cache\Runtime::get('i18n.languageIso');
+        }
+
+        if (Cache\Runtime::isRegistered('i18n.countryIso')) {
+            $currentCountry = Cache\Runtime::get('i18n.countryIso');
+        }
+
+        $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+        $validUri = $this->getRedirectUrl(strtok($event->getRequest()->getUri(), '?'));
+
+        $cookie = $this->cookieHelper->get($event->getRequest());
+
+        //same domain, do nothing.
+        if ($cookie !== false && $validUri === $cookie['url']) {
+            return;
+        }
+
+        //check if url is valid
+        $indexId = array_search($validUri, array_column($zoneDomains, 'url'));
+        if ($indexId !== false) {
+
+            $cookieData = [
+                'url'      => $validUri,
+                'locale'   => $this->documentLanguage,
+                'language' => $currentLanguage,
+                'country'  => $currentCountry
+            ];
+
+            $cookie = $this->cookieHelper->set($event->getResponse(), $cookieData);
+        }
     }
 
     /**
      * Important: ContextSwitch only works in same domain levels.
-     * Since there is no way for simple cross-domain session ids, the zone switch will be sort of useless most of the time. :(
+     * Since there is no way for simple cross-domain session ids,
+     * the zone switch will be sort of useless most of the time. :(
      *
-     * @param $currentZoneId
      * @param $currentLanguage
      * @param $currentCountry
      *
      * @return void
      */
-    private function detectContextSwitch($currentZoneId, $currentLanguage, $currentCountry)
+    private function detectContextSwitch($currentLanguage, $currentCountry)
     {
-        if (!$this->isValidI18nCheckRequest()) {
+        if (!$this->isValidI18nCheckRequest($this->request)) {
             return;
         }
 
         $session = $this->getSessionData();
+        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zoneId');
 
+        $localeHasSwitched = false;
         $languageHasSwitched = false;
         $countryHasSwitched = false;
         $zoneHasSwitched = false;
 
         if (is_null($session['lastLanguage']) || (!is_null($session['lastLanguage']) && $currentLanguage !== $session['lastLanguage'])) {
             $languageHasSwitched = true;
+            $localeHasSwitched = true;
         }
 
         if ($session['lastCountry'] !== false && (!is_null($session['lastCountry']) && $currentCountry !== $session['lastCountry'])) {
             $countryHasSwitched = true;
+            $localeHasSwitched = true;
         }
 
         if ($currentZoneId !== $session['lastZoneId']) {
@@ -354,6 +448,9 @@ class DetectorListener implements EventSubscriberInterface
                 'zoneHasSwitched'     => $zoneHasSwitched,
                 'zoneFrom'            => $session['lastZoneId'],
                 'zoneTo'              => $currentZoneId,
+                'localeHasSwitched'   => $localeHasSwitched,
+                'localeFrom'          => $session['lastLocale'],
+                'localeTo'            => $this->documentLanguage,
                 'languageHasSwitched' => $languageHasSwitched,
                 'languageFrom'        => $session['lastLanguage'],
                 'languageTo'          => $currentLanguage,
@@ -376,9 +473,11 @@ class DetectorListener implements EventSubscriberInterface
             if ($languageHasSwitched === true) {
                 Logger::log(
                     sprintf(
-                        'switch language: from %s to %s. triggered by: %s',
+                        'switch language: from %s to %s (locale changed from %s to %s). triggered by: %s',
                         $session['lastLanguage'],
                         $currentLanguage,
+                        $session['lastLocale'],
+                        $this->documentLanguage,
                         $this->request->getRequestUri()
                     )
                 );
@@ -387,9 +486,11 @@ class DetectorListener implements EventSubscriberInterface
             if ($countryHasSwitched === true) {
                 Logger::log(
                     sprintf(
-                        'switch country: from %s to %s. triggered by: %s',
+                        'switch country: from %s to %s (locale changed from %s to %s). triggered by: %s',
                         $session['lastCountry'],
                         $currentCountry,
+                        $session['lastLocale'],
+                        $this->documentLanguage,
                         $this->request->getRequestUri()
                     )
                 );
@@ -403,48 +504,6 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * Returns absolute Url to website with language-country context.
-     * Because this could be a different domain, absolute url is necessary
-     *
-     * @return bool|string
-     */
-    private function getCountryUrl()
-    {
-        $userLanguageIso = $this->userHelper->guessLanguage($this->validLanguages);
-        $userCountryIso = $this->userHelper->guessCountry($this->validCountries);
-
-        $matchUrl = $this->zoneHelper->findUrlInZoneTree(
-            $this->zoneManager->getCurrentZoneDomains(true),
-            $userLanguageIso,
-            $this->defaultLanguage,
-            $userCountryIso,
-            $this->defaultCountry
-        );
-
-        return $matchUrl;
-    }
-
-    /**
-     * Returns absolute Url to website with language context.
-     * Because this could be a different domain, absolute url is necessary
-     *
-     * @return bool|string
-     */
-    private function getLanguageUrl()
-    {
-        $userLanguageIso = $this->userHelper->guessLanguage($this->validLanguages);
-        $defaultLanguageIso = $this->defaultLanguage;
-
-        $matchUrl = $this->zoneHelper->findUrlInZoneTree(
-            $this->zoneManager->getCurrentZoneDomains(true),
-            $userLanguageIso,
-            $defaultLanguageIso
-        );
-
-        return $matchUrl;
-    }
-
-    /**
      * @return array
      */
     private function getSessionData()
@@ -453,10 +512,15 @@ class DetectorListener implements EventSubscriberInterface
         $bag = $this->request->getSession()->getBag('i18n_session');
 
         $data = [
+            'lastLocale'   => null,
             'lastLanguage' => null,
             'lastCountry'  => null,
             'lastZoneId'   => null
         ];
+
+        if ($bag->has('lastLocale')) {
+            $data['lastLocale'] = $bag->get('lastLocale');
+        }
 
         if ($bag->has('lastLanguage')) {
             $data['lastLanguage'] = $bag->get('lastLanguage');
@@ -473,20 +537,25 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * @param null|int $currentZoneId
-     * @param bool     $languageData
-     * @param bool     $countryData
+     * @param bool $languageData
+     * @param bool $countryData
      *
      * @return void
      */
-    private function updateSessionData($currentZoneId = null, $languageData = false, $countryData = false)
+    private function updateSessionData($languageData = false, $countryData = false)
     {
-        if (!$this->isValidI18nCheckRequest()) {
+        if (!$this->isValidI18nCheckRequest($this->request)) {
             return;
         }
 
+        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zoneId');
+
         /** @var \Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag $bag */
         $bag = $this->request->getSession()->getBag('i18n_session');
+
+        if (!empty($this->documentLanguage)) {
+            $bag->set('lastLocale', $this->documentLanguage);
+        }
 
         if ($languageData !== false) {
             $bag->set('lastLanguage', $languageData);
@@ -518,19 +587,27 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * @param bool $allowAjax
+     * @param Request $request
+     * @param bool    $allowAjax
      *
      * @return bool
      */
-    private function isValidI18nCheckRequest($allowAjax = false)
+    private function isValidI18nCheckRequest(Request $request, $allowAjax = false)
     {
-        if (System::isInCliMode() || ($allowAjax === false && $this->request->isXmlHttpRequest())) {
+        if (\Pimcore\Tool::isFrontendRequestByAdmin($request)) {
+            return false;
+        }
+
+        if (System::isInCliMode() || ($allowAjax === false && $request->isXmlHttpRequest())) {
             return false;
         }
 
         return true;
     }
 
+    /**
+     * @return bool
+     */
     private function canRedirect()
     {
         return !System::isInBackend($this->request);
@@ -562,11 +639,46 @@ class DetectorListener implements EventSubscriberInterface
             return false;
         }
 
-        if (!$this->isValidI18nCheckRequest(true)) {
+        if (!$this->isValidI18nCheckRequest($this->request, true)) {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * @param GetResponseEvent $event
+     * @throws \Exception
+     */
+    private function setNotEditableAwareMessage(GetResponseEvent $event)
+    {
+        //if document is root, no language tag is required
+        if ($this->editmodeResolver->isEditmode()) {
+            $response = new Response();
+            $language = 'en';
+            if ($user = \Pimcore\Tool\Admin::getCurrentUser()) {
+                $language = $user->getLanguage();
+            } elseif ($user = \Pimcore\Tool\Authentication::authenticateSession()) {
+                $language = $user->getLanguage();
+            }
+
+            $response->setContent($this->templating->render('I18nBundle::not_editable_aware_message.html.twig', ['adminLocale' => $language]));
+            $event->setResponse($response);
+            return;
+
+        } else {
+
+            $siteId = 1;
+            if (\Pimcore\Model\Site::isSiteRequest() === true) {
+                $site = \Pimcore\Model\Site::getCurrentSite();
+                $siteId = $site->getRootId();
+            }
+
+            //if document is root, no language tag is required
+            if ($this->document->getId() !== $siteId) {
+                throw new \Exception(get_class($this->document) . ' (' . $this->document->getId() . ') does not have a valid language property!');
+            }
+        }
     }
 
     private function setDocumentLocale()
@@ -577,7 +689,7 @@ class DetectorListener implements EventSubscriberInterface
             $this->documentLanguage = $this->document->getProperty('language');
         }
 
-        if($this->i18nType === 'country') {
+        if ($this->i18nType === 'country') {
             $this->documentCountry = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
         }
 

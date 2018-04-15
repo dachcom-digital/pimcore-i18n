@@ -7,6 +7,6 @@ services:
 
     I18nBundle\Helper\DocumentHelper: ~
 
-    I18nBundle\Helper\ZoneHelper: ~
+    I18nBundle\Helper\CookieHelper: ~
 
     I18nBundle\Helper\UserHelper: ~

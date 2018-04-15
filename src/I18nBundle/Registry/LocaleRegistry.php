@@ -2,8 +2,9 @@
 
 namespace I18nBundle\Registry;
 
-class LanguageRegistry
+class LocaleRegistry
 {
+
     /**
      * @var array
      */
@@ -27,7 +28,7 @@ class LanguageRegistry
      */
     public function register($service, $alias)
     {
-        if (!in_array($this->interface, class_implements($service), TRUE)) {
+        if (!in_array($this->interface, class_implements($service), true)) {
             throw new \InvalidArgumentException(
                 sprintf('%s needs to implement "%s", "%s" given.', get_class($service), $this->interface, implode(', ', class_implements($service)))
             );
@@ -50,7 +51,7 @@ class LanguageRegistry
     public function get($alias)
     {
         if (!$this->has($alias)) {
-            throw new \Exception('"' . $alias . '" Language Identifier does not exist');
+            throw new \Exception('"' . $alias . '" Locale Identifier does not exist');
         }
 
         return $this->adapter[$alias];

@@ -1,8 +1,8 @@
 <?php
 
-namespace I18nBundle\Adapter\Country;
+namespace I18nBundle\Adapter\Locale;
 
-interface CountryInterface
+interface LocaleInterface
 {
     /**
      * @param $zoneId
@@ -13,15 +13,25 @@ interface CountryInterface
     function setCurrentZoneConfig($zoneId, $zoneConfig);
 
     /**
+     * Get Active Languages
+     *
+     * @return array
+     */
+    function getActiveLanguages(): array;
+
+    /**
      * Get Active Countries
      * @return array
      */
     function getActiveCountries(): array;
 
     /**
-     * @return string
+     * @param $isoCode
+     * @param $field
+     *
+     * @return mixed
      */
-    function getDefaultCountry();
+    function getLanguageData($isoCode = '', $field = null);
 
     /**
      * @param $isoCode
@@ -32,8 +42,10 @@ interface CountryInterface
     function getCountryData($isoCode = '', $field = NULL);
 
     /**
-     * get Info about global State
-     * @return array
+     * returns valid locale
+     *
+     * @return bool|mixed|null|string
      */
-    function getGlobalInfo();
+    public function getDefaultLocale();
+
 }

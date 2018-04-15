@@ -18,11 +18,11 @@ class Country extends AbstractContext
      */
     public function getCurrentCountryInfo($field = 'name')
     {
-        $countryData = NULL;
+        $countryData = null;
 
         if (Cache\Runtime::isRegistered('i18n.countryIso')) {
             $countryIso = Cache\Runtime::get('i18n.countryIso');
-            $countryData = $this->zoneManager->getCurrentZoneCountryAdapter()->getCountryData($countryIso, $field);
+            $countryData = $this->zoneManager->getCurrentZoneLocaleAdapter()->getCountryData($countryIso, $field);
         }
 
         return $countryData;
@@ -36,14 +36,14 @@ class Country extends AbstractContext
      *
      * @return string|null
      */
-    public function getCountryNameByIsoCode($countryIso, $locale = NULL)
+    public function getCountryNameByIsoCode($countryIso, $locale = null)
     {
-        if ($countryIso === FALSE) {
-            return NULL;
+        if ($countryIso === false) {
+            return null;
         }
 
         if ($countryIso === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
-            return Translation\Website::getByKeyLocalized('International', TRUE, TRUE);
+            return Translation\Website::getByKeyLocalized('International', true, true);
         }
 
         $countryName = Intl::getRegionBundle()->getCountryName($countryIso, $locale);
@@ -52,7 +52,7 @@ class Country extends AbstractContext
             return $countryName;
         }
 
-        return NULL;
+        return null;
     }
 
     /**
@@ -62,17 +62,17 @@ class Country extends AbstractContext
      *
      * @return string|array
      */
-    public function getCurrentCountryAndLanguage($returnAsString = TRUE)
+    public function getCurrentCountryAndLanguage($returnAsString = true)
     {
         $currentCountryIso = $this->getCurrentCountryIso();
 
         if ($currentCountryIso === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
-            $countryName = Translation\Website::getByKeyLocalized('International', TRUE, TRUE);
+            $countryName = Translation\Website::getByKeyLocalized('International', true, true);
         } else {
             $countryName = Intl::getRegionBundle()->getCountryName($currentCountryIso, $this->getCurrentLanguageIso());
         }
 
-        if ($returnAsString === TRUE) {
+        if ($returnAsString === true) {
             return $countryName . ' (' . $this->getCurrentLanguageIso() . ')';
         } else {
             return ['countryName' => $countryName, 'locale' => $this->getCurrentLanguageIso()];
@@ -87,9 +87,7 @@ class Country extends AbstractContext
     public function getActiveCountries()
     {
         $countryData = [];
-        $activeCountries = $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
-        $activeLanguages = $this->zoneManager->getCurrentZoneLanguageAdapter()->getActiveLanguages();
-        $userLanguage = $this->userHelper->guessLanguage($activeLanguages);
+        $activeCountries = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveCountries();
 
         if (!empty($activeCountries)) {
             foreach ($activeCountries as $country) {
@@ -105,7 +103,7 @@ class Country extends AbstractContext
                     continue;
                 }
 
-                $countryTitleNative = Intl::getRegionBundle()->getCountryName($countryIso, $userLanguage);
+                $countryTitleNative = Intl::getRegionBundle()->getCountryName($countryIso, $countryIso);
                 $countryTitle = Intl::getRegionBundle()->getCountryName($countryIso, $this->getCurrentLanguageIso());
 
                 $countryData[] = [
@@ -118,9 +116,9 @@ class Country extends AbstractContext
         }
 
         $countryData[] = [
-            'country'            => $this->zoneManager->getCurrentZoneCountryAdapter()->getGlobalInfo(),
-            'countryTitleNative' => Translation\Website::getByKeyLocalized('International', TRUE, TRUE, $userLanguage),
-            'countryTitle'       => Translation\Website::getByKeyLocalized('International', TRUE, TRUE),
+            'country'            => $this->zoneManager->getCurrentZoneLocaleAdapter()->getGlobalInfo(),
+            'countryTitleNative' => Translation\Website::getByKeyLocalized('International', true, true, $this->getCurrentLanguageIso()),
+            'countryTitle'       => Translation\Website::getByKeyLocalized('International', true, true, $this->getCurrentLanguageIso()),
             'languages'          => $this->getActiveLanguagesForCountry(Definitions::INTERNATIONAL_COUNTRY_NAMESPACE),
         ];
 
@@ -145,7 +143,7 @@ class Country extends AbstractContext
      *
      * @return array|bool
      */
-    private function getActiveLanguagesForCountry($countryIso = NULL)
+    private function getActiveLanguagesForCountry($countryIso = null)
     {
         $languages = [];
 
@@ -153,7 +151,7 @@ class Country extends AbstractContext
             $countryIso = $this->getCurrentCountryIso();
         }
 
-        $tree = $this->zoneManager->getCurrentZoneDomains(TRUE);
+        $tree = $this->zoneManager->getCurrentZoneDomains(true);
         $linkedLanguages = $this->getLinkedLanguages();
 
         foreach ($tree as $domainElement) {
@@ -162,8 +160,8 @@ class Country extends AbstractContext
                 $languageData['linkedHref'] = $domainElement['url'];
                 $languageData['active'] = $domainElement['languageIso'] === $this->getCurrentLanguageIso()
                     && $domainElement['countryIso'] === $this->getCurrentCountryIso();
-                foreach($linkedLanguages as $linkedLanguage) {
-                    if($linkedLanguage['languageIso'] === $domainElement['languageIso'] && $countryIso === $linkedLanguage['countryIso']) {
+                foreach ($linkedLanguages as $linkedLanguage) {
+                    if ($linkedLanguage['languageIso'] === $domainElement['languageIso'] && $countryIso === $linkedLanguage['countryIso']) {
                         $languageData['linkedHref'] = $linkedLanguage['url'];
                         break;
                     }

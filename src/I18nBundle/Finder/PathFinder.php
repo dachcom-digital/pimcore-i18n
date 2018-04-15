@@ -183,12 +183,12 @@ class PathFinder
 
     private function getValidLanguages()
     {
-        return $this->zoneManager->getCurrentZoneLanguageAdapter()->getActiveLanguages();
+        return $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLanguages();
     }
 
     private function getValidCountries()
     {
-        return $this->zoneManager->getCurrentZoneCountryAdapter()->getActiveCountries();
+        return $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveCountries();
     }
 
     /**

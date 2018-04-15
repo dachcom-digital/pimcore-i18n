@@ -6,19 +6,15 @@ use GeoIp2\Database\Reader;
 
 class UserHelper
 {
-
     /**
-     * @param array $validLanguages
-     *
      * @return bool|string
      */
-    public function guessLanguage($validLanguages = [])
+    public function guessLanguage()
     {
-        $guessedLanguage = FALSE;
-
+        $guessedLanguage = false;
         if (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
             $browserLanguage = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-            if (array_search($browserLanguage, array_column($validLanguages, 'isoCode')) !== FALSE) {
+            if (!empty($browserLanguage)) {
                 $guessedLanguage = $browserLanguage;
             }
         }
@@ -27,13 +23,16 @@ class UserHelper
         return $guessedLanguage;
     }
 
-    public function guessCountry($validCountries = [])
+    /**
+     * @return bool|string
+     */
+    public function guessCountry()
     {
         $geoDbFile = realpath(PIMCORE_CONFIGURATION_DIRECTORY . '/GeoLite2-City.mmdb');
-        $record = NULL;
+        $record = null;
 
-        $country = NULL;
-        $userCountry = FALSE;
+        $country = null;
+        $userCountry = false;
 
         if (file_exists($geoDbFile)) {
             try {
@@ -61,11 +60,8 @@ class UserHelper
             }
         }
 
-        if ($country !== FALSE && !empty($country)) {
-            $countryCode = strtoupper($country);
-            if (array_search($countryCode, array_column($validCountries, 'isoCode')) !== FALSE) {
-                $userCountry = $countryCode;
-            }
+        if ($country !== false && !empty($country)) {
+            $userCountry = strtoupper($country);
         }
 
         //return 'US';

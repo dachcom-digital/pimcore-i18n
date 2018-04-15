@@ -6,16 +6,10 @@ use I18nBundle\Adapter\Context\AbstractContext;
 use I18nBundle\Adapter\Context\ContextInterface;
 use I18nBundle\Adapter\Context\Country;
 use I18nBundle\Adapter\Context\Language;
-use I18nBundle\Configuration\Configuration;
 use I18nBundle\Registry\ContextRegistry;
 
 class ContextManager
 {
-    /**
-     * @var Configuration
-     */
-    protected $configuration;
-
     /**
      * @var ContextRegistry
      */
@@ -30,9 +24,8 @@ class ContextManager
     /**
      * {@inheritdoc}
      */
-    public function __construct(Configuration $configuration, ContextRegistry $contextRegistry)
+    public function __construct(ContextRegistry $contextRegistry)
     {
-        $this->configuration = $configuration;
         $this->contextRegistry = $contextRegistry;
     }
 
