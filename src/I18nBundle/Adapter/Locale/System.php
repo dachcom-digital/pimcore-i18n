@@ -6,7 +6,7 @@ use I18nBundle\Definitions;
 use Pimcore\Config;
 use Pimcore\Tool;
 
-class System implements LocaleInterface
+class System extends AbstractLocale
 {
     /**
      * @var null
@@ -19,29 +19,9 @@ class System implements LocaleInterface
     protected $validLanguages = null;
 
     /**
-     * @var array|null
-     */
-    protected $currentZoneConfig = null;
-
-    /**
-     * @var int|null
-     */
-    protected $currentZoneId = null;
-
-    /**
      * @var bool|null|string
      */
     protected $defaultLocale = false;
-
-    /**
-     * @param null|int $zoneId
-     * @param array    $zoneConfig
-     */
-    public function setCurrentZoneConfig($zoneId, $zoneConfig)
-    {
-        $this->currentZoneId = $zoneId;
-        $this->currentZoneConfig = $zoneConfig;
-    }
 
     /**
      * returns valid locale

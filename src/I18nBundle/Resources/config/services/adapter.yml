@@ -1,8 +1,13 @@
 services:
 
     # adapter: locale
-    I18nBundle\Adapter\Locale\LocaleInterface: '@I18nBundle\Adapter\Locale\System'
+    I18nBundle\Adapter\Locale\AbstractLocale:
+        abstract: true
+        public: false
+        autowire: true
+
     I18nBundle\Adapter\Locale\System:
+        parent: I18nBundle\Adapter\Locale\AbstractLocale
         public: false
         tags:
             - { name: i18n.adapter.locale, alias: system }
