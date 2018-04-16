@@ -7,15 +7,15 @@ redirector gets applied.
 
 ### Cookie Redirector
 > Priority: `300`
-If enabled, visitor gets redirect to the last selected locale
+If enabled, visitor gets redirected to the last selected locale
 
 ### GEO Redirector
 > Priority: `200`
-If enabled, visitor gets redirect based on IP and browser language
+If enabled, visitor gets redirected based on IP and browser language
 
 ### Fallback Redirector
 > Priority: `100`
-If enabled, visitor gets redirect based on the `default_locale` setting defined the i18n settings (available in each zone)
+If enabled, visitor gets redirected based on the `default_locale` setting defined in i18n settings (available in each zone)
 or by default locale defined in your pimcore system settings.
 
 ## Disable a Redirector

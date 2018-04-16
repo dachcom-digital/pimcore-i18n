@@ -47,6 +47,30 @@ class Country extends AbstractContext
     }
 
     /**
+     * Helper: Get Language Name By Iso Code
+     *
+     * @param              $languageIso
+     * @param string       $locale
+     * @param string       $region
+     *
+     * @return string|null
+     */
+    public function getLanguageNameByIsoCode($languageIso, $locale = null, $region = null)
+    {
+        if ($languageIso === false) {
+            return null;
+        }
+
+        $languageName = Intl::getLanguageBundle()->getLanguageName($languageIso, $region, $locale);
+
+        if (!empty($languageName)) {
+            return $languageName;
+        }
+
+        return null;
+    }
+
+    /**
      * Helper: Get Country Name by Iso Code
      *
      * @param              $countryIso

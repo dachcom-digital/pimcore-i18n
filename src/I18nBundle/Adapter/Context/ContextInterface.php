@@ -11,4 +11,6 @@ interface ContextInterface
     public function getCurrentLocale();
 
     public function getCurrentLanguageIso();
+
+    public function getLanguageNameByIsoCode($languageIso, $locale = null, $region = null);
 }

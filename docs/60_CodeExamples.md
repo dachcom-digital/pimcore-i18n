@@ -114,6 +114,10 @@ Some of the context methods are available in both services:
 
 {# get linked languages [true] only rootDocuments #}
 {{ dump(i18n_context('getLinkedLanguages', [true])) }}
+
+{# get language name by iso code #}
+{{ dump(i18n_context('getLanguageNameByIsoCode', [ i18n_context('getCurrentLanguageIso'), i18n_context('getCurrentLocale') ])) }}
+
 ```
 
 **PHP**
@@ -150,6 +154,9 @@ class ExampleService
 
         // get linked languages, but only rootDocuments
         $linkedLanguages = $this->contextManager->getContext()->getLinkedLanguages(true);
+
+        // get language name by iso code
+        $languageName = $this->contextManager->getContext()->getLanguageNameByIsoCode($currentLanguageIso, $currentLocale);
 
     }
 }
@@ -216,7 +223,7 @@ class ExampleService
 {{ dump(i18n_context('getCurrentCountryInfo', ['id'])) }}
 
 {# get country name by iso code #}
-{{ dump(i18n_context('getCountryNameByIsoCode', [ i18n_context('getCurrentCountryIso') ])) }}
+{{ dump(i18n_context('getCountryNameByIsoCode', [ i18n_context('getCurrentCountryIso'), i18n_context('getCurrentLocale') ])) }}
 ```
 
 **PHP**
@@ -244,6 +251,12 @@ class ExampleService
         // always set a document!
         $this->contextManager->getContext()->setDocument($this->document);
 
+        // get current locale
+        $currentLocale = $this->contextManager->getContext()->getCurrentLocale();
+
+        // get current language iso
+        $currentLanguageIso = $this->contextManager->getContext()->getCurrentLanguageIso();
+
         // get current country iso
         $currentCountryIso = $this->contextManager->getContext()->getCurrentCountryIso();
 
@@ -253,8 +266,12 @@ class ExampleService
         // get current language info (id)
         $currentCountryId = $this->contextManager->getContext()->getCurrentCountryInfo('id');
 
+        // get language name by iso code
+        // basically the same as in global context but you're able to pass the country iso also
+        $languageName = $this->contextManager->getContext()->getLanguageNameByIsoCode($currentLanguageIso, $currentLocale, $currentCountryIso);
+
         // get country name by iso code
-        $countryName = $this->contextManager->getContext()->getCountryNameByIsoCode($currentCountryIso);
+        $countryName = $this->contextManager->getContext()->getCountryNameByIsoCode($currentCountryIso, $currentLocale);
 
     }
 }

@@ -137,6 +137,30 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
+     * Helper: Get Language Name By Iso Code
+     *
+     * @param              $languageIso
+     * @param string       $locale
+     * @param string       $region ignored in abstract context. only available in country context.
+     *
+     * @return string|null
+     */
+    public function getLanguageNameByIsoCode($languageIso, $locale = null, $region = null)
+    {
+        if ($languageIso === false) {
+            return null;
+        }
+
+        $languageName = Intl::getLanguageBundle()->getLanguageName($languageIso, null, $locale);
+
+        if (!empty($languageName)) {
+            return $languageName;
+        }
+
+        return null;
+    }
+
+    /**
      * Helper: Get Information about current Context
      *
      * @param null $slot
