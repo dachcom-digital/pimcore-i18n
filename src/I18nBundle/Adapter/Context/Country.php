@@ -135,6 +135,10 @@ class Country extends AbstractContext
 
             $extendedCountryData = $localeData;
 
+            // override the default locale isoCode,
+            // we need the country iso code only
+            $extendedCountryData['isoCode'] = null;
+
             if (strpos($localeData['locale'], '_') === false) {
                 continue;
             }
@@ -142,10 +146,10 @@ class Country extends AbstractContext
             $parts = explode('_', $localeData['locale']);
             $isoCode = strtoupper($parts[1]);
 
-            $extendedCountryData['countryIsoCode'] = $isoCode;
+            $extendedCountryData['isoCode'] = $isoCode;
 
             //skip country if it's already in the list.
-            if (array_search($isoCode, array_column($validCountries, 'countryIsoCode')) !== false) {
+            if (array_search($isoCode, array_column($validCountries, 'isoCode')) !== false) {
                 continue;
             }
 
@@ -156,11 +160,11 @@ class Country extends AbstractContext
         if (!empty($validCountries)) {
             foreach ($validCountries as $country) {
 
-                if (is_null($country['countryIsoCode'])) {
+                if (is_null($country['isoCode'])) {
                     continue;
                 }
 
-                $countryIso = $country['countryIsoCode'];
+                $countryIso = $country['isoCode'];
                 $languages = $this->getActiveLanguagesForCountry($countryIso);
 
                 if (empty($languages)) {
