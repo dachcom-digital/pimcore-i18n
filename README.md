@@ -15,7 +15,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 
 ```json
 "require" : {
-    "dachcom-digital/i18n" : "~2.2.0"
+    "dachcom-digital/i18n" : "~2.3.0"
 }
 ```
 
@@ -28,8 +28,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 - [front page mapping](docs/30_FrontPageMapping.md) for hardlink trees
 
 ### Preparation
-- If you're using `system` as your language adapter, which is the default, you need to enable all global languages in pimcore system settings
-- If you're using `system` as your country adapter, which is the default, you need to enable all global countries (also called languages in pimcore) in pimcore system settings
+- If you're using `system` as your `locale_adapter`, which is the default, you need to enable all required locales in pimcore system settings
 - Always be sure that every document translation is connected via the [localization tool](https://www.pimcore.org/docs/5.0.0/Multi_Language_i18n/Localize_your_Documents.html).
 
 ## Further Information
