@@ -31,8 +31,7 @@ Now we'll add some configuration to translate this fragment:
 i18n:
 
     mode: country
-    language_adapter: system
-    country_adapter: system
+    locale_adapter: system
     
     # you also need to add them to every zone, if you have any
     translations:

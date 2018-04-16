@@ -9,11 +9,9 @@ But you may need some more complex structures, so we implemented the zone manage
 
 | Name | Description |
 |------|-------------|
-| mode | Set mode (`language` or `country`) |
-| language_adapter | Language Adapter (`system`, by default) |
-| country_adapter | Country Adapter (`system`, by default) |
-| default_language | Define a default country (ISO-Code, lowercase) |
-| default_country | Define a default country (ISO-Code, uppercase) |
+| mode | Set mode (`language` or `country`) - `country` also includes language |
+| locale_adapter | Locale Adapter (`system`, by default) |
+| default_locale | Define a default locale (like `de`, `en_US`) |
 | translations | [Static Route translations](28_StaticRoutes.md) |
 | zones | Array for complex Zones |
 
@@ -22,11 +20,9 @@ Basically there are the same options as in the default configuration, except tha
 
 | Name | Description |
 |------|-------------|
-| mode | Set mode (`language` or `country`) |
-| language_adapter | Language Adapter (`system`, by default) |
-| country_adapter | Country Adapter (`system`, by default) |
-| default_language | Define a default country (ISO-Code, lowercase) |
-| default_country | Define a default country (ISO-Code, uppercase) |
+| mode | Set mode (`language` or `country`) - `country` also includes language |
+| locale_adapter | Locale Adapter (`system`, by default) |
+| default_locale | Define a default locale (like `de`, `en_US`) |
 | translations | [Static Route translations](28_StaticRoutes.md) |
 
 ### Configuration
@@ -37,17 +33,11 @@ i18n:
     # set mode (language|country)
     mode: language
 
-    # define a language adapter (system|custom)
-    language_adapter: system
+    # define a locale adapter (system|custom)
+    locale_adapter: system
 
-    # define a country adapter (system|coreshop|custom)
-    country_adapter: system
-
-    # define a default language - this value is optional and does not to be defined
-    default_language: 'en'
-
-    # define a default country - this value is optional and does not to be defined
-    default_country: 'US'
+    # define a default locale - this value is optional
+    default_locale: 'en'
 
     # static route translations
     translations: ~
@@ -65,8 +55,7 @@ i18n:
                 - 'pimcore5-domain3.dev'
             config:
                 mode: language
-                language_adapter: system
-                country_adapter: ~
+                locale_adapter: system
                 translations: ~
 
         # zone 2: language and country
@@ -79,8 +68,7 @@ i18n:
                 - 'pimcore5-domain6.dev'
             config:
                 mode: country
-                language_adapter: system
-                country_adapter: system
+                locale_adapter: system
                 translations: ~
 
         # zone 3: no language switch. just a simple website.
@@ -91,7 +79,6 @@ i18n:
                 - 'pimcore5-domain7.dev'
             config:
                 mode: language
-                language_adapter: system
-                country_adapter: ~
+                locale_adapter: system
                 translations: ~
 ```
