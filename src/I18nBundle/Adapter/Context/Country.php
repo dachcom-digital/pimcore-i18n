@@ -181,8 +181,8 @@ class Country extends AbstractContext
 
         $countryData[] = [
             'country'            => $this->zoneManager->getCurrentZoneLocaleAdapter()->getGlobalInfo(),
-            'countryTitleNative' => Translation\Website::getByKeyLocalized('International', true, true, $this->getCurrentLanguageIso()),
-            'countryTitle'       => Translation\Website::getByKeyLocalized('International', true, true, $this->getCurrentLanguageIso()),
+            'countryTitleNative' => Translation\Website::getByKeyLocalized('International', true, true, $this->getCurrentLocale()),
+            'countryTitle'       => Translation\Website::getByKeyLocalized('International', true, true, $this->getCurrentLocale()),
             'languages'          => $this->getActiveLanguagesForCountry(Definitions::INTERNATIONAL_COUNTRY_NAMESPACE),
         ];
 
