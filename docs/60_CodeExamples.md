@@ -42,10 +42,10 @@ Since the current context gets defined via the current locale, be sure that loca
 
 **Twig**
 ```twig
-{# get current context info: in twig you don't have do set a document since it will be set automatically via twig context #}
+{# get current context info #}
 {{ dump(i18n_context('getCurrentContextInfo', ['url'])) }}
 
-{# get current context info with current request locale #}
+{# get current context info #}
 {{ dump(i18n_context('getCurrentContextInfo', ['localeUrlMapping'])) }}
 ```
 
@@ -66,9 +66,6 @@ class ExampleService
 
     public function getInformation()
     {
-        # always set a document!
-        $this->contextManager->getContext()->setDocument($this->document);
-
         $currentContextInfo = $this->contextManager->getContext()->getCurrentContextInfo('url');
         $currentContextInfo = $this->contextManager->getContext()->getCurrentContextInfo('localeUrlMapping');
     }
@@ -137,12 +134,6 @@ class ExampleService
 
     public function getInformation()
     {
-        // implement your document getter logic here
-        $this->document = "";
-
-        // always set a document!
-        $this->contextManager->getContext()->setDocument($this->document);
-
         // get current locale
         $currentLocale = $this->contextManager->getContext()->getCurrentLocale();
 
@@ -191,13 +182,7 @@ class ExampleService
 
     public function getInformation()
     {
-        // implement your document getter logic here
-        $this->document = "";
-
         // note: instead of "getContext()" it's possible to use "getLanguageContext()"
-
-        // always set a document!
-        $this->contextManager->getContext()->setDocument($this->document);
 
         // get active languages
         $activeLanguages = $this->contextManager->getContext()->getActiveLanguages();
@@ -243,13 +228,7 @@ class ExampleService
 
     public function getInformation()
     {
-        // implement your document getter logic here
-        $this->document = "";
-
         // note: instead of "getContext()" it's possible to use "getCountryContext()"
-
-        // always set a document!
-        $this->contextManager->getContext()->setDocument($this->document);
 
         // get current locale
         $currentLocale = $this->contextManager->getContext()->getCurrentLocale();

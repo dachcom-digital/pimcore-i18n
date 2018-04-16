@@ -172,17 +172,28 @@ class DetectorListener implements EventSubscriberInterface
 
     /**
      * @param $request
+     * @throws \Exception
      */
     private function initI18nSystem($request)
     {
         //initialize all managers!
         $this->zoneManager->initZones();
-        $this->contextManager->initContext($this->zoneManager->getCurrentZoneInfo('mode'));
+
+        $document = null;
+        if ($this->document instanceof Document) {
+            $document = $this->document;
+            if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
+                $document = $this->document->getHardLinkSource();
+            }
+        }
+
+        $this->contextManager->initContext($this->zoneManager->getCurrentZoneInfo('mode'), $document);
         $this->pathGeneratorManager->initPathGenerator($request->attributes->get('pimcore_request_source'));
     }
 
     /**
      * @param GetResponseForExceptionEvent $event
+     * @throws \Exception
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {

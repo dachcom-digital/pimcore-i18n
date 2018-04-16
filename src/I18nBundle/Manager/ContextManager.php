@@ -7,6 +7,7 @@ use I18nBundle\Adapter\Context\ContextInterface;
 use I18nBundle\Adapter\Context\Country;
 use I18nBundle\Adapter\Context\Language;
 use I18nBundle\Registry\ContextRegistry;
+use Pimcore\Model\Document;
 
 class ContextManager
 {
@@ -17,6 +18,7 @@ class ContextManager
 
     /**
      * Stores the current Context info
+     *
      * @var AbstractContext
      */
     protected $currentContext;
@@ -31,31 +33,28 @@ class ContextManager
 
     /**
      * @param $contextIdentifier
+     * @param $document
+     *
      * @throws \Exception
      * @return void
      */
-    public function initContext($contextIdentifier)
+    public function initContext($contextIdentifier, $document = null)
     {
         $contextId = $contextIdentifier;
 
         if (!empty($this->currentContext)) {
-            //throw new \Exception('context already defined');
             return;
         }
 
-        if(!$this->contextRegistry->has($contextId)) {
+        if (!$this->contextRegistry->has($contextId)) {
             throw new \Exception(sprintf('context adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.', $contextId, 'i18n.adapter.context', $contextId));
         }
 
         $this->currentContext = $this->contextRegistry->get($contextId);
-    }
 
-    /**
-     * @param $document
-     */
-    public function setDocumentToCurrentContext($document)
-    {
-        $this->currentContext->setDocument($document);
+        if ($document instanceof Document) {
+            $this->currentContext->setDocument($document);
+        }
     }
 
     /**

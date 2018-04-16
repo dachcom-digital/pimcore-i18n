@@ -20,7 +20,7 @@ class I18nExtension extends \Twig_Extension
     /**
      * CategoriesExtension constructor.
      *
-     * @param ZoneManager $zoneManager
+     * @param ZoneManager    $zoneManager
      * @param ContextManager $contextManager
      */
     public function __construct(ZoneManager $zoneManager, ContextManager $contextManager)
@@ -35,28 +35,28 @@ class I18nExtension extends \Twig_Extension
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('i18n_context', [$this, 'getI18Context'], ['needs_context' => true]),
+            new \Twig_SimpleFunction('i18n_context', [$this, 'getI18Context']),
             new \Twig_SimpleFunction('i18n_zone_info', [$this, 'getI18nZoneInfo'])
         ];
     }
 
     /**
-     * @param array $context
      * @param string $method
      * @param array  $options
      *
      * @return mixed
+     * @throws \Exception
      */
-    public function getI18Context($context, $method = '', $options = [])
+    public function getI18Context($method = '', $options = [])
     {
-        $document = $context['document'];
-        $this->contextManager->setDocumentToCurrentContext($document);
         return call_user_func_array([$this->contextManager->getContext(), $method], $options);
     }
 
     /**
      * @param string $slot
+     *
      * @return mixed
+     * @throws \Exception
      */
     public function getI18nZoneInfo($slot = '')
     {
