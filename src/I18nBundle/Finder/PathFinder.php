@@ -78,7 +78,7 @@ class PathFinder
         $currentLanguageIso = $document->getProperty('language');
         $currentCountryIso = null;
 
-        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country') {
+        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country' && !empty($currentLanguageIso)) {
             $currentCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
         }
 
@@ -173,7 +173,7 @@ class PathFinder
      */
     private function isValidLocale($fragment)
     {
-        return array_search(strtoupper($fragment), array_column($this->getValidLocales(), 'locale')) !== false;
+        return array_search($fragment, array_column($this->getValidLocales(), 'locale')) !== false;
     }
 
     /**
