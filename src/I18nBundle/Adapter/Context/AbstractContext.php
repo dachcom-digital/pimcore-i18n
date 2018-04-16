@@ -94,7 +94,6 @@ abstract class AbstractContext implements ContextInterface
         return false;
     }
 
-
     /**
      * Helper: Get current Language Iso
      *
