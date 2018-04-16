@@ -59,7 +59,7 @@ class ContextManager
     }
 
     /**
-     * @return AbstractContext
+     * @return ContextInterface
      * @throws \Exception
      */
     public function getContext()
@@ -73,7 +73,9 @@ class ContextManager
 
     /**
      * This is just an alias and a annotation helper
-     * @return ContextInterface|Language
+     *
+     * @return Language|ContextInterface
+     * @throws \Exception
      */
     public function getLanguageContext()
     {
@@ -82,7 +84,9 @@ class ContextManager
 
     /**
      * This is just an alias and a annotation helper
-     * @return ContextInterface|Country
+     *
+     * @return Country|ContextInterface
+     * @throws \Exception
      */
     public function getCountryContext()
     {

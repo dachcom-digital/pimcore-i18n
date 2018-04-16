@@ -312,15 +312,15 @@ class ZoneManager
         $isRootDomain = false;
         $subPages = false;
 
-        $docLanguageIso = $domainDoc->getProperty('language');
+        $docLocale = $domainDoc->getProperty('language');
         $docCountryIso = null;
 
-        if ($this->getCurrentZoneInfo('mode') === 'country' && !empty($docLanguageIso)) {
+        if ($this->getCurrentZoneInfo('mode') === 'country' && !empty($docLocale)) {
             $docCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
         }
 
-        if (strpos($docLanguageIso, '_') !== false) {
-            $parts = explode('_', $docLanguageIso);
+        if (strpos($docLocale, '_') !== false) {
+            $parts = explode('_', $docLocale);
             if (isset($parts[1]) && !empty($parts[1])) {
                 $docCountryIso = $parts[1];
             }
@@ -329,20 +329,12 @@ class ZoneManager
         $country = null;
         $language = null;
 
-        $validCountries = [];
-        $validLanguages = $this->getCurrentZoneLocaleAdapter()->getActiveLanguages();
-
-        if ($this->getCurrentZoneInfo('mode') === 'country') {
-            $validCountries = $this->getCurrentZoneLocaleAdapter()->getActiveCountries();
-            if (!empty($docCountryIso) && array_search($docCountryIso, array_column($validCountries, 'isoCode')) === false) {
-                return false;
-            }
-        }
+        $validLocales = $this->getCurrentZoneLocaleAdapter()->getActiveLocales();
 
         //domain has language, it's the root.
-        if (!empty($docLanguageIso)) {
+        if (!empty($docLocale)) {
             $isRootDomain = true;
-            if (array_search($docLanguageIso, array_column($validLanguages, 'isoCode')) === false) {
+            if (array_search($docLocale, array_column($validLocales, 'locale')) === false) {
                 return false;
             }
         } else {
@@ -402,25 +394,21 @@ class ZoneManager
                     continue;
                 }
 
-                $childLanguageIso = $child->getProperty('language');
+                $childDocLocale = $child->getProperty('language');
                 $childCountryIso = null;
 
                 if ($this->getCurrentZoneInfo('mode') === 'country') {
                     $childCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
                 }
 
-                if (strpos($childLanguageIso, '_') !== false) {
-                    $parts = explode('_', $childLanguageIso);
+                if (strpos($childDocLocale, '_') !== false) {
+                    $parts = explode('_', $childDocLocale);
                     if (isset($parts[1]) && !empty($parts[1])) {
                         $childCountryIso = $parts[1];
                     }
                 }
 
-                if (empty($childLanguageIso) || array_search($childLanguageIso, array_column($validLanguages, 'isoCode')) === false) {
-                    continue;
-                }
-
-                if (!empty($childCountryIso) && array_search($childCountryIso, array_column($validCountries, 'isoCode')) === false) {
+                if (empty($childDocLocale) || array_search($childDocLocale, array_column($validLocales, 'locale')) === false) {
                     continue;
                 }
 
@@ -428,7 +416,7 @@ class ZoneManager
                 $domainUrlWithKey = rtrim($domainUrl . DIRECTORY_SEPARATOR . $urlKey, DIRECTORY_SEPARATOR);
                 $homeDomainUrlWithKey = rtrim($domainUrl . DIRECTORY_SEPARATOR . $docUrl, DIRECTORY_SEPARATOR);
 
-                $realLang = explode('_', $childLanguageIso);
+                $realLang = explode('_', $childDocLocale);
                 $hrefLang = strtolower($realLang[0]);
                 if (!empty($childCountryIso) && $childCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
                     $hrefLang .= '-' . strtolower($childCountryIso);
@@ -438,7 +426,7 @@ class ZoneManager
                     'id'               => $child->getId(),
                     'host'             => $domain,
                     'realHost'         => $domainHost,
-                    'locale'           => $childLanguageIso,
+                    'locale'           => $childDocLocale,
                     'countryIso'       => $childCountryIso,
                     'languageIso'      => $realLang[0],
                     'hrefLang'         => $hrefLang,
@@ -454,8 +442,8 @@ class ZoneManager
 
         $hrefLang = '';
         $docRealLanguageIso = '';
-        if (!empty($docLanguageIso)) {
-            $realLang = explode('_', $docLanguageIso);
+        if (!empty($docLocale)) {
+            $realLang = explode('_', $docLocale);
             $docRealLanguageIso = $realLang[0];
             $hrefLang = strtolower($docRealLanguageIso);
             if (!empty($docCountryIso) && $docCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
@@ -470,7 +458,7 @@ class ZoneManager
             'host'             => $domain,
             'realHost'         => $domainHost,
             'isRootDomain'     => $isRootDomain,
-            'locale'           => $docLanguageIso,
+            'locale'           => $docLocale,
             'countryIso'       => $docCountryIso,
             'languageIso'      => $docRealLanguageIso,
             'hrefLang'         => $hrefLang,

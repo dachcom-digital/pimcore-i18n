@@ -30,12 +30,13 @@ class RedirectorBag
     /**
      * @var string
      */
-    protected $documentCountry;
+    protected $documentLocale;
 
     /**
      * @var string
      */
-    protected $documentLanguage;
+    protected $documentCountry;
+
 
     /**
      * @var string
@@ -51,12 +52,12 @@ class RedirectorBag
     {
         $resolver = new OptionsResolver();
         $resolver->setDefaults([
-            'i18nType'         => null,
-            'request'          => null,
-            'document'         => null,
-            'documentCountry'  => null,
-            'documentLanguage' => null,
-            'defaultLocale'    => null,
+            'i18nType'        => null,
+            'request'         => null,
+            'document'        => null,
+            'documentLocale'  => null,
+            'documentCountry' => null,
+            'defaultLocale'   => null,
         ]);
 
         $resolver->setRequired(['i18nType', 'request', 'document']);
@@ -66,8 +67,8 @@ class RedirectorBag
         $this->i18nMode = $options['i18nType'];
         $this->request = $options['request'];
         $this->document = $options['document'];
+        $this->documentLocale = $options['documentLocale'];
         $this->documentCountry = $options['documentCountry'];
-        $this->documentLanguage = $options['documentLanguage'];
         $this->defaultLocale = $options['defaultLocale'];
     }
 

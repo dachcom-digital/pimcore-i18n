@@ -20,7 +20,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 ```
 
 ## Features
-- Geo redirects
+- Geo redirects (read more about the redirector adapter [here](docs/51_RedirectorAdapter.md))
 - Thanks to the hardlink element you can easily create copies of webpages with additional country information without adding and maintain duplicate content
 - Manage [href-lang](docs/25_HrefLang.md) tags
 - [Handle](docs/90_InternalLinkRewriter.md) internal link redirects based on hardlink context
@@ -40,7 +40,8 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 - [Static Routes](docs/28_StaticRoutes.md): Configure translatable static routes and implement href-lang tags.
 - [Front Page Mapping](docs/30_FrontPageMapping.md): Learn how to map a custom front page.
 - [Localized Error Documents](docs/40_LocaleErrorDocument.md): Learn how to create localized error documents.
-- [Custom Adapter](docs/50_CustomAdapter.md): Learn how to create a custom adapter.
+- [Custom Locale Adapter](docs/50_CustomLocaleAdapter.md): Learn how to create a custom locale adapter.
+- [Redirector Adapter](docs/51_RedirectorAdapter.md): Learn more about redirector adapter and how to implement a custom one.
 - [Code Examples](docs/60_CodeExamples.md): See some examples.
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
 - [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in hardlinks.

@@ -6,9 +6,9 @@ interface ContextInterface
 {
     public function getLinkedLanguages($onlyShowRootLanguages = true);
 
-    public function getCurrentContextInfo($slot = null, $locale = null);
+    public function getCurrentContextInfo($slot = null);
+
+    public function getCurrentLocale();
 
     public function getCurrentLanguageIso();
-
-    public function getCurrentCountryIso();
 }

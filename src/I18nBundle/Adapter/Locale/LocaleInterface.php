@@ -13,33 +13,20 @@ interface LocaleInterface
     function setCurrentZoneConfig($zoneId, $zoneConfig);
 
     /**
-     * Get Active Languages
+     * Get Active Locales
      *
      * @return array
      */
-    function getActiveLanguages(): array;
+    function getActiveLocales(): array;
 
     /**
-     * Get Active Countries
-     * @return array
-     */
-    function getActiveCountries(): array;
-
-    /**
-     * @param $isoCode
+     * @param $locale
      * @param $field
+     * @param $keyIdentifier
      *
      * @return mixed
      */
-    function getLanguageData($isoCode = '', $field = null);
-
-    /**
-     * @param $isoCode
-     * @param $field
-     *
-     * @return mixed
-     */
-    function getCountryData($isoCode = '', $field = NULL);
+    function getLocaleData($locale, $field = null, $keyIdentifier = 'locale');
 
     /**
      * returns valid locale

@@ -80,6 +80,22 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
+     * Helper: Get current Locale
+     *
+     * @return string
+     */
+    public function getCurrentLocale()
+    {
+        if (Cache\Runtime::isRegistered('i18n.locale')) {
+            $locale = Cache\Runtime::get('i18n.locale');
+            return $locale;
+        }
+
+        return false;
+    }
+
+
+    /**
      * Helper: Get current Language Iso
      *
      * @return string
@@ -103,11 +119,6 @@ abstract class AbstractContext implements ContextInterface
      */
     public function getCurrentCountryIso()
     {
-        if (Cache\Runtime::isRegistered('i18n.countryIso')) {
-            $isoCode = Cache\Runtime::get('i18n.countryIso');
-            return $isoCode;
-        }
-
         return false;
     }
 
@@ -116,6 +127,7 @@ abstract class AbstractContext implements ContextInterface
      *
      * @param bool $onlyShowRootLanguages
      * @return array
+     * @throws \Exception
      */
     public function getLinkedLanguages($onlyShowRootLanguages = false)
     {
@@ -128,18 +140,15 @@ abstract class AbstractContext implements ContextInterface
      * Helper: Get Information about current Context
      *
      * @param null $slot
-     * @param null $locale
      * @return mixed
      * @throws \Exception
      */
-    public function getCurrentContextInfo($slot = null, $locale = null)
+    public function getCurrentContextInfo($slot = null)
     {
         $tree = $this->zoneManager->getCurrentZoneDomains(true);
 
-        if (empty($locale)) {
-            if ($this->document instanceof Document) {
-                $locale = $this->document->getProperty('language');
-            }
+        if ($this->document instanceof Document) {
+            $locale = $this->document->getProperty('language');
         }
 
         if (empty($locale)) {
@@ -153,7 +162,6 @@ abstract class AbstractContext implements ContextInterface
 
         return $tree[$treeIndex][$slot];
     }
-
 
     /**
      * @param $languageIso

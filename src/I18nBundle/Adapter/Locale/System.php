@@ -11,12 +11,7 @@ class System extends AbstractLocale
     /**
      * @var null
      */
-    protected $validCountries = null;
-
-    /**
-     * @var null
-     */
-    protected $validLanguages = null;
+    protected $validLocales = null;
 
     /**
      * @var bool|null|string
@@ -53,93 +48,40 @@ class System extends AbstractLocale
     /**
      * @return array
      */
-    public function getActiveLanguages(): array
+    public function getActiveLocales(): array
     {
-        if (!empty($this->validLanguages)) {
-            return $this->validLanguages;
+        if (!empty($this->validLocales)) {
+            return $this->validLocales;
         }
 
-        $validLanguages = [];
-        $languages = Tool::getValidLanguages();
+        $validLocales = [];
+        $systemLocales = Tool::getValidLanguages();
 
-        //unset($languages[1]);
-
-        foreach ($languages as $id => $language) {
-            $validLanguages[] = [
+        foreach ($systemLocales as $id => $locale) {
+            $validLocales[] = [
                 'id'      => (int)$id,
-                'isoCode' => $language
+                'locale'  => $locale,
+                'isoCode' => $locale
             ];
         }
 
-        $this->validLanguages = $validLanguages;
+        $this->validLocales = $validLocales;
 
-        return $this->validLanguages;
+        return $this->validLocales;
     }
 
     /**
-     * @param string $isoCode
+     * @param string $locale
      * @param null   $field
+     * @param string $keyIdentifier
      *
      * @return mixed
      */
-    public function getLanguageData($isoCode = '', $field = null)
+    public function getLocaleData($locale, $field = null, $keyIdentifier = 'locale')
     {
-        $key = array_search($isoCode, array_column($this->validLanguages, 'isoCode'));
+        $key = array_search($locale, array_column($this->validLocales, $keyIdentifier));
         if ($key !== false) {
-            return $this->validLanguages[$key][$field];
-        }
-
-        return null;
-    }
-
-    /**
-     * @return array
-     */
-    public function getActiveCountries(): array
-    {
-        if (!empty($this->validCountries)) {
-            return $this->validCountries;
-        }
-
-        $validCountries = [$this->getGlobalInfo()];
-        foreach (Tool::getValidLanguages() as $id => $language) {
-
-            if (strpos($language, '_') === false) {
-                continue;
-            }
-
-            $parts = explode('_', $language);
-            $isoCode = $parts[1];
-
-            //skip country if it's already in the list.
-            if (array_search($isoCode, array_column($validCountries, 'isoCode')) !== false) {
-                continue;
-            }
-
-            $validCountries[] = [
-                'isoCode' => $isoCode,
-                'id'      => $id,
-                'zone'    => null,
-                'object'  => null
-            ];
-        }
-
-        $this->validCountries = $validCountries;
-
-        return $this->validCountries;
-    }
-
-    /**
-     * @param string $isoCode
-     * @param null   $field
-     *
-     * @return null
-     */
-    public function getCountryData($isoCode = '', $field = null)
-    {
-        $key = array_search($isoCode, array_column($this->validCountries, 'isoCode'));
-        if ($key !== false) {
-            return $this->validCountries[$key][$field];
+            return $this->validLocales[$key][$field];
         }
 
         return null;
@@ -151,10 +93,9 @@ class System extends AbstractLocale
     public function getGlobalInfo()
     {
         return [
-            'isoCode' => Definitions::INTERNATIONAL_COUNTRY_NAMESPACE,
             'id'      => null,
-            'zone'    => null,
-            'object'  => null
+            'locale'  => null,
+            'isoCode' => Definitions::INTERNATIONAL_COUNTRY_NAMESPACE
         ];
     }
 }

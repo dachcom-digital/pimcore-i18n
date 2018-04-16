@@ -116,17 +116,18 @@ class PathFinder
             $delimiter = strpos($localePart, '_') !== false ? '_' : '-';
             $pathElements = explode($delimiter, $localePart);
 
-            //invalid i18n format
-            if (count($pathElements) !== 2) {
-                return false;
-            } elseif (!$this->isValidLanguage($pathElements[0])) {
-                return false;
-            } elseif (!$this->isValidCountry($pathElements[1])) {
+            //ensure correct country iso format
+            if (count($pathElements) == 2) {
+                $pathElements[1] = strtoupper($pathElements[1]);
+            }
+
+            $localePart = join('_', $pathElements);
+            if (!$this->isValidLocale($localePart)) {
                 return false;
             }
 
             //check if language is valid, otherwise there is no locale context.
-        } elseif (!$this->isValidLanguage($localePart)) {
+        } elseif (!$this->isValidLocale($localePart)) {
             return false;
         }
 
@@ -146,6 +147,10 @@ class PathFinder
         return $newFrontEndPath;
     }
 
+    /**
+     * @param array $url
+     * @return string
+     */
     private function buildLocaleUrl($url = [])
     {
         return '/' . join('/', array_merge($this->localeFragment, $url));
@@ -166,29 +171,17 @@ class PathFinder
      *
      * @return bool
      */
-    private function isValidLanguage($fragment)
+    private function isValidLocale($fragment)
     {
-        return array_search($fragment, array_column($this->getValidLanguages(), 'isoCode')) !== false;
+        return array_search(strtoupper($fragment), array_column($this->getValidLocales(), 'locale')) !== false;
     }
 
     /**
-     * @param $fragment
-     *
-     * @return bool
+     * @return array
      */
-    private function isValidCountry($fragment)
+    private function getValidLocales()
     {
-        return array_search(strtoupper($fragment), array_column($this->getValidCountries(), 'isoCode')) !== false;
-    }
-
-    private function getValidLanguages()
-    {
-        return $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLanguages();
-    }
-
-    private function getValidCountries()
-    {
-        return $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveCountries();
+        return $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLocales();
     }
 
     /**

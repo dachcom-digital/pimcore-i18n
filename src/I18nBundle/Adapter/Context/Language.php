@@ -16,10 +16,9 @@ class Language extends AbstractContext
     public function getCurrentLanguageInfo($field = 'name')
     {
         $languageData = null;
-
-        if (Cache\Runtime::isRegistered('i18n.languageIso')) {
-            $languageIso = Cache\Runtime::get('i18n.languageIso');
-            $languageData = $this->zoneManager->getCurrentZoneLocaleAdapter()->getLanguageData($languageIso, $field);
+        if (Cache\Runtime::isRegistered('i18n.locale')) {
+            $locale = Cache\Runtime::get('i18n.locale');
+            $languageData = $this->zoneManager->getCurrentZoneLocaleAdapter()->getLocaleData($locale, $field);
         }
 
         return $languageData;
@@ -29,6 +28,7 @@ class Language extends AbstractContext
      * Helper: Get all active languages
      *
      * @return array
+     * @throws \Exception
      */
     public function getActiveLanguages()
     {

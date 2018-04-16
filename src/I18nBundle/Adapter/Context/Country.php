@@ -9,6 +9,24 @@ use I18nBundle\Definitions;
 
 class Country extends AbstractContext
 {
+
+    /**
+     * Helper: Get current Country Iso
+     *
+     * Get valid Country Iso
+     *
+     * @return bool|string
+     */
+    public function getCurrentCountryIso()
+    {
+        if (Cache\Runtime::isRegistered('i18n.countryIso')) {
+            $isoCode = Cache\Runtime::get('i18n.countryIso');
+            return $isoCode;
+        }
+
+        return false;
+    }
+
     /**
      * Helper: Get current Country Info
      *
@@ -20,9 +38,9 @@ class Country extends AbstractContext
     {
         $countryData = null;
 
-        if (Cache\Runtime::isRegistered('i18n.countryIso')) {
-            $countryIso = Cache\Runtime::get('i18n.countryIso');
-            $countryData = $this->zoneManager->getCurrentZoneLocaleAdapter()->getCountryData($countryIso, $field);
+        if (Cache\Runtime::isRegistered('i18n.locale')) {
+            $locale = Cache\Runtime::get('i18n.locale');
+            $countryData = $this->zoneManager->getCurrentZoneLocaleAdapter()->getLocaleData($locale, $field);
         }
 
         return $countryData;
@@ -87,16 +105,38 @@ class Country extends AbstractContext
     public function getActiveCountries()
     {
         $countryData = [];
-        $activeCountries = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveCountries();
+        $activeLocales = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLocales();
 
-        if (!empty($activeCountries)) {
-            foreach ($activeCountries as $country) {
+        $validCountries = [];
+        foreach ($activeLocales as $id => $localeData) {
 
-                if (is_null($country['isoCode']) | $country['isoCode'] === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
+            $countryData = $localeData;
+
+            if (strpos($localeData['locale'], '_') === false) {
+                continue;
+            }
+
+            $parts = explode('_', $localeData['locale']);
+            $isoCode = strtoupper($parts[1]);
+
+            $countryData['countryIsoCode'] = $isoCode;
+
+            //skip country if it's already in the list.
+            if (array_search($isoCode, array_column($validCountries, 'countryIsoCode')) !== false) {
+                continue;
+            }
+
+            $validCountries[] = $countryData;
+        }
+
+        if (!empty($validCountries)) {
+            foreach ($validCountries as $country) {
+
+                if (is_null($country['countryIsoCode'])) {
                     continue;
                 }
 
-                $countryIso = $country['isoCode'];
+                $countryIso = $country['countryIsoCode'];
                 $languages = $this->getActiveLanguagesForCountry($countryIso);
 
                 if (empty($languages)) {
@@ -123,16 +163,6 @@ class Country extends AbstractContext
         ];
 
         return $countryData;
-    }
-
-    /**
-     * @deprecated This method is deprecated and will be removed in i18n 2.2. Use getActiveCountries() instead!
-     *
-     * @return array|mixed
-     */
-    public function getActiveCountryLocalizations()
-    {
-        return $this->getActiveCountries();
     }
 
     /**
