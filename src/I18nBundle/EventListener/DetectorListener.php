@@ -235,6 +235,8 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
+        $this->setDocumentLocale();
+
         $requestSource = $this->request->attributes->get('pimcore_request_source');
         if ($requestSource === 'staticroute' && !empty($this->documentLocale) && $this->request->attributes->get('_locale') !== $this->documentLocale) {
             $this->adjustRequestLocale();
