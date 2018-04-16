@@ -24,8 +24,9 @@ or by default locale defined in your pimcore system settings.
 # in app/config/config.yml
 i18n:
     registry:
-        cookie:
-            enabled: false
+        redirector:
+            cookie:
+                enabled: false
 ```
 
 ## Create a Custom Redirector
