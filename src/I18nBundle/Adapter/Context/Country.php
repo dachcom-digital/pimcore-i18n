@@ -9,7 +9,6 @@ use I18nBundle\Definitions;
 
 class Country extends AbstractContext
 {
-
     /**
      * Helper: Get current Country Iso
      *
@@ -124,17 +123,17 @@ class Country extends AbstractContext
     /**
      * Helper: Get all active countries with all language related sites
      *
-     * @return array|mixed
+     * @return array
+     * @throws \Exception
      */
     public function getActiveCountries()
     {
-        $countryData = [];
         $activeLocales = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLocales();
 
         $validCountries = [];
         foreach ($activeLocales as $id => $localeData) {
 
-            $countryData = $localeData;
+            $extendedCountryData = $localeData;
 
             if (strpos($localeData['locale'], '_') === false) {
                 continue;
@@ -143,16 +142,17 @@ class Country extends AbstractContext
             $parts = explode('_', $localeData['locale']);
             $isoCode = strtoupper($parts[1]);
 
-            $countryData['countryIsoCode'] = $isoCode;
+            $extendedCountryData['countryIsoCode'] = $isoCode;
 
             //skip country if it's already in the list.
             if (array_search($isoCode, array_column($validCountries, 'countryIsoCode')) !== false) {
                 continue;
             }
 
-            $validCountries[] = $countryData;
+            $validCountries[] = $extendedCountryData;
         }
 
+        $countryData = [];
         if (!empty($validCountries)) {
             foreach ($validCountries as $country) {
 
@@ -194,8 +194,8 @@ class Country extends AbstractContext
      * Only checks if root document in given country iso is accessible.
      *
      * @param null $countryIso
-     *
-     * @return array|bool
+     * @return array
+     * @throws \Exception
      */
     private function getActiveLanguagesForCountry($countryIso = null)
     {
