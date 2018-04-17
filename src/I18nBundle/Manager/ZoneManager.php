@@ -268,8 +268,8 @@ class ZoneManager
         }
 
         $mapData = $this->currentZone = [
-            'zoneId'         => $zoneId,
-            'zoneName'       => $zoneName,
+            'zone_id'        => $zoneId,
+            'zone_name'      => $zoneName,
             'mode'           => $config['mode'],
             'translations'   => $config['translations'],
             'locale_adapter' => $localeAdapter,

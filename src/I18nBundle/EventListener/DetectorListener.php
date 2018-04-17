@@ -425,7 +425,7 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         $session = $this->getSessionData();
-        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zoneId');
+        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
 
         $localeHasSwitched = false;
         $languageHasSwitched = false;
@@ -559,7 +559,7 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zoneId');
+        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
 
         /** @var \Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag $bag */
         $bag = $this->request->getSession()->getBag('i18n_session');

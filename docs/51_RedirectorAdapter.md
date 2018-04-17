@@ -102,7 +102,7 @@ class Website extends AbstractRedirector
 
         // get all valid zone domains
         // and check if there is something we can offer.
-        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zoneId');
+        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
         $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
 
         // only do something in zone 4.

@@ -66,7 +66,7 @@ class I18nDataCollector extends DataCollector
             return;
         }
 
-        $zoneId = $this->zoneManager->getCurrentZoneInfo('zoneId');
+        $zoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
         $mode = $this->zoneManager->getCurrentZoneInfo('mode');
 
         $currentLanguage = '--';
