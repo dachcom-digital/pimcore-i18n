@@ -53,8 +53,10 @@ The I18nBundle allows you to have domains without a locale fragment in url. For 
 - `domain.com/about-us`
 - `domain.com/news`
 
-To achieve that you just set the language property to the `domain.com` document which is also a pimcore site. Easy! But for static routes, the pattern always requires the locale part.
+To achieve that you just set the language property to the `domain.com` document which is also a pimcore site.
+That was easy! Now we need to check the static routes again - because the pattern always requires the locale part.
 Pimcore allows [optional placeholders](https://pimcore.com/docs/5.0.x/MVC/Routing_and_URLs/Custom_Routes.html#page_Building_URLs_based_on_Custom_Routes) so instead of `%_locale` just add `{%_locale}` to your reverse element.
+If no locale has been found in your request url the fragment now gets excluded.
 
 ## href-lang Generator
 Now let's create a event listener to generate valid alternate links for our news entries:

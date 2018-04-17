@@ -87,7 +87,7 @@ class Website extends AbstractRedirector
         $redirectorOptions = $decisionData['redirectorOptions'];
 
         /*
-         * This example assumes that your on localhost:
+         * This example assumes that you're on localhost:
          * - geoCountry is empty because the "geo" redirector couldn't resolve your country
          *
          * print_r($redirectorOptions);
