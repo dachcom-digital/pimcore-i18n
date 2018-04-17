@@ -9,13 +9,14 @@ use I18nBundle\Manager\ZoneManager;
 use Pimcore\Cache;
 use Pimcore\Config;
 use Pimcore\Http\Exception\ResponseException;
-use Pimcore\Http\Request\Resolver\DocumentResolver;
+use Pimcore\Model\DataObject;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Model\Document;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Templating\Renderer\ActionRenderer;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -138,6 +139,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $defaultErrorDocument = null;
         $localizedErrorDocument = null;
 
+        $newDocumentLocale = null;
         if ($this->siteResolver->isSiteRequest($event->getRequest())) {
             $path = $this->siteResolver->getSitePath($event->getRequest());
             // 2. get site error page
@@ -160,6 +162,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         if ($nearestDocument instanceof Document) {
 
             $nearestDocumentLocale = $nearestDocument->getProperty('language');
+            $newDocumentLocale = $nearestDocumentLocale;
 
             $validElements = array_keys(array_filter($zoneDomains,
                 function ($v) use ($host, $nearestDocumentLocale) {
@@ -211,7 +214,12 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $document = Document::getById(1);
         }
 
-        $this->setRuntime($document->getProperty('language'));
+        if (is_null($newDocumentLocale)) {
+            $newDocumentLocale = $document->getProperty('language');
+        }
+
+        $this->setRuntime($event->getRequest(), $document, $newDocumentLocale);
+
         $this->contextManager->getContext()->setDocument($document);
 
         try {
@@ -233,14 +241,27 @@ class ResponseExceptionListener implements EventSubscriberInterface
     }
 
     /**
-     * @param $documentLocale
+     * @param Request  $request
+     * @param Document $document
+     * @param          $newDocumentLocale
      */
-    private function setRuntime($documentLocale)
+    private function setRuntime(Request $request, Document $document, $newDocumentLocale)
     {
-        //fix i18n language / country context.
-        Cache\Runtime::get('i18n.locale', $documentLocale);
+        // Pimcore does not initialize context in exception.
+        Document::setHideUnpublished(true);
+        DataObject\AbstractObject::setHideUnpublished(true);
+        DataObject\AbstractObject::setGetInheritedValues(true);
+        DataObject\Localizedfield::setGetFallbackValues(true);
 
-        $docLang = explode('_', $documentLocale);
+        $request->setLocale($newDocumentLocale);
+        $request->setDefaultLocale($newDocumentLocale);
+        $request->attributes->set('_locale', $newDocumentLocale);
+        $document->setProperty('language', 'string', $newDocumentLocale);
+
+        //fix i18n language / country context.
+        Cache\Runtime::set('i18n.locale', $newDocumentLocale);
+
+        $docLang = explode('_', $newDocumentLocale);
         Cache\Runtime::set('i18n.languageIso', strtolower($docLang[0]));
 
         $countryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
