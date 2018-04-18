@@ -6,6 +6,7 @@
  * - Pimcore Enterprise License (PEL)
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
+ *
  * @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
@@ -34,7 +35,7 @@ class I18nDataCollector extends DataCollector
     /**
      * @var ZoneManager
      */
-    protected $isFrontend = TRUE;
+    protected $isFrontend = true;
 
     /**
      * I18nDataCollector constructor.
@@ -46,23 +47,27 @@ class I18nDataCollector extends DataCollector
     {
         $this->zoneManager = $zoneManager;
         $this->requestHelper = $requestHelper;
+
+        $this->data = [
+            'isFrontend' => false
+        ];
+
     }
 
     /**
      * @inheritDoc
      */
-    public function collect(Request $request, Response $response, \Exception $exception = NULL)
+    public function collect(Request $request, Response $response, \Exception $exception = null)
     {
         //only track current valid routes.
-        if($response->getStatusCode() !== 200) {
+        if ($response->getStatusCode() !== 200) {
             return;
         }
 
-        if ( $exception instanceof \RuntimeException
-            || $this->requestHelper->isFrontendRequest($request) === FALSE
+        if ($exception instanceof \RuntimeException
+            || $this->requestHelper->isFrontendRequest($request) === false
             || $this->requestHelper->isFrontendRequestByAdmin($request)
         ) {
-            $this->data['isFrontend'] = FALSE;
             return;
         }
 
@@ -81,7 +86,7 @@ class I18nDataCollector extends DataCollector
         }
 
         $this->data = [
-            'isFrontend'      => TRUE,
+            'isFrontend'      => true,
             'zoneId'          => empty($zoneId) ? 'none' : $zoneId,
             'i18nMode'        => $mode,
             'currentLanguage' => $currentLanguage,
