@@ -234,6 +234,7 @@ class Document extends AbstractPathGenerator
                     $routes[] = [
                         'languageIso'      => $hardLinkWrapper['languageIso'],
                         'countryIso'       => $hardLinkWrapper['countryIso'],
+                        'locale'           => $hardLinkWrapper['locale'],
                         'hrefLang'         => $hardLinkWrapper['hrefLang'],
                         'localeUrlMapping' => $hardLinkWrapper['localeUrlMapping'],
                         'key'              => $languageContext['key'],
