@@ -62,7 +62,7 @@ class Document extends AbstractPathGenerator
                     'locale'           => $pageInfo['locale'],
                     'hrefLang'         => $pageInfo['hrefLang'],
                     'localeUrlMapping' => $pageInfo['localeUrlMapping'],
-                    'key'              => $pageInfo['key'],
+                    'key'              => $currentDocument->getKey(),
                     'url'              => $pageInfo['url']
                 ];
             }
@@ -140,8 +140,7 @@ class Document extends AbstractPathGenerator
                         'locale'           => $pageInfo['locale'],
                         'hrefLang'         => $pageInfo['hrefLang'],
                         'localeUrlMapping' => $pageInfo['localeUrlMapping'],
-                        'key'              => $pageInfo['key'],
-                        'relativePath'     => $pageInfo['key'],
+                        'key'              => $currentDocument->getKey(),
                         'url'              => $pageInfo['url']
                     ];
                 }
@@ -200,6 +199,7 @@ class Document extends AbstractPathGenerator
                     $routes[] = [
                         'languageIso'      => $pageInfo['languageIso'],
                         'countryIso'       => $pageInfo['countryIso'],
+                        'locale'           => $pageInfo['locale'],
                         'hrefLang'         => $pageInfo['hrefLang'],
                         'localeUrlMapping' => $pageInfo['localeUrlMapping'],
                         'key'              => $document->getKey(),
@@ -207,6 +207,7 @@ class Document extends AbstractPathGenerator
                         'hasPrettyUrl'     => $hasPrettyUrl,
                         'url'              => $url
                     ];
+
                     //document does not exist.
                 } else {
                     $hardLinksToCheck[] = $pageInfo;

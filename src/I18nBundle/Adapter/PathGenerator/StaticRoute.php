@@ -100,7 +100,6 @@ class StaticRoute extends AbstractPathGenerator
                     'countryIso'       => $pageInfo['countryIso'],
                     'hrefLang'         => $pageInfo['hrefLang'],
                     'localeUrlMapping' => $pageInfo['localeUrlMapping'],
-                    'key'              => $pageInfo['key'],
                     'url'              => $pageInfo['url'],
                     'domainUrl'        => $pageInfo['domainUrl']
                 ];
@@ -149,7 +148,6 @@ class StaticRoute extends AbstractPathGenerator
                 'locale'           => $routeInfo['locale'],
                 'hrefLang'         => $routeInfo['hrefLang'],
                 'localeUrlMapping' => $routeInfo['localeUrlMapping'],
-                'key'              => $routeInfo['key'],
                 # use domainUrl element since $link already comes with the locale part!
                 'url'              => System::joinPath([$routeInfo['domainUrl'], $link])
             ];
