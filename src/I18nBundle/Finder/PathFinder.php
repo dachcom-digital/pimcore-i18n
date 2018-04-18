@@ -201,7 +201,8 @@ class PathFinder
         }
 
         $delimiter = strpos($key, '_') !== false ? '_' : '-';
-        $country = end(explode($delimiter, $key));
+        $data = explode($delimiter, $key);
+        $country = end($data);
 
         return [
             'delimiter' => $delimiter,
