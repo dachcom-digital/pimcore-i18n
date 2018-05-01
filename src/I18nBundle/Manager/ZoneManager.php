@@ -288,7 +288,7 @@ class ZoneManager
     {
         $domainHost = $this->getDomainHost($domain);
         $domainDoc = Document::getById($rootId);
-        $isFrontendRequestByAdmin = $this->requestHelper->isFrontendRequestByAdmin();
+        $isFrontendRequestByAdmin = $this->requestHelper->hasCurrentRequest() && $this->requestHelper->isFrontendRequestByAdmin();
 
         $valid = false;
 
