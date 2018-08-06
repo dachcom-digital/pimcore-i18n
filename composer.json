@@ -16,7 +16,7 @@
 
     "autoload": {
         "psr-4": {
-            "I18nBundle\\": "src/"
+            "I18nBundle\\": "src/I18nBundle"
         }
     },
 
