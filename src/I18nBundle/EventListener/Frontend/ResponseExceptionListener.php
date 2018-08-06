@@ -214,7 +214,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $document = Document::getById(1);
         }
 
-        if (is_null($newDocumentLocale)) {
+        if (empty($newDocumentLocale)) {
             $newDocumentLocale = $document->getProperty('language');
         }
 
