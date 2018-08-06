@@ -203,6 +203,7 @@ class ZoneManager
 
     /**
      * @param bool $flatten
+     *
      * @return array|null
      * @throws \Exception
      */
@@ -281,6 +282,7 @@ class ZoneManager
     /**
      * @param $domain
      * @param $rootId
+     *
      * @return array|bool
      * @throws \Exception
      */
@@ -496,6 +498,7 @@ class ZoneManager
      * Get Domain Url of given domain based on current request scheme!
      *
      * @param $domain
+     *
      * @return string
      */
     private function getDomainUrl($domain)
@@ -519,6 +522,7 @@ class ZoneManager
     /**
      * @param      $domain
      * @param bool $stripWWW
+     *
      * @return string
      */
     private function getDomainHost($domain, $stripWWW = true)
@@ -532,6 +536,7 @@ class ZoneManager
 
     /**
      * @param $domain
+     *
      * @return string
      */
     private function getDomainPort($domain)
@@ -547,6 +552,7 @@ class ZoneManager
 
     /**
      * @param $zoneDomains
+     *
      * @return array
      */
     private function flattenDomainTree($zoneDomains)

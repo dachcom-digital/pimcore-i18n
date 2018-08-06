@@ -62,6 +62,7 @@ class FallbackRedirector extends AbstractRedirector
 
     /**
      * @param null $fallBackLocale
+     *
      * @return bool
      */
     public function findUrlInZoneTree($fallBackLocale = null)

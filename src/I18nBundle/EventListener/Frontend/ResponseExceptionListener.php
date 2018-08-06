@@ -100,6 +100,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
 
     /**
      * @param GetResponseForExceptionEvent $event
+     *
      * @throws \Exception
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
@@ -120,6 +121,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
 
     /**
      * @param GetResponseForExceptionEvent $event
+     *
      * @throws \Exception
      */
     protected function handleErrorPage(GetResponseForExceptionEvent $event)

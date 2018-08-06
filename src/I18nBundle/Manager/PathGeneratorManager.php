@@ -40,7 +40,7 @@ class PathGeneratorManager
      */
     public function initPathGenerator($contextIdentifier)
     {
-        if($contextIdentifier === 'staticroute') {
+        if ($contextIdentifier === 'staticroute') {
             $contextId = 'static_route';
         } else {
             $contextId = 'document';
@@ -50,7 +50,7 @@ class PathGeneratorManager
             throw new \Exception('context already defined');
         }
 
-        if(!$this->pathGeneratorRegistry->has($contextId)) {
+        if (!$this->pathGeneratorRegistry->has($contextId)) {
             throw new \Exception(sprintf('path.generator adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.', $contextId, 'i18n.adapter.path.generator', $contextId));
         }
 

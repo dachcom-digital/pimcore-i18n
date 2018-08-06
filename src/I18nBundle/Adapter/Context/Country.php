@@ -29,9 +29,10 @@ class Country extends AbstractContext
     /**
      * Helper: Get current Country Info
      *
-     * @param $field
+     * @param string $field
      *
-     * @return string
+     * @return mixed|null
+     * @throws \Exception
      */
     public function getCurrentCountryInfo($field = 'name')
     {
@@ -198,6 +199,7 @@ class Country extends AbstractContext
      * Only checks if root document in given country iso is accessible.
      *
      * @param null $countryIso
+     *
      * @return array
      * @throws \Exception
      */

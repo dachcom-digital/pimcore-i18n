@@ -71,6 +71,7 @@ abstract class AbstractRedirector implements RedirectorInterface
 
     /**
      * @param RedirectorBag $redirectorBag
+     *
      * @return bool|mixed
      */
     public function lastRedirectorWasSuccessful(RedirectorBag $redirectorBag)

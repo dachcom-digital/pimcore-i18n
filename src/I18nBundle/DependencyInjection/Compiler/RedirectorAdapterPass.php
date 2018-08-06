@@ -22,7 +22,11 @@ final class RedirectorAdapterPass implements CompilerPassInterface
             $priority = isset($attributes[0]['priority']) ? $attributes[0]['priority'] : 0;
             $alias = isset($attributes[0]['alias']) ? $attributes[0]['alias'] : null;
             $serviceDefinition = $container->getDefinition($serviceId);
-            $services[$priority][] = ['reference' => new Reference($serviceId), 'definition' => $serviceDefinition, 'alias' => $alias];
+            $services[$priority][] = [
+                'reference'  => new Reference($serviceId),
+                'definition' => $serviceDefinition,
+                'alias'      => $alias
+            ];
         }
 
         if ($services) {

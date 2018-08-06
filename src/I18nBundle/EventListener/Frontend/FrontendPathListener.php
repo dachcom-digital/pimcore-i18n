@@ -49,7 +49,7 @@ class FrontendPathListener implements EventSubscriberInterface
         $frontEndPath = $e->getArgument('frontendPath');
         $i18nFrontEndPath = $this->pathfinder->checkPath($frontEndPath);
 
-        if ($i18nFrontEndPath !== FALSE) {
+        if ($i18nFrontEndPath !== false) {
             $e->setArgument('frontendPath', $i18nFrontEndPath);
         }
     }

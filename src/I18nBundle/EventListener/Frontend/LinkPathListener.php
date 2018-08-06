@@ -76,7 +76,7 @@ class LinkPathListener implements EventSubscriberInterface
 
         if ($document instanceof Hardlink\Wrapper\Link) {
             $i18nFrontEndPath = $this->pathfinder->checkPath($path);
-            if ($i18nFrontEndPath !== FALSE) {
+            if ($i18nFrontEndPath !== false) {
                 $event->setResponse(new RedirectResponse($i18nFrontEndPath));
             }
         }

@@ -8,9 +8,9 @@ interface PathGeneratorInterface
 {
     /**
      * @param PimcoreDocument $currentDocument
-     * @param bool $onlyShowRootLanguages
+     * @param bool            $onlyShowRootLanguages
      *
      * @return array
      */
-    public function getUrls(PimcoreDocument $currentDocument, $onlyShowRootLanguages = FALSE);
+    public function getUrls(PimcoreDocument $currentDocument, $onlyShowRootLanguages = false);
 }

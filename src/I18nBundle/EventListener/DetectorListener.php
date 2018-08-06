@@ -172,6 +172,7 @@ class DetectorListener implements EventSubscriberInterface
 
     /**
      * @param $request
+     *
      * @throws \Exception
      */
     private function initI18nSystem($request)
@@ -193,6 +194,7 @@ class DetectorListener implements EventSubscriberInterface
 
     /**
      * @param GetResponseForExceptionEvent $event
+     *
      * @throws \Exception
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
@@ -220,10 +222,11 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * If we're in static route context, we need to check the request locale since it could be a invalid one from the url (like en-us).
-     * Always use the document locale then!
+     * If we're in static route context, we need to check the request locale since it could be a invalid one from the url (like
+     * en-us). Always use the document locale then!
      *
-     * Since symfony tries to locate the current locale in LocaleListener via the request attribute "_locale", we need to trigger this event earlier!
+     * Since symfony tries to locate the current locale in LocaleListener via the request attribute "_locale", we need to trigger
+     * this event earlier!
      *
      * @param GetResponseEvent $event
      *
@@ -659,6 +662,7 @@ class DetectorListener implements EventSubscriberInterface
 
     /**
      * @param GetResponseEvent $event
+     *
      * @throws \Exception
      */
     private function setNotEditableAwareMessage(GetResponseEvent $event)

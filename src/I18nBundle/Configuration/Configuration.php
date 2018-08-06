@@ -25,6 +25,7 @@ class Configuration
     {
         $this->config = $config;
     }
+
     /**
      * @return array
      */
@@ -56,7 +57,7 @@ class Configuration
      *
      * @return mixed
      */
-    public function getSystemConfig($slot = NULL)
+    public function getSystemConfig($slot = null)
     {
         return $this->systemConfig[$slot];
     }

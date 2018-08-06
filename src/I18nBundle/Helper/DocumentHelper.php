@@ -13,7 +13,7 @@ class DocumentHelper
      *
      * @return string
      */
-    public function getDocumentFullPath($document = NULL)
+    public function getDocumentFullPath($document = null)
     {
         $hostUrl = \Pimcore\Tool::getHostUrl();
 
@@ -50,9 +50,9 @@ class DocumentHelper
      *
      * @return array string document url without trailing slash
      */
-    private function getDocumentUrl($document = NULL, $returnAsArray = FALSE, $restrictToCurrentSite = TRUE)
+    private function getDocumentUrl($document = null, $returnAsArray = false, $restrictToCurrentSite = true)
     {
-        $siteIsLanguageRoot = FALSE;
+        $siteIsLanguageRoot = false;
         $url = '';
 
         if (!\Pimcore\Model\Site::isSiteRequest()) {
@@ -60,13 +60,13 @@ class DocumentHelper
             return $returnAsArray ? ['url' => $url, 'siteIsLanguageRoot' => $siteIsLanguageRoot] : $url;
         }
 
-        if ($restrictToCurrentSite === FALSE || $this->isDocumentInCurrentSite($document)) {
+        if ($restrictToCurrentSite === false || $this->isDocumentInCurrentSite($document)) {
             $site = \Pimcore\Model\Site::getCurrentSite();
 
             //we're in the current documents domain. add Host!
             if ($site->getRootId() === $document->getId() || \Pimcore\Tool\Frontend::isDocumentInCurrentSite($document)) {
                 if ($site->getRootId() === $document->getId()) {
-                    $siteIsLanguageRoot = TRUE;
+                    $siteIsLanguageRoot = true;
                 }
 
                 $hostUrl = \Pimcore\Tool::getHostUrl();
@@ -75,7 +75,7 @@ class DocumentHelper
                 $documentSite = \Pimcore\Tool\Frontend::getSiteForDocument($document);
 
                 if ($documentSite->getRootId() === $document->getId()) {
-                    $siteIsLanguageRoot = TRUE;
+                    $siteIsLanguageRoot = true;
                 }
 
                 $hostUrl = \Pimcore\Tool::getRequestScheme() . '://' . $documentSite->getMainDomain();
@@ -84,7 +84,7 @@ class DocumentHelper
             $url = rtrim($hostUrl, '/');
         }
 
-        if ($returnAsArray === TRUE) {
+        if ($returnAsArray === true) {
             return [
                 'url'                => $url,
                 'siteIsLanguageRoot' => $siteIsLanguageRoot
@@ -105,15 +105,15 @@ class DocumentHelper
     private function isDocumentInCurrentSite($document)
     {
         if (!\Pimcore\Model\Site::isSiteRequest()) {
-            return FALSE;
+            return false;
         }
 
         $site = \Pimcore\Model\Site::getCurrentSite();
 
         if (\Pimcore\Tool\Frontend::isDocumentInCurrentSite($document) || $site->getRootId() === $document->getId()) {
-            return TRUE;
+            return true;
         }
 
-        return FALSE;
+        return false;
     }
 }

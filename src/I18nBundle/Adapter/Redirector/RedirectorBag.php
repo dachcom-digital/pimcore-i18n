@@ -37,7 +37,6 @@ class RedirectorBag
      */
     protected $documentCountry;
 
-
     /**
      * @var string
      */

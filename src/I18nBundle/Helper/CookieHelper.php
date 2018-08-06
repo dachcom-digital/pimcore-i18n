@@ -12,6 +12,7 @@ class CookieHelper
     /**
      * @param Request $request
      * @param string  $key
+     *
      * @return array|bool
      */
     public function get(Request $request, $key = Definitions::REDIRECT_COOKIE_NAME)
@@ -39,6 +40,7 @@ class CookieHelper
     /**
      * @param Response $response
      * @param          $params
+     *
      * @return Cookie
      */
     public function set(Response $response, $params)

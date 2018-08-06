@@ -56,6 +56,7 @@ class PathFinder
      * /de-de/test
      *
      * @todo implement zone manager to check valid languages/countries
+     *
      * @param string $frontEndPath
      *
      * @return string|bool
@@ -149,6 +150,7 @@ class PathFinder
 
     /**
      * @param array $url
+     *
      * @return string
      */
     private function buildLocaleUrl($url = [])
@@ -187,6 +189,7 @@ class PathFinder
     /**
      * @param Document $document
      * @param Request  $request
+     *
      * @return array
      */
     private function getContextFormatting(Document $document, Request $request)

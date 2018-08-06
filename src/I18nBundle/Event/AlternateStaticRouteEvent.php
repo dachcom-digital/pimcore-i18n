@@ -9,15 +9,15 @@ class AlternateStaticRouteEvent extends Event
 {
     protected $i18nList = [];
 
-    protected $currentDocument = NULL;
+    protected $currentDocument = null;
 
-    protected $currentLanguage = NULL;
+    protected $currentLanguage = null;
 
-    protected $currentCountry = NULL;
+    protected $currentCountry = null;
 
-    protected $currentStaticRoute = NULL;
+    protected $currentStaticRoute = null;
 
-    protected $requestAttributes = NULL;
+    protected $requestAttributes = null;
 
     protected $routes = [];
 

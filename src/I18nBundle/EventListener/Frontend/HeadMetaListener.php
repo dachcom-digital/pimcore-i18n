@@ -43,8 +43,8 @@ class HeadMetaListener implements EventSubscriberInterface
     /**
      * @param DocumentResolverService $documentResolverService
      * @param HeadMeta                $headMeta
-     * @param ZoneManager      $zoneManager
-     * @param ContextManager      $contextManager
+     * @param ZoneManager             $zoneManager
+     * @param ContextManager          $contextManager
      */
     public function __construct(
         DocumentResolverService $documentResolverService,
@@ -84,13 +84,13 @@ class HeadMetaListener implements EventSubscriberInterface
             return;
         }
 
-        if($this->zoneManager->getCurrentZoneInfo('mode') !== 'country') {
+        if ($this->zoneManager->getCurrentZoneInfo('mode') !== 'country') {
             return;
         }
 
         $currentCountryIso = $this->contextManager->getCountryContext()->getCurrentCountryIso();
 
-        if(empty($currentCountryIso)) {
+        if (empty($currentCountryIso)) {
             return;
         }
 

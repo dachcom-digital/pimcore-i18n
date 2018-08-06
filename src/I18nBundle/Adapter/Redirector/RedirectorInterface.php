@@ -26,6 +26,7 @@ interface RedirectorInterface
 
     /**
      * @param array $decision
+     *
      * @return mixed
      */
     public function setDecision(array $decision);
@@ -37,12 +38,14 @@ interface RedirectorInterface
 
     /**
      * @param RedirectorBag $redirectorBag
+     *
      * @return mixed
      */
     public function lastRedirectorWasSuccessful(RedirectorBag $redirectorBag);
 
     /**
      * @param RedirectorBag $redirectorBag
+     *
      * @return mixed
      */
     public function makeDecision(RedirectorBag $redirectorBag);

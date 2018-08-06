@@ -125,6 +125,7 @@ abstract class AbstractContext implements ContextInterface
      * Helper: Get all linked pages from current document
      *
      * @param bool $onlyShowRootLanguages
+     *
      * @return array
      * @throws \Exception
      */
@@ -163,6 +164,7 @@ abstract class AbstractContext implements ContextInterface
      * Helper: Get Information about current Context
      *
      * @param null $slot
+     *
      * @return mixed
      * @throws \Exception
      */

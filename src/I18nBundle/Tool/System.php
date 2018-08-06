@@ -16,7 +16,7 @@ class System
     public static function isInBackend(Request $request)
     {
         $editMode = $request->attributes->get(EditmodeResolver::ATTRIBUTE_EDITMODE);
-        return Tool::isFrontend($request) === FALSE || $editMode === TRUE;
+        return Tool::isFrontend($request) === false || $editMode === true;
     }
 
     /**
@@ -33,12 +33,12 @@ class System
      *
      * @return string
      */
-    public static function joinPath($fragments, $addStartSlash = FALSE)
+    public static function joinPath($fragments, $addStartSlash = false)
     {
         $f = [];
-        $addStartSlash = $addStartSlash === TRUE || substr($fragments[0], 0, 1) === DIRECTORY_SEPARATOR;
+        $addStartSlash = $addStartSlash === true || substr($fragments[0], 0, 1) === DIRECTORY_SEPARATOR;
         foreach ($fragments as $fragment) {
-            if(empty($fragment)) {
+            if (empty($fragment)) {
                 continue;
             }
             $f[] = trim($fragment, DIRECTORY_SEPARATOR);

@@ -28,7 +28,7 @@ class RedirectorRegistry
      */
     public function register($service, $alias)
     {
-        if(empty($alias)) {
+        if (empty($alias)) {
             throw new \InvalidArgumentException(sprintf('%s does not have a valid alias.', get_class($service)));
         }
 

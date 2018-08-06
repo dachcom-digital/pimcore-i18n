@@ -249,6 +249,7 @@ class Document extends AbstractPathGenerator
 
     /**
      * @param PimcoreDocument $document
+     *
      * @return bool
      */
     private function hasPrettyUrl(PimcoreDocument $document)
