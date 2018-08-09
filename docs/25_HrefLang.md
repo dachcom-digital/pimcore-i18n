@@ -4,11 +4,11 @@
 The i18nBundle will handle the href lang tags for you which are very important for search engines.
 
 ## Prearrangement
-It's very important, that you're connect your localized documents using the [pimcore localization service](https://pimcore.com/docs/5.0.x/Multi_Language_i18n/Localize_your_Documents.html#page_Localization_Tool).
+It's very important that you connect your localized documents using the [pimcore localization service](https://pimcore.com/docs/5.0.x/Multi_Language_i18n/Localize_your_Documents.html#page_Localization_Tool).
 
-> **Note**: If you're **not** localizing your documents, no href lang tags will be generated which will lead to a negative impact on your SEO strategies. There is, however, some magic if your using the [country mode](27_Countries.md).
+> **Note**: If you're **not** localizing your documents, no href lang tags will be generated, which will lead to a negative impact on your SEO strategies. There is, however, some magic if you're using the [country mode](27_Countries.md).
 
-**Localization Connector:** There is a [dedicated help document](100_LocalizeDocuments.md) we wrote for you to get all the knowledge for heroic document localization!
+**Localization Connector:** There's a [dedicated help document](100_LocalizeDocuments.md) we wrote for you to get all the knowledge for heroic document localization!
 
 ## X-Default
 i18n will generate a x-default link, based on default values:
