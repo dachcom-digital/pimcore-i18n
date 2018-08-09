@@ -1,6 +1,6 @@
 # Custom Locale Adapter
 
-In most cases, there is no need of a custom adapter since both default adapter are sufficient for your daily business.
+In most cases there is no need of a custom adapter since both default adapters are sufficient for your daily business.
 If you're using complex zones, however, you may want to deliver different data for each zone.
 
 ### 1. Create a Service
@@ -29,7 +29,7 @@ i18n:
 ### 3. Create a class
 
 Create a class, extend it from `AbstractLocale`.
-In this example, we'lll remove some locales if we're in a different zone (example code below).
+In this example, we'll remove some locales if we're in a different zone (example code below).
 We're also using the `system` adapter as a decorator so we don't have to implement all methods again.
 
 ```php
