@@ -7,7 +7,7 @@
 
 ## Introduction
 Pimcore already comes with some great features to build internationalized websites. But there are some gaps we have to handle by ourselves: search engine guidelines, geo based redirects and a dynamic link handling for internal documents. 
-This Bundle helps you mastering this challenges and gives you freedom to elaborating complex country based localization strategies.
+This Bundle helps you mastering this challenges and gives you the freedom to elaborate complex country based localization strategies.
 
 ### Installation  
 1. Add code below to your `composer.json`    
@@ -21,7 +21,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 
 ## Features
 - Geo redirects (read more about the redirector adapter [here](docs/51_RedirectorAdapter.md))
-- Thanks to the hardlink element you can easily create copies of webpages with additional country information without adding and maintain duplicate content
+- Thanks to the hardlink element you can easily create copies of webpages with additional country information without adding and maintaining duplicate content
 - Manage [href-lang](docs/25_HrefLang.md) tags
 - [Handle](docs/90_InternalLinkRewriter.md) internal link redirects based on hardlink context
 - Domain mapping (`domain.com`) and/or language slug (`/en`) strategies
@@ -48,7 +48,7 @@ This Bundle helps you mastering this challenges and gives you freedom to elabora
 - [Navigation Caching](docs/110_NavigationCaching.md): Cache your navigation right!
 
 ## Why is there no Version 1?
-There is already a i18n plugin for pimcore4 which is not public. With Pimcore5 we decided to move this project to a public github repository. You're welcome. :)
+There is already an i18n plugin for pimcore4 which is not public. With Pimcore5 we decided to move this project to a public github repository. You're welcome. :)
 
 ## Copyright and License
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
