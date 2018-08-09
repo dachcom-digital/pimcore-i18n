@@ -3,6 +3,7 @@
 Pimcore provides two ways to add an error document in case something went wrong or a specific page could not be found.
 
 1.) specify an error page in your systemsettings
+
 2.) specify an error page per site
 
 If you're using this plugin, you probably need some abstraction. 
