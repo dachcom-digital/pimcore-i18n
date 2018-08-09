@@ -1,11 +1,11 @@
 # Localized Error Documents
 
-Pimcore provides two ways to add a error document in case something went wrong or a specific page could not be found.
+Pimcore provides two ways to add an error document in case something went wrong or a specific page could not be found.
 
-1.) specify a error page in your systemsettings
-2.) specify a error page per site
+1.) specify an error page in your systemsettings
+2.) specify an error page per site
 
-If you're using this plugin you probably need some abstraction. 
+If you're using this plugin, you probably need some abstraction. 
 This Bundle will help you to generate specific error documents depending on languages and/or country settings.
 
 Just create a document called like the error page in your system settings or the error page of a specific site and place it in your tree:
