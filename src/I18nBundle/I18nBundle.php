@@ -2,17 +2,18 @@
 
 namespace I18nBundle;
 
-use I18nBundle\Tool\Install;
-use I18nBundle\DependencyInjection\Compiler\RedirectorAdapterPass;
-use I18nBundle\DependencyInjection\Compiler\LocaleAdapterPass;
 use I18nBundle\DependencyInjection\Compiler\ContextAdapterPass;
+use I18nBundle\DependencyInjection\Compiler\LocaleAdapterPass;
 use I18nBundle\DependencyInjection\Compiler\PathGeneratorAdapterPass;
+use I18nBundle\DependencyInjection\Compiler\RedirectorAdapterPass;
+use I18nBundle\Tool\Install;
 use Pimcore\Extension\Bundle\AbstractPimcoreBundle;
+use Pimcore\Extension\Bundle\Traits\PackageVersionTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class I18nBundle extends AbstractPimcoreBundle
 {
-    const BUNDLE_VERSION = '2.3.2';
+    use PackageVersionTrait;
 
     /**
      * @inheritDoc
@@ -28,16 +29,17 @@ class I18nBundle extends AbstractPimcoreBundle
     /**
      * {@inheritdoc}
      */
-    public function getVersion()
-    {
-        return self::BUNDLE_VERSION;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getInstaller()
     {
         return $this->container->get(Install::class);
     }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getComposerPackageName(): string
+    {
+        return 'dachcom-digital/i18n';
+    }
+
 }

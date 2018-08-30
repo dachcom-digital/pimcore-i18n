@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+#### Update from Version 2.3.2 to Version 2.3.3
+- implemented [PackageVersionTrait](https://github.com/pimcore/pimcore/blob/master/lib/Extension/Bundle/Traits/PackageVersionTrait.php)
+
 #### Update from Version 2.2.x to Version 2.3
 > **IMPORTANT**: Version 2.3.0 comes with a lot BC Breaks, so check your installation after upgrading!
 
