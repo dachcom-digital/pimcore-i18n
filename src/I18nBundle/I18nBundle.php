@@ -14,6 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class I18nBundle extends AbstractPimcoreBundle
 {
     use PackageVersionTrait;
+    const PACKAGE_NAME = 'dachcom-digital/i18n';
 
     /**
      * @inheritDoc
@@ -39,7 +40,7 @@ class I18nBundle extends AbstractPimcoreBundle
      */
     protected function getComposerPackageName(): string
     {
-        return 'dachcom-digital/i18n';
+        return self::PACKAGE_NAME;
     }
 
 }

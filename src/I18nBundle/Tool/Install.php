@@ -2,13 +2,14 @@
 
 namespace I18nBundle\Tool;
 
+use I18nBundle\Configuration\Configuration;
 use I18nBundle\I18nBundle;
-use Pimcore\Model\Translation;
+use PackageVersions\Versions;
 use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
+use Pimcore\Model\Property;
+use Pimcore\Model\Translation;
 use Pimcore\Tool\Admin;
 use Symfony\Component\Filesystem\Filesystem;
-use I18nBundle\Configuration\Configuration;
-use Pimcore\Model\Property;
 use Symfony\Component\Yaml\Yaml;
 
 class Install extends AbstractInstaller
@@ -24,6 +25,11 @@ class Install extends AbstractInstaller
     private $fileSystem;
 
     /**
+     * @var string
+     */
+    private $currentVersion;
+
+    /**
      * Install constructor.
      */
     public function __construct()
@@ -32,6 +38,7 @@ class Install extends AbstractInstaller
 
         $this->installSourcesPath = __DIR__ . '/../Resources/install';
         $this->fileSystem = new Filesystem();
+        $this->currentVersion = Versions::getVersion(I18nBundle::PACKAGE_NAME);
     }
 
     /**
@@ -107,7 +114,7 @@ class Install extends AbstractInstaller
         $needUpdate = false;
         if ($this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
             $config = Yaml::parse(file_get_contents(Configuration::SYSTEM_CONFIG_FILE_PATH));
-            if ($config['version'] !== I18nBundle::BUNDLE_VERSION) {
+            if ($config['version'] !== $this->currentVersion) {
                 $needUpdate = true;
             }
         }
@@ -124,7 +131,7 @@ class Install extends AbstractInstaller
             $this->fileSystem->mkdir(Configuration::SYSTEM_CONFIG_DIR_PATH);
         }
 
-        $config = ['version' => I18nBundle::BUNDLE_VERSION];
+        $config = ['version' => $this->currentVersion];
         $yml = Yaml::dump($config);
         file_put_contents(Configuration::SYSTEM_CONFIG_FILE_PATH, $yml);
     }
