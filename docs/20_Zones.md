@@ -45,9 +45,8 @@ i18n:
     zones:
 
         # zone 1: language
-        -
+        zone1:
             id: 1
-            name: 'zone 1'
             # domains must be the main domain of page
             domains:
                 - 'pimcore5-domain1.dev'
@@ -59,9 +58,8 @@ i18n:
                 translations: ~
 
         # zone 2: language and country
-        -
+        zone2:
             id: 2
-            name: 'zone 2'
             domains:
                 - 'pimcore5-domain4.dev'
                 - 'pimcore5-domain5.dev'
@@ -72,9 +70,8 @@ i18n:
                 translations: ~
 
         # zone 3: no language switch. just a simple website.
-        -
+        zone3:
             id: 3
-            name: 'zone 3'
             domains:
                 - 'pimcore5-domain7.dev'
             config:
