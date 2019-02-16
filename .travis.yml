@@ -1,7 +1,6 @@
 sudo: required
 language: php
 addons:
-    chrome: stable
     mariadb: '10.1'
 
 env:
@@ -9,10 +8,6 @@ env:
         - PIMCORE_ENVIRONMENT=test
         - DACHCOM_BUNDLE_TEST=1
         - PIMCORE_TEST_URL=http://localhost
-        - CHROME_DRIVER_VERSION=2.41
-        - SELENIUM_VERSION=3.6.0
-        - WEBDRIVER_HOST=localhost
-        - WEBDRIVER_URL="http://localhost:8080/"
         - PIMCORE_TEST_DB_DSN="mysql://root@localhost/dachcom_bundle_test"
         - SYMFONY_DEPRECATIONS_HELPER=weak
         - DACHCOM_TEST_SECTION=codeception
@@ -78,7 +73,6 @@ after_failure:
     - cat ./lib/I18n/tests/_output/*
 
 script:
-    - '$HOME/chromedriver --url-base=/wd/hub &'
     - 'php ${TRAVIS_BUILD_DIR}/bin/console server:start 127.0.0.1:8080'
     - 'php ${TRAVIS_BUILD_DIR}/bin/console server:status'
     - _etc/travis/script
