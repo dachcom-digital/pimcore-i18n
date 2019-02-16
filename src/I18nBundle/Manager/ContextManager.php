@@ -17,26 +17,22 @@ class ContextManager
     protected $contextRegistry;
 
     /**
-     * Stores the current Context info
+     * Stores the current Context info.
      *
      * @var AbstractContext
      */
     protected $currentContext;
 
-    /**
-     * {@inheritdoc}
-     */
     public function __construct(ContextRegistry $contextRegistry)
     {
         $this->contextRegistry = $contextRegistry;
     }
 
     /**
-     * @param $contextIdentifier
-     * @param $document
+     * @param string   $contextIdentifier
+     * @param Document $document
      *
      * @throws \Exception
-     * @return void
      */
     public function initContext($contextIdentifier, $document = null)
     {
@@ -47,7 +43,12 @@ class ContextManager
         }
 
         if (!$this->contextRegistry->has($contextId)) {
-            throw new \Exception(sprintf('context adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.', $contextId, 'i18n.adapter.context', $contextId));
+            throw new \Exception(sprintf(
+                'context adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.',
+                $contextId,
+                'i18n.adapter.context',
+                $contextId
+            ));
         }
 
         $this->currentContext = $this->contextRegistry->get($contextId);
@@ -59,6 +60,7 @@ class ContextManager
 
     /**
      * @return ContextInterface
+     *
      * @throws \Exception
      */
     public function getContext()
@@ -71,9 +73,10 @@ class ContextManager
     }
 
     /**
-     * This is just an alias and a annotation helper
+     * This is just an alias and a annotation helper.
      *
      * @return Language|ContextInterface
+     *
      * @throws \Exception
      */
     public function getLanguageContext()
@@ -82,9 +85,10 @@ class ContextManager
     }
 
     /**
-     * This is just an alias and a annotation helper
+     * This is just an alias and a annotation helper.
      *
      * @return Country|ContextInterface
+     *
      * @throws \Exception
      */
     public function getCountryContext()

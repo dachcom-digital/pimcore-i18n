@@ -38,11 +38,9 @@ class FrontendPathListener implements EventSubscriberInterface
      * Valid Paths:
      * /de/test
      * /global-de/test
-     * /de-de/test
+     * /de-de/test.
      *
      * @param GenericEvent $e
-     *
-     * @return void
      */
     public function onFrontendPathRequest(GenericEvent $e)
     {

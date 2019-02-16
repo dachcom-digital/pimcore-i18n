@@ -19,9 +19,7 @@ class System extends AbstractLocale
     protected $defaultLocale = false;
 
     /**
-     * returns valid locale
-     *
-     * @return bool|mixed|null|string
+     * {@inheritdoc}
      */
     public function getDefaultLocale()
     {
@@ -46,7 +44,7 @@ class System extends AbstractLocale
     }
 
     /**
-     * @return array
+     * {@inheritdoc}
      */
     public function getActiveLocales(): array
     {
@@ -59,7 +57,7 @@ class System extends AbstractLocale
 
         foreach ($systemLocales as $id => $locale) {
             $validLocales[] = [
-                'id'      => (int)$id,
+                'id'      => (int) $id,
                 'locale'  => $locale,
                 'isoCode' => $locale
             ];
@@ -71,11 +69,7 @@ class System extends AbstractLocale
     }
 
     /**
-     * @param string $locale
-     * @param null   $field
-     * @param string $keyIdentifier
-     *
-     * @return mixed
+     * {@inheritdoc}
      */
     public function getLocaleData($locale, $field = null, $keyIdentifier = 'locale')
     {
@@ -88,7 +82,7 @@ class System extends AbstractLocale
     }
 
     /**
-     * @return array
+     * {@inheritdoc}
      */
     public function getGlobalInfo()
     {

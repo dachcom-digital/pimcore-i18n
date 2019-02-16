@@ -40,12 +40,14 @@ class Configuration implements ConfigurationInterface
                     ->isRequired()
                     ->info('')
                     ->validate()
-                        ->ifTrue(function ($v) {return empty($v);})
+                        ->ifTrue(function ($v) {
+                            return empty($v);
+                        })
                         ->thenInvalid('you must define a locale adapter')
                     ->end()
                 ->end()
                 ->scalarNode('default_locale')
-                    ->defaultValue(NULL)
+                    ->defaultValue(null)
                     ->info('')
                 ->end()
                 ->arrayNode('translations')
@@ -77,12 +79,14 @@ class Configuration implements ConfigurationInterface
                                         ->isRequired()
                                         ->info('')
                                         ->validate()
-                                            ->ifTrue(function ($v) {return empty($v);})
+                                            ->ifTrue(function ($v) {
+                                                return empty($v);
+                                            })
                                             ->thenInvalid('you must define a locale adapter')
                                         ->end()
                                     ->end()
                                     ->scalarNode('default_locale')
-                                        ->defaultValue(NULL)
+                                        ->defaultValue(null)
                                         ->info('')
                                     ->end()
                                     ->arrayNode('translations')
@@ -99,15 +103,16 @@ class Configuration implements ConfigurationInterface
                             ->end()
                         ->end()
                         ->validate()
-                            ->ifTrue(function($v) { return $v['enabled'] === FALSE; })->thenUnset()
+                            ->ifTrue(function ($v) {
+                                return $v['enabled'] === false;
+                            })->thenUnset()
                         ->end()
                         ->canBeUnset()
                         ->canBeDisabled()
-                        ->treatNullLike(['enabled' => FALSE])
+                        ->treatNullLike(['enabled' => false])
                     ->end()
                 ->end()
-            ->end()
-        ;
+            ->end();
 
         return $treeBuilder;
     }

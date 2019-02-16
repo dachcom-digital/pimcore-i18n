@@ -14,7 +14,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Adds Meta Data entries of document to HeadMeta view helper
+ * Adds Meta Data entries of document to HeadMeta view helper.
  */
 class HeadLinkListener implements EventSubscriberInterface
 {
@@ -112,7 +112,7 @@ class HeadLinkListener implements EventSubscriberInterface
     /**
      * Define x-default url based on crawled pages.
      * country mode: get global page and default language from default/system settings
-     * language mode: get page with default language from default/system settings
+     * language mode: get page with default language from default/system settings.
      *
      * @param array $hrefLinks
      *
@@ -132,6 +132,7 @@ class HeadLinkListener implements EventSubscriberInterface
         foreach ($hrefLinks as $link) {
             if ($link['locale'] === $defaultLocale) {
                 $hrefUrl = $link['url'];
+
                 break;
             }
         }
@@ -140,7 +141,7 @@ class HeadLinkListener implements EventSubscriberInterface
     }
 
     /**
-     * @param $path
+     * @param string $path
      *
      * @return string
      */

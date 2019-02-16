@@ -15,13 +15,11 @@ abstract class AbstractLocale implements LocaleInterface
     protected $currentZoneId = null;
 
     /**
-     * @param null|int $zoneId
-     * @param array    $zoneConfig
+     * {@inheritdoc}
      */
     public function setCurrentZoneConfig($zoneId, $zoneConfig)
     {
         $this->currentZoneId = $zoneId;
         $this->currentZoneConfig = $zoneConfig;
     }
-
 }

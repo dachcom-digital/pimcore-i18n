@@ -4,7 +4,6 @@ namespace I18nBundle\Registry;
 
 class PathGeneratorRegistry
 {
-
     /**
      * @var array
      */
@@ -23,32 +22,27 @@ class PathGeneratorRegistry
         $this->interface = $interface;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function register($service, $alias)
     {
         if (!in_array($this->interface, class_implements($service), true)) {
             throw new \InvalidArgumentException(
-                sprintf('%s needs to implement "%s", "%s" given.', get_class($service), $this->interface,
-                    implode(', ', class_implements($service)))
+                sprintf(
+                    '%s needs to implement "%s", "%s" given.',
+                    get_class($service),
+                    $this->interface,
+                    implode(', ', class_implements($service))
+                )
             );
         }
 
         $this->adapter[$alias] = $service;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function has($alias)
     {
         return isset($this->adapter[$alias]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function get($alias)
     {
         if (!$this->has($alias)) {
@@ -57,5 +51,4 @@ class PathGeneratorRegistry
 
         return $this->adapter[$alias];
     }
-
 }

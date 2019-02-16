@@ -5,34 +5,36 @@ namespace I18nBundle\Adapter\Locale;
 interface LocaleInterface
 {
     /**
-     * @param $zoneId
-     * @param $zoneConfig
-     *
-     * @return void
+     * @param int   $zoneId
+     * @param array $zoneConfig
      */
-    function setCurrentZoneConfig($zoneId, $zoneConfig);
+    public function setCurrentZoneConfig($zoneId, $zoneConfig);
 
     /**
-     * Get Active Locales
+     * Get Active Locales.
      *
      * @return array
      */
-    function getActiveLocales(): array;
+    public function getActiveLocales(): array;
 
     /**
-     * @param $locale
-     * @param $field
-     * @param $keyIdentifier
+     * @param string $locale
+     * @param string $field
+     * @param string $keyIdentifier
      *
      * @return mixed
      */
-    function getLocaleData($locale, $field = null, $keyIdentifier = 'locale');
+    public function getLocaleData($locale, $field = null, $keyIdentifier = 'locale');
 
     /**
-     * returns valid locale
+     * returns valid locale.
      *
-     * @return bool|mixed|null|string
+     * @return bool|null|string
      */
     public function getDefaultLocale();
 
+    /**
+     * @return array
+     */
+    public function getGlobalInfo();
 }

@@ -105,6 +105,7 @@ class RedirectorBag
     public function getLastRedirectorDecision()
     {
         $last = array_values(array_slice($this->decisionBag, -1))[0];
+
         return $last;
     }
 
@@ -117,6 +118,7 @@ class RedirectorBag
         foreach (array_reverse($this->decisionBag) as $bag) {
             if ($bag['decision']['valid'] === true) {
                 $lastValidBag = $bag;
+
                 break;
             }
         }

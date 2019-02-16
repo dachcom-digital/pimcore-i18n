@@ -46,16 +46,16 @@ class ZoneManager
     protected $editmodeResolver;
 
     /**
-     * Stores the current Zone info
+     * Stores the current Zone info.
      *
-     * @var
+     * @var array
      */
     protected $currentZone = null;
 
     /**
-     * Stores the current Zone domains
+     * Stores the current Zone domains.
      *
-     * @var
+     * @var array
      */
     protected $currentZoneDomains = null;
 
@@ -105,7 +105,6 @@ class ZoneManager
         if (empty($zones)) {
             $this->currentZone = $this->mapData($this->configuration->getConfigNode());
         } else {
-
             $site = null;
             if (!$this->editmodeResolver->isEditmode()) {
                 if ($this->siteResolver->isSiteRequest()) {
@@ -121,7 +120,6 @@ class ZoneManager
             if (!$site instanceof Site) {
                 $this->currentZone = $this->mapData($this->configuration->getConfigNode());
             } else {
-
                 $validZone = false;
                 $zoneConfig = [];
                 $currentSite = $site;
@@ -130,6 +128,7 @@ class ZoneManager
                     if (in_array($currentSite->getMainDomain(), $zone['domains'])) {
                         $validZone = true;
                         $zoneConfig = $zone;
+
                         break;
                     }
                 }
@@ -138,7 +137,6 @@ class ZoneManager
                 if ($validZone === false) {
                     $this->currentZone = $this->mapData($this->configuration->getConfigNode());
                 } else {
-
                     $this->isInZone = true;
                     $parsedZoneConfig = $this->mapData($zoneConfig['config'], $zoneConfig['id'], $zoneConfig['name']);
                     $parsedZoneConfig['valid_domains'] = $zoneConfig['domains'];
@@ -152,7 +150,6 @@ class ZoneManager
     }
 
     /**
-     * @return null
      * @throws \Exception
      */
     private function setupZoneDomains()
@@ -186,6 +183,7 @@ class ZoneManager
      * @param null $slot
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     public function getCurrentZoneInfo($slot = null)
@@ -205,6 +203,7 @@ class ZoneManager
      * @param bool $flatten
      *
      * @return array|null
+     *
      * @throws \Exception
      */
     public function getCurrentZoneDomains($flatten = false)
@@ -218,6 +217,7 @@ class ZoneManager
 
     /**
      * @return LocaleInterface
+     *
      * @throws \Exception
      */
     public function getCurrentZoneLocaleAdapter()
@@ -235,6 +235,7 @@ class ZoneManager
 
     /**
      * @return bool
+     *
      * @throws \Exception
      */
     public function isInZone()
@@ -243,20 +244,23 @@ class ZoneManager
     }
 
     /**
-     * @param array       $config
-     * @param null|int    $zoneId
-     * @param null|string $zoneName
+     * @param array  $config
+     * @param int    $zoneId
+     * @param string $zoneName
      *
      * @return array
+     *
      * @throws \Exception
      */
     private function mapData($config, $zoneId = null, $zoneName = null)
     {
         if (!empty($config['locale_adapter']) && !$this->localeRegistry->has($config['locale_adapter'])) {
             throw new \Exception(sprintf(
-                    'locale adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.',
-                    $config['locale_adapter'], 'i18n.adapter.locale', $config['locale'])
-            );
+                'locale adapter "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.',
+                $config['locale_adapter'],
+                'i18n.adapter.locale',
+                $config['locale']
+            ));
         }
 
         /** @var LocaleInterface $localeAdapter */
@@ -280,10 +284,11 @@ class ZoneManager
     }
 
     /**
-     * @param $domain
-     * @param $rootId
+     * @param string $domain
+     * @param int    $rootId
      *
      * @return array|bool
+     *
      * @throws \Exception
      */
     private function mapDomainData($domain, $rootId)
@@ -299,6 +304,7 @@ class ZoneManager
             foreach ($validDomains as $validDomain) {
                 if ($domainHost === $this->getDomainHost($validDomain)) {
                     $valid = true;
+
                     break;
                 }
             }
@@ -344,7 +350,6 @@ class ZoneManager
 
             /** @var Document $child */
             foreach ($children as $child) {
-
                 if (!in_array($child->getType(), ['page', 'hardlink', 'link'])) {
                     continue;
                 }
@@ -356,19 +361,22 @@ class ZoneManager
 
                 //detect real doc url: if page is a link, move to target until we found a real document.
                 if ($child->getType() === 'link') {
+                    /** @var Document\Link $linkChild */
                     $linkChild = $child;
-                    while ($linkChild->getType() === 'link') {
-
+                    while ($linkChild instanceof Document\Link) {
                         if (in_array($linkChild->getPath(), $loopDetector)) {
                             $validPath = false;
+
                             break;
                         }
 
                         if ($linkChild->getLinktype() !== 'internal') {
                             $validPath = false;
+
                             break;
                         } elseif ($linkChild->getInternalType() !== 'document') {
                             $validPath = false;
+
                             break;
                         }
 
@@ -377,12 +385,14 @@ class ZoneManager
 
                         if (!$linkChild instanceof Document) {
                             $validPath = false;
+
                             break;
                         }
 
                         $isPublishedMode = $linkChild->isPublished() === true || $isFrontendRequestByAdmin;
                         if ($isPublishedMode === false) {
                             $validPath = false;
+
                             break;
                         }
 
@@ -491,13 +501,12 @@ class ZoneManager
         }
 
         $this->currentZone['locale_url_mapping'] = $localeUrlMapping;
-
     }
 
     /**
      * Get Domain Url of given domain based on current request scheme!
      *
-     * @param $domain
+     * @param string $domain
      *
      * @return string
      */
@@ -520,8 +529,8 @@ class ZoneManager
     }
 
     /**
-     * @param      $domain
-     * @param bool $stripWWW
+     * @param string $domain
+     * @param bool   $stripWWW
      *
      * @return string
      */
@@ -535,7 +544,7 @@ class ZoneManager
     }
 
     /**
-     * @param $domain
+     * @param string $domain
      *
      * @return string
      */
@@ -551,7 +560,7 @@ class ZoneManager
     }
 
     /**
-     * @param $zoneDomains
+     * @param array $zoneDomains
      *
      * @return array
      */
@@ -576,9 +585,9 @@ class ZoneManager
     }
 
     /**
-     * create config array for adapter classes
+     * create config array for adapter classes.
      *
-     * @param $config
+     * @param array $config
      *
      * @return array
      */
@@ -589,5 +598,4 @@ class ZoneManager
 
         return $validConfig;
     }
-
 }

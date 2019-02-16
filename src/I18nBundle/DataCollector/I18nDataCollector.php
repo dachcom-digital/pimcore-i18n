@@ -40,11 +40,10 @@ class I18nDataCollector extends DataCollector
         $this->data = [
             'isFrontend' => false
         ];
-
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function collect(Request $request, Response $response, \Exception $exception = null)
     {
@@ -84,7 +83,7 @@ class I18nDataCollector extends DataCollector
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function isFrontend()
     {
@@ -92,7 +91,7 @@ class I18nDataCollector extends DataCollector
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public function getName()
     {

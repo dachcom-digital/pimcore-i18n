@@ -16,6 +16,7 @@ class System
     public static function isInBackend(Request $request)
     {
         $editMode = $request->attributes->get(EditmodeResolver::ATTRIBUTE_EDITMODE);
+
         return Tool::isFrontend($request) === false || $editMode === true;
     }
 
@@ -28,8 +29,8 @@ class System
     }
 
     /**
-     * @param $fragments
-     * @param $addStartSlash
+     * @param array $fragments
+     * @param bool  $addStartSlash
      *
      * @return string
      */
@@ -46,5 +47,4 @@ class System
 
         return ($addStartSlash ? DIRECTORY_SEPARATOR : '') . join(DIRECTORY_SEPARATOR, $f);
     }
-
 }

@@ -4,7 +4,6 @@ namespace I18nBundle\Registry;
 
 class LocaleRegistry
 {
-
     /**
      * @var array
      */
@@ -23,9 +22,6 @@ class LocaleRegistry
         $this->interface = $interface;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function register($service, $alias)
     {
         if (!in_array($this->interface, class_implements($service), true)) {
@@ -37,17 +33,11 @@ class LocaleRegistry
         $this->adapter[$alias] = $service;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function has($alias)
     {
         return isset($this->adapter[$alias]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function get($alias)
     {
         if (!$this->has($alias)) {
@@ -56,5 +46,4 @@ class LocaleRegistry
 
         return $this->adapter[$alias];
     }
-
 }

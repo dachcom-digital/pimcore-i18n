@@ -85,11 +85,11 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $this->pathGeneratorManager = $pathGeneratorManager;
         $this->siteResolver = $siteResolver;
         $this->documentService = $documentService;
-        $this->renderErrorPage = (bool)$renderErrorPage;
+        $this->renderErrorPage = (bool) $renderErrorPage;
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public static function getSubscribedEvents()
     {
@@ -110,6 +110,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         // handle ResponseException (can be used from any context)
         if ($exception instanceof ResponseException) {
             $event->setResponse($exception->getResponse());
+
             return;
         }
 
@@ -162,14 +163,15 @@ class ResponseExceptionListener implements EventSubscriberInterface
 
         // 3. find localized error from current path
         if ($nearestDocument instanceof Document) {
-
             $nearestDocumentLocale = $nearestDocument->getProperty('language');
             $newDocumentLocale = $nearestDocumentLocale;
 
-            $validElements = array_keys(array_filter($zoneDomains,
+            $validElements = array_keys(array_filter(
+                $zoneDomains,
                 function ($v) use ($host, $nearestDocumentLocale) {
                     return $v['realHost'] === $host && $v['locale'] === $nearestDocumentLocale;
-                }));
+                }
+            ));
 
             //if we have a default error page, try to use same name.
             $guessedErrorPath = 'error';
@@ -191,10 +193,12 @@ class ResponseExceptionListener implements EventSubscriberInterface
                     $nearestSourceDocument = $nearestDocument->getSourceDocument();
                     $nearestSourceDocumentLocale = $nearestSourceDocument->getProperty('language');
 
-                    $validSourceElements = array_keys(array_filter($zoneDomains,
+                    $validSourceElements = array_keys(array_filter(
+                        $zoneDomains,
                         function ($v) use ($host, $nearestSourceDocumentLocale) {
                             return $v['realHost'] === $host && $v['locale'] === $nearestSourceDocumentLocale;
-                        }));
+                        }
+                    ));
 
                     if (!empty($validSourceElements)) {
                         $validSourceElement = $validSourceElements[0];
@@ -245,7 +249,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
     /**
      * @param Request  $request
      * @param Document $document
-     * @param          $newDocumentLocale
+     * @param string   $newDocumentLocale
      */
     private function setRuntime(Request $request, Document $document, $newDocumentLocale)
     {

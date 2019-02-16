@@ -5,12 +5,12 @@ namespace I18nBundle\Adapter\Redirector;
 interface RedirectorInterface
 {
     /**
-     * @return boolean
+     * @return bool
      */
     public function isEnabled();
 
     /**
-     * @param boolean $enabled
+     * @param bool $enabled
      */
     public function setEnabled($enabled);
 
@@ -49,5 +49,4 @@ interface RedirectorInterface
      * @return mixed
      */
     public function makeDecision(RedirectorBag $redirectorBag);
-
 }

@@ -24,7 +24,7 @@ class AlternateStaticRouteEvent extends Event
     /**
      * AlternateStaticRouteEvent constructor.
      *
-     * @param $params
+     * @param array $params
      */
     public function __construct(array $params)
     {
@@ -85,7 +85,7 @@ class AlternateStaticRouteEvent extends Event
     }
 
     /**
-     * @return  \Pimcore\Model\Staticroute $route
+     * @return \Pimcore\Model\Staticroute $route
      */
     public function getCurrentStaticRoute()
     {

@@ -7,7 +7,7 @@ use Pimcore\Model\Site as PimcoreSite;
 class DocumentHelper
 {
     /**
-     * Get Documents Url and Path
+     * Get Documents Url and Path.
      *
      * @param \Pimcore\Model\Document $document
      *
@@ -42,7 +42,7 @@ class DocumentHelper
     }
 
     /**
-     *  Get Documents Url without it's own path
+     *  Get Documents Url without it's own path.
      *
      * @param \Pimcore\Model\Document $document
      * @param bool                    $returnAsArray
@@ -57,6 +57,7 @@ class DocumentHelper
 
         if (!\Pimcore\Model\Site::isSiteRequest()) {
             $url = rtrim(\Pimcore\Tool::getHostUrl(), '/');
+
             return $returnAsArray ? ['url' => $url, 'siteIsLanguageRoot' => $siteIsLanguageRoot] : $url;
         }
 

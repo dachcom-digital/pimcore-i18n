@@ -35,7 +35,7 @@ class Configuration
     }
 
     /**
-     * @param $slot
+     * @param string $slot
      *
      * @return mixed
      */
