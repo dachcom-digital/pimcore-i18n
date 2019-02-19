@@ -2,6 +2,7 @@
 
 namespace I18nBundle\Tool;
 
+use Pimcore\Config;
 use Pimcore\Tool;
 use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +26,7 @@ class System
      */
     public static function isInCliMode()
     {
-        return php_sapi_name() === 'cli';
+        return php_sapi_name() === 'cli' && Config::getEnvironment() !== 'test';
     }
 
     /**

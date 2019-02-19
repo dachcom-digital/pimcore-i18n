@@ -1,11 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app.request.locale }}">
 <head>
     <meta charset="UTF-8">
     <title>Test Page for I18n</title>
+    {{ pimcore_head_meta() }}
 </head>
 <body>
     <div id="site">
+        <div class="content">
+            {% if document is defined %}
+                <span id="page-id">{{ document.getId() }}</span>
+            {% endif %}
+        </div>
         {% block content %}
             {{ pimcore_areablock('dachcomBundleTest') }}
         {% endblock %}

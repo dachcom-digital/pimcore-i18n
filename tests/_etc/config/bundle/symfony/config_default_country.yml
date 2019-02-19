@@ -1,0 +1,5 @@
+i18n:
+    mode: country
+    locale_adapter: system
+    default_locale: 'en'
+    translations: ~

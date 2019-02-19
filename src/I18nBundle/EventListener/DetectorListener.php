@@ -183,8 +183,10 @@ class DetectorListener implements EventSubscriberInterface
         $document = null;
         if ($this->document instanceof Document) {
             $document = $this->document;
-            if ($this->document instanceof Document\Hardlink\Wrapper) {
-                $document = $this->document->getHardLinkSource();
+            if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
+                /** @var Document\Hardlink\Wrapper $wrapperDocument */
+                $wrapperDocument = $this->document;
+                $document = $wrapperDocument->getHardLinkSource();
             }
         }
 
@@ -274,7 +276,7 @@ class DetectorListener implements EventSubscriberInterface
          * If a root node hardlink is requested e.g. /en-us, pimcore gets the locale from the source, which is "quite" wrong.
          */
         $requestLocale = $this->request->getLocale();
-        if ($this->document instanceof Document\Hardlink\Wrapper) {
+        if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
             if (!empty($this->documentLocale) && $this->documentLocale !== $requestLocale) {
                 $this->adjustRequestLocale();
             }
@@ -687,8 +689,10 @@ class DetectorListener implements EventSubscriberInterface
 
     private function setDocumentLocale()
     {
-        if ($this->document instanceof Document\Hardlink\Wrapper) {
-            $this->documentLocale = $this->document->getHardLinkSource()->getProperty('language');
+        if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
+            /** @var Document\Hardlink\Wrapper $wrapperDocument */
+            $wrapperDocument = $this->document;
+            $this->documentLocale = $wrapperDocument->getHardLinkSource()->getProperty('language');
         } else {
             $this->documentLocale = $this->document->getProperty('language');
         }

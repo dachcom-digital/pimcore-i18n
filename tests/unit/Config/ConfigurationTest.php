@@ -20,5 +20,9 @@ class ConfigurationTest extends DachcomBundleTestCase
         $this->assertArrayHasKey('locale_adapter', $adminConfig);
         $this->assertArrayHasKey('default_locale', $adminConfig);
         $this->assertArrayHasKey('translations', $adminConfig);
+
+        $this->assertEquals('language', $adminConfig['mode']);
+        $this->assertEquals('system', $adminConfig['locale_adapter']);
+        $this->assertEquals('en', $adminConfig['default_locale']);
     }
 }

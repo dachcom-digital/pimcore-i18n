@@ -57,9 +57,11 @@ class CanonicalListener implements EventSubscriberInterface
             return;
         }
 
-        if ($document instanceof Wrapper && !Staticroute::getCurrentRoute()) {
+        if ($document instanceof Wrapper\WrapperInterface && !Staticroute::getCurrentRoute()) {
             //only remove canonical link if hardlink source is the country wrapper:
-            if ($document->getHardLinkSource()->getPath() === '/') {
+            /** @var Wrapper $wrapperDocument */
+            $wrapperDocument = $document;
+            if ($wrapperDocument->getHardLinkSource()->getPath() === '/') {
                 $event->getResponse()->headers->remove('Link');
             }
         }

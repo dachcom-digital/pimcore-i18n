@@ -69,6 +69,48 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
     }
 
     /**
+     *  Actor Function to see a page with given locale
+     *
+     * @param string $url
+     * @param string $locale
+     */
+    public function amOnPageWithLocale($url, $locale)
+    {
+        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = $locale;
+        $this->pimcoreCore->_loadPage('GET', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => $locale]);
+    }
+
+    /**
+     *  Actor Function to see a page with given locale and country
+     *
+     * @param string $url
+     * @param string $locale
+     * @param string $country
+     */
+    public function amOnPageWithLocaleAndCountry($url, $locale, $country)
+    {
+        $countryIps = [
+            'hongKong'    => '21 59.148.0.0',
+            'belgium'     => '31.5.255.255',
+            'austria'     => '194.166.128.22',
+            'germany'     => '2.175.255.255',
+            'hungary'     => '188.142.192.35',
+            'switzerland' => '5.148.191.255',
+            'france'      => '46.162.191.255',
+            'us'          => '52.33.249.128',
+        ];
+
+        if (!key_exists($country, $countryIps)) {
+            throw new \Exception(sprintf('%s is not a valid test country', $country));
+        }
+
+        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = $locale;
+        $_SERVER['HTTP_CLIENT_IP'] = $countryIps[$country];
+
+        $this->pimcoreCore->_loadPage('GET', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => $locale]);
+    }
+
+    /**
      * Actor Function to login into Pimcore Backend
      *
      * @param $username

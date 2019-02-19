@@ -4,14 +4,14 @@ namespace DachcomBundle\Test\Test;
 
 use DachcomBundle\Test\Helper\PimcoreCore;
 use DachcomBundle\Test\Util\FileGeneratorHelper;
+use DachcomBundle\Test\Util\I18nHelper;
 use Pimcore\Tests\Test\TestCase;
-use Pimcore\Tests\Util\TestHelper;
 
 abstract class DachcomBundleTestCase extends TestCase
 {
     protected function _after()
     {
-        TestHelper::cleanUp();
+        I18nHelper::cleanUp();
         FileGeneratorHelper::cleanUp();
 
         parent::_after();

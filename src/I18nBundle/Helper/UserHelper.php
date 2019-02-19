@@ -46,14 +46,6 @@ class UserHelper
                     $ip = $_SERVER['REMOTE_ADDR'];
                 }
 
-                //$ip = '21 59.148.0.0';    //hong kong
-                //$ip = '31.5.255.255';     //belgium
-                //$ip = '194.166.128.22';   //austria
-                //$ip = '188.142.192.35';   //hungary
-                //$ip = '5.148.191.255';    //swiss
-                //$ip = '46.162.191.255';   //france
-                //$ip = '52.33.249.128';    //us
-
                 $record = $reader->city($ip);
                 $country = $record->country->isoCode;
             } catch (\Exception $e) {
@@ -64,7 +56,6 @@ class UserHelper
             $userCountry = strtoupper($country);
         }
 
-        //return 'US';
         return $userCountry;
     }
 }

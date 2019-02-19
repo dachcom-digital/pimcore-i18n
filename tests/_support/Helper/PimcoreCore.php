@@ -50,7 +50,7 @@ class PimcoreCore extends PimcoreCoreModule
      */
     public function _afterSuite()
     {
-       \Pimcore::collectGarbage();
+        \Pimcore::collectGarbage();
         $this->clearCache();
         parent::_afterSuite();
     }
@@ -161,6 +161,28 @@ class PimcoreCore extends PimcoreCoreModule
         $this->kernelHasCustomConfig = true;
         $this->clearCache();
         $this->bootKernelWithConfiguration($configuration);
+    }
+
+    /**
+     * Override symfony internal Domains check.
+     *
+     * We're able to allow different hosts via pimcore sites.
+     *
+     * @return array
+     */
+    protected function getInternalDomains()
+    {
+        $internalDomains = [
+            '/test-domain1.test/',
+            '/test-domain2.test/',
+            '/test-domain3.test/',
+            '/test-domain4.test/',
+            '/test-domain5.test/',
+            '/test-domain6.test/',
+            '/test-domain7.test/',
+        ];
+
+        return array_unique($internalDomains);
     }
 }
 
