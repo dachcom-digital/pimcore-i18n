@@ -107,7 +107,7 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
         $_SERVER['HTTP_ACCEPT_LANGUAGE'] = $locale;
         $_SERVER['HTTP_CLIENT_IP'] = $countryIps[$country];
 
-        $this->pimcoreCore->_loadPage('GET', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => $locale]);
+        $this->pimcoreCore->_loadPage('GET', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => $locale, 'HTTP_CLIENT_IP' => $countryIps[$country]]);
     }
 
     /**
