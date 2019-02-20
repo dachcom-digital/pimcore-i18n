@@ -19,6 +19,14 @@ class I18nHelper
             \Codeception\Util\Debug::debug('[I18N] Deleting document: ' . $document->getKey());
             $document->delete();
         }
-    }
 
+        // remove all sites (pimcore < 5.6)
+        $db = \Pimcore\Db::get();
+        $availableSites = $db->fetchAll('SELECT * FROM sites');
+        if (is_array($availableSites)) {
+            foreach ($availableSites as $availableSite) {
+                $db->delete('sites', ['id' => $availableSite['id']]);
+            }
+        }
+    }
 }
