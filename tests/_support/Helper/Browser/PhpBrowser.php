@@ -76,7 +76,6 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
      */
     public function amOnPageWithLocale($url, $locale)
     {
-        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = $locale;
         $this->pimcoreCore->_loadPage('GET', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => $locale]);
     }
 
@@ -104,10 +103,7 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
             throw new \Exception(sprintf('%s is not a valid test country', $country));
         }
 
-        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = $locale;
-        $_SERVER['HTTP_CLIENT_IP'] = $countryIps[$country];
-
-        $this->pimcoreCore->_loadPage('GET', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => $locale, 'HTTP_CLIENT_IP' => $countryIps[$country]]);
+        $this->pimcoreCore->_loadPage('POST', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => $locale, 'HTTP_CLIENT_IP' => $countryIps[$country]]);
     }
 
     /**
