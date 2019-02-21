@@ -81,8 +81,6 @@ after_failure:
     - cat ./lib/I18nBundle/tests/_output/*
 
 script:
-    - 'php ${TRAVIS_BUILD_DIR}/bin/console server:start 127.0.0.1:8080'
-    - 'php ${TRAVIS_BUILD_DIR}/bin/console server:status'
     - _etc/travis/script
 
 notifications:
