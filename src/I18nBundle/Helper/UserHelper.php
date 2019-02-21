@@ -35,7 +35,7 @@ class UserHelper
             }
         }
 
-        \Codeception\Util\Debug::debug("$guessedLanguage: " . $guessedLanguage);
+        \Codeception\Util\Debug::debug("guessedLanguage: " . $guessedLanguage);
 
         return $guessedLanguage;
     }
@@ -67,6 +67,9 @@ class UserHelper
                 } else {
                     $ip = $masterRequest->server->get('REMOTE_ADDR');
                 }
+
+
+                \Codeception\Util\Debug::debug("ip: " . $ip);
 
                 $record = $reader->city($ip);
                 $country = $record->country->isoCode;
