@@ -7,10 +7,12 @@ return [
         "domain"                   => "localhost",
         "redirect_to_maindomain"   => false,
         "language"                 => "en",
-        "validLanguages"           => "en,de,de_DE,en_US,de_CH",
+        "validLanguages"           => "en,de,fr,it,de_DE,en_US,de_CH",
         "fallbackLanguages"        => [
             "en" => "",
             "de" => "",
+            "fr" => "",
+            "it" => "",
             "de_DE" => "de",
             "de_CH" => "de",
             "en_US" => "en",

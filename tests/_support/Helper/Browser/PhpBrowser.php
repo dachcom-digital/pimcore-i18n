@@ -4,6 +4,7 @@ namespace DachcomBundle\Test\Helper\Browser;
 
 use Codeception\Module;
 use Codeception\Lib;
+use Codeception\Util\Uri;
 use Codeception\Exception\ModuleException;
 use DachcomBundle\Test\Helper\PimcoreCore;
 use DachcomBundle\Test\Helper\PimcoreUser;
@@ -56,6 +57,17 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
         $this->sessionSnapShot = [];
 
         parent::_initialize();
+    }
+
+    /**
+     * Actor Function to see current uri matches given host
+     *
+     * @param $host
+     */
+    public function seeCurrentHostEquals($host)
+    {
+        $server = $this->pimcoreCore->client->getHistory()->current()->getServer();
+        $this->assertEquals($host, $server['HTTP_HOST']);
     }
 
     /**

@@ -6,8 +6,10 @@ use Codeception\Module;
 use Codeception\TestInterface;
 use DachcomBundle\Test\Util\FileGeneratorHelper;
 use DachcomBundle\Test\Util\I18nHelper;
+use Pimcore\Model\Document;
 use Pimcore\Model\Document\Hardlink;
 use Pimcore\Model\Document\Page;
+use Pimcore\Model\Document\Service;
 use Pimcore\Model\Site;
 use Pimcore\Tests\Util\TestHelper;
 use Symfony\Component\DependencyInjection\Container;
@@ -52,6 +54,34 @@ class PimcoreBackend extends Module
             $document->save();
         } catch (\Exception $e) {
             \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while saving document page. message was: ' . $e->getMessage()));
+        }
+
+        $this->assertInstanceOf(Page::class, Page::getById($document->getId()));
+
+        return $document;
+    }
+
+    /**
+     * Actor Function to create a Child Page Document
+     *
+     * @param Document $parent
+     * @param string   $documentKey
+     * @param string   $locale
+     *
+     * @return Page
+     */
+    public function haveASubPageDocument(
+        Document $parent,
+        $documentKey = 'test-sub-document',
+        $locale = null
+    ) {
+        $document = $this->generatePageDocument($documentKey, $locale);
+        $document->setParentId($parent->getId());
+
+        try {
+            $document->save();
+        } catch (\Exception $e) {
+            \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while saving child document page. message was: ' . $e->getMessage()));
         }
 
         $this->assertInstanceOf(Page::class, Page::getById($document->getId()));
@@ -110,7 +140,7 @@ class PimcoreBackend extends Module
     }
 
     /**
-     * Actor Function to create a Document For a Site
+     * Actor Function to create a Document for a Site
      *
      * @param Site   $site
      * @param string $key
@@ -132,6 +162,32 @@ class PimcoreBackend extends Module
         $this->assertInstanceOf(Page::class, Page::getById($document->getId()));
 
         return $document;
+    }
+
+    /**
+     * Actor Function to create a Hard Link for a Site
+     *
+     * @param Site   $site
+     * @param Page   $document
+     * @param string $key
+     * @param string $locale
+     *
+     * @return Page
+     */
+    public function haveAHardlinkForSite(Site $site, Page $document, $key = 'hardlink-test', $locale = null)
+    {
+        $hardLink = $this->generateHardlink($document, $key, $locale);
+        $hardLink->setParentId($site->getRootDocument()->getId());
+
+        try {
+            $hardLink->save();
+        } catch (\Exception $e) {
+            \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while document page for site. message was: ' . $e->getMessage()));
+        }
+
+        $this->assertInstanceOf(Hardlink::class, Hardlink::getById($hardLink->getId()));
+
+        return $hardLink;
     }
 
     /**
@@ -160,6 +216,39 @@ class PimcoreBackend extends Module
             $hardlinkDocument->save();
         } catch (\Exception $e) {
             \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while document hardlink for frontpage mapping. message was: ' . $e->getMessage()));
+        }
+
+        return $document;
+    }
+
+    /**
+     * Actor Function to create a language connection
+     *
+     * @param Page $sourceDocument
+     * @param Page $targetDocument
+     *
+     */
+    public function haveTwoConnectedDocuments(Page $sourceDocument, Page $targetDocument)
+    {
+        $service = new Service();
+        $service->addTranslation($sourceDocument, $targetDocument);
+    }
+
+    /**
+     * Actor Function to disable a document
+     *
+     * @param Document $document
+     *
+     * @return Document
+     */
+    public function haveAUnPublishedDocument(Document $document)
+    {
+        $document->setPublished(false);
+
+        try {
+            $document->save();
+        } catch (\Exception $e) {
+            \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while un-publishing document. message was: ' . $e->getMessage()));
         }
 
         return $document;
@@ -236,7 +325,7 @@ class PimcoreBackend extends Module
         }
 
         $site = new Site();
-        $site->setRootId((int)$document->getId());
+        $site->setRootId((int) $document->getId());
         $site->setMainDomain($domain);
 
         return $site;

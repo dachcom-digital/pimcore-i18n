@@ -14,6 +14,7 @@ class I18nHelper
         // also delete all sub documents.
         $docList = new Document\Listing();
         $docList->setCondition('id != 1');
+        $docList->setUnpublished(true);
 
         foreach ($docList->getDocuments() as $document) {
             \Codeception\Util\Debug::debug('[I18N] Deleting document: ' . $document->getKey());
