@@ -35,8 +35,6 @@ class UserHelper
             }
         }
 
-        \Codeception\Util\Debug::debug("guessedLanguage: " . $guessedLanguage);
-
         return $guessedLanguage;
     }
 
@@ -56,20 +54,15 @@ class UserHelper
         if (file_exists($geoDbFile)) {
             try {
                 $reader = new Reader($geoDbFile);
-                if (
-                    $masterRequest->server->has('HTTP_CLIENT_IP') &&
+                if ($masterRequest->server->has('HTTP_CLIENT_IP') &&
                     !empty($masterRequest->server->get('HTTP_CLIENT_IP'))) {
                     $ip = $masterRequest->server->get('HTTP_CLIENT_IP');
-                } elseif (
-                    $masterRequest->server->has('HTTP_X_FORWARDED_FOR') &&
+                } elseif ($masterRequest->server->has('HTTP_X_FORWARDED_FOR') &&
                     !empty($masterRequest->server->get('HTTP_X_FORWARDED_FOR'))) {
                     $ip = $masterRequest->server->get('HTTP_X_FORWARDED_FOR');
                 } else {
                     $ip = $masterRequest->server->get('REMOTE_ADDR');
                 }
-
-
-                \Codeception\Util\Debug::debug("ip: " . $ip);
 
                 $record = $reader->city($ip);
                 $country = $record->country->isoCode;
