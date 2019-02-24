@@ -1,4 +1,15 @@
 # Upgrade Notes
+![upgrade](https://user-images.githubusercontent.com/700119/31535145-3c01a264-affa-11e7-8d86-f04c33571f65.png)  
+
+***
+
+After every update you should check the pimcore extension manager. 
+Just click the "update" button or execute the migration command to finish the bundle update.
+
+#### Update from Version 2.3.x to Version 2.4.0
+- **[ATTENTION]**: Installer has moved to the [MigrationBundle](https://github.com/dachcom-digital/pimcore-i18n/issues/19). After updating to this version you need to enable this extension again!
+- **[NEW FEATURE]**: Pimcore 5.6.0 ready
+- ([Milestone for 2.4.0](https://github.com/dachcom-digital/pimcore-i18n/milestone/3?closed=1))
 
 #### Update from Version 2.3.2 to Version 2.3.3
 - implemented [PackageVersionTrait](https://github.com/pimcore/pimcore/blob/master/lib/Extension/Bundle/Traits/PackageVersionTrait.php)

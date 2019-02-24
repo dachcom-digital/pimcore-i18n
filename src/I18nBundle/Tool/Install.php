@@ -2,100 +2,105 @@
 
 namespace I18nBundle\Tool;
 
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Migrations\AbortMigrationException;
+use Doctrine\DBAL\Migrations\MigrationException;
+use Doctrine\DBAL\Migrations\Version;
 use I18nBundle\Configuration\Configuration;
-use I18nBundle\I18nBundle;
-use PackageVersions\Versions;
-use Pimcore\Extension\Bundle\Installer\AbstractInstaller;
 use Pimcore\Model\Property;
 use Pimcore\Model\Translation;
 use Pimcore\Tool\Admin;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Yaml\Yaml;
+use Pimcore\Extension\Bundle\Installer\MigrationInstaller;
+use Pimcore\Migrations\Migration\InstallMigration;
 
-class Install extends AbstractInstaller
+class Install extends MigrationInstaller
 {
     /**
-     * @var string
+     * {@inheritdoc}
      */
-    private $installSourcesPath;
-
-    /**
-     * @var Filesystem
-     */
-    private $fileSystem;
-
-    /**
-     * @var string
-     */
-    private $currentVersion;
-
-    /**
-     * Install constructor.
-     */
-    public function __construct()
+    public function getMigrationVersion(): string
     {
-        parent::__construct();
-
-        $this->installSourcesPath = __DIR__ . '/../Resources/install';
-        $this->fileSystem = new Filesystem();
-        $this->currentVersion = Versions::getVersion(I18nBundle::PACKAGE_NAME);
+        return '00000001';
     }
 
     /**
-     * {@inheritdoc}
+     * @throws AbortMigrationException
+     * @throws MigrationException
      */
-    public function install()
+    protected function beforeInstallMigration()
     {
-        $this->installOrUpdateConfigFile();
-        $this->installTranslations();
-        $this->installProperties();
+        $markVersionsAsMigrated = true;
+
+        // legacy:
+        //   we switched from config to migration
+        //   if config.yml exists, this instance needs to migrate
+        //   so every migration needs to run.
+        // fresh:
+        //   skip all versions since they are not required anymore
+        //   (fresh installation does not require any version migrations)
+        $fileSystem = new Filesystem();
+        if ($fileSystem->exists(Configuration::SYSTEM_CONFIG_DIR_PATH . '/config.yml')) {
+            $markVersionsAsMigrated = false;
+        }
+
+        if ($markVersionsAsMigrated === true) {
+            $migrationConfiguration = $this->migrationManager->getBundleConfiguration($this->bundle);
+            $this->migrationManager->markVersionAsMigrated($migrationConfiguration->getVersion($migrationConfiguration->getLatestVersion()));
+        }
+
+        $this->initializeFreshSetup();
     }
 
     /**
-     * For now, just update the config file to the current version.
-     * {@inheritdoc}
+     * @param Schema  $schema
+     * @param Version $version
      */
-    public function update()
+    public function migrateInstall(Schema $schema, Version $version)
     {
-        $this->installOrUpdateConfigFile();
-        $this->installTranslations();
-    }
+        /** @var InstallMigration $migration */
+        $migration = $version->getMigration();
+        if ($migration->isDryRun()) {
+            $this->outputWriter->write('<fg=cyan>DRY-RUN:</> Skipping installation');
 
-    /**
-     * {@inheritdoc}
-     */
-    public function uninstall()
-    {
-        if ($this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
-            $this->fileSystem->rename(
-                Configuration::SYSTEM_CONFIG_FILE_PATH,
-                PIMCORE_PRIVATE_VAR . '/bundles/I18nBundle/config_backup.yml'
-            );
+            return;
         }
     }
 
     /**
-     * {@inheritdoc}
+     * @param Schema  $schema
+     * @param Version $version
      */
-    public function isInstalled()
+    public function migrateUninstall(Schema $schema, Version $version)
     {
-        return $this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH);
+        /** @var InstallMigration $migration */
+        $migration = $version->getMigration();
+        if ($migration->isDryRun()) {
+            $this->outputWriter->write('<fg=cyan>DRY-RUN:</> Skipping uninstallation');
+
+            return;
+        }
+
+        // currently nothing to do.
     }
 
     /**
-     * {@inheritdoc}
+     * @param string|null $version
+     *
+     * @throws AbortMigrationException
      */
-    public function canBeInstalled()
+    protected function beforeUpdateMigration(string $version = null)
     {
-        return !$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH);
+        $this->installTranslations();
     }
 
     /**
-     * {@inheritdoc}
+     * @throws AbortMigrationException
      */
-    public function canBeUninstalled()
+    public function initializeFreshSetup()
     {
-        return $this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH);
+        $this->installTranslations();
+        $this->installProperties();
     }
 
     /**
@@ -107,37 +112,9 @@ class Install extends AbstractInstaller
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function canBeUpdated()
-    {
-        $needUpdate = false;
-        if ($this->fileSystem->exists(Configuration::SYSTEM_CONFIG_FILE_PATH)) {
-            $config = Yaml::parse(file_get_contents(Configuration::SYSTEM_CONFIG_FILE_PATH));
-            if ($config['version'] !== $this->currentVersion) {
-                $needUpdate = true;
-            }
-        }
-
-        return $needUpdate;
-    }
-
-    /**
-     * install config file.
-     */
-    private function installOrUpdateConfigFile()
-    {
-        if (!$this->fileSystem->exists(Configuration::SYSTEM_CONFIG_DIR_PATH)) {
-            $this->fileSystem->mkdir(Configuration::SYSTEM_CONFIG_DIR_PATH);
-        }
-
-        $config = ['version' => $this->currentVersion];
-        $yml = Yaml::dump($config);
-        file_put_contents(Configuration::SYSTEM_CONFIG_FILE_PATH, $yml);
-    }
-
-    /**
      * @return bool
+     *
+     * @throws AbortMigrationException
      */
     private function installProperties()
     {
@@ -167,7 +144,12 @@ class Install extends AbstractInstaller
             $property->setCtype($propertyConfig['ctype']);
             $property->setConfig($propertyConfig['config']);
             $property->setInheritable(false);
-            $property->getDao()->save();
+
+            try {
+                $property->getDao()->save();
+            } catch (\Exception $e) {
+                throw new AbortMigrationException(sprintf('Failed to save document proprety "%s". Error was: "%s"', $propertyConfig['name'], $e->getMessage()));
+            }
         }
 
         return true;
@@ -175,12 +157,27 @@ class Install extends AbstractInstaller
 
     /**
      * @return bool
+     *
+     * @throws AbortMigrationException
      */
     private function installTranslations()
     {
-        $csvAdmin = $this->installSourcesPath . '/translations/admin.csv';
-        Translation\Admin::importTranslationsFromFile($csvAdmin, true, Admin::getLanguages());
+        $csvAdmin = $this->getInstallSourcesPath() . '/translations/admin.csv';
+
+        try {
+            Translation\Admin::importTranslationsFromFile($csvAdmin, true, Admin::getLanguages());
+        } catch (\Exception $e) {
+            throw new AbortMigrationException(sprintf('Failed to install admin translations. error was: "%s"', $e->getMessage()));
+        }
 
         return true;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getInstallSourcesPath()
+    {
+        return __DIR__ . '/../Resources/install';
     }
 }

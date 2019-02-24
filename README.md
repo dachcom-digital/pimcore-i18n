@@ -1,27 +1,45 @@
 # Pimcore 5 - i18n Manager
 
-![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
 [![Software License](https://img.shields.io/badge/license-GPLv3-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Latest Release](https://img.shields.io/packagist/v/dachcom-digital/i18n.svg?style=flat-square)](https://packagist.org/packages/dachcom-digital/i18n)
 [![Travis](https://img.shields.io/travis/dachcom-digital/pimcore-i18n/master.svg?style=flat-square)](https://travis-ci.org/dachcom-digital/pimcore-i18n)
 [![PhpStan](https://img.shields.io/badge/PHPStan-level%202-brightgreen.svg?style=flat-square)](#)
 
+![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
+
 ## Requirements
-* Pimcore 5.
+* Pimcore >= 5.4.0
 
 ## Introduction
 Pimcore already comes with some great features to build internationalized websites. But there are some gaps we have to handle by ourselves: search engine guidelines, geo based redirects and a dynamic link handling for internal documents. 
 This Bundle helps you mastering this challenges and gives you the freedom to elaborate complex country based localization strategies.
 
 ### Installation  
-1. Add code below to your `composer.json`    
-2. Activate & install it through the ExtensionManager
 
 ```json
 "require" : {
     "dachcom-digital/i18n" : "~2.4.0"
 }
 ```
+
+### Installation via Extension Manager
+After you have installed the I18n Bundle via composer, open pimcore backend and go to `Tools` => `Extension`:
+- Click the green `+` Button in `Enable / Disable` row
+- Click the green `+` Button in `Install/Uninstall` row
+
+## Upgrading
+
+### Upgrading via Extension Manager
+After you have updated the I18n Bundle via composer, open pimcore backend and go to `Tools` => `Extension`:
+- Click the green `+` Button in `Update` row
+
+### Upgrading via CommandLine
+After you have updated the I18n Bundle via composer:
+- Execute: `$ bin/console pimcore:bundle:update I18nBundle`
+
+### Migrate via CommandLine
+Does actually the same as the update command and preferred in CI-Workflow:
+- Execute: `$ bin/console pimcore:migrations:migrate -b I18nBundle`
 
 ## Features
 - Geo redirects (read more about the redirector adapter [here](docs/51_RedirectorAdapter.md))

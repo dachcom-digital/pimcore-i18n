@@ -2,7 +2,6 @@
 
 namespace I18nBundle\DependencyInjection;
 
-use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -14,6 +13,8 @@ class I18nExtension extends Extension
     /**
      * @param array            $configs
      * @param ContainerBuilder $container
+     *
+     * @throws \Exception
      */
     public function load(array $configs, ContainerBuilder $container)
     {
@@ -26,11 +27,6 @@ class I18nExtension extends Extension
 
         $configManagerDefinition = $container->getDefinition(BundleConfiguration::class);
         $configManagerDefinition->addMethodCall('setConfig', [$config]);
-
-        if (file_exists(BundleConfiguration::SYSTEM_CONFIG_FILE_PATH)) {
-            $bundleConfig = Yaml::parse(file_get_contents(BundleConfiguration::SYSTEM_CONFIG_FILE_PATH));
-            $configManagerDefinition->addMethodCall('setSystemConfig', [$bundleConfig]);
-        }
 
         $container->setParameter('i18n.registry_availability', $config['registry']);
     }
