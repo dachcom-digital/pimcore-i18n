@@ -184,7 +184,6 @@ class HrefLangCest
         $I->see($documentSub3->getId(), '#page-id');
     }
 
-
     /**
      * @param FunctionalTester $I
      */

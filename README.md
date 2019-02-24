@@ -4,7 +4,7 @@
 [![Software License](https://img.shields.io/badge/license-GPLv3-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Latest Release](https://img.shields.io/packagist/v/dachcom-digital/i18n.svg?style=flat-square)](https://packagist.org/packages/dachcom-digital/i18n)
 [![Travis](https://img.shields.io/travis/dachcom-digital/pimcore-i18n/master.svg?style=flat-square)](https://travis-ci.org/dachcom-digital/pimcore-i18n)
-[![PhpStan](https://img.shields.io/badge/PHPStan-level%201-brightgreen.svg?style=flat-square)](#)
+[![PhpStan](https://img.shields.io/badge/PHPStan-level%202-brightgreen.svg?style=flat-square)](#)
 
 ## Requirements
 * Pimcore 5.
@@ -19,7 +19,7 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 
 ```json
 "require" : {
-    "dachcom-digital/i18n" : "~2.3.0"
+    "dachcom-digital/i18n" : "~2.4.0"
 }
 ```
 
