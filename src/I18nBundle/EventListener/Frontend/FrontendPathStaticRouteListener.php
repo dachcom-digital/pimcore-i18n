@@ -74,14 +74,14 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
         }
 
         $event->setArgument('frontendPath', $frontEndPath);
-
     }
 
     /**
-     * @param      $key
-     * @param      $locale
+     * @param string $key
+     * @param string $locale
      *
-     * @return mixed
+     * @return string
+     *
      * @throws \Exception
      */
     private function translateKey($key, $locale)
@@ -100,14 +100,15 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
         }
 
         if ($throw === true) {
-
             if (\Pimcore\Tool::isFrontendRequestByAdmin()) {
                 return $key;
             }
 
             throw new \Exception(sprintf(
                 'i18n static route translation error: no valid translation key for "%s" in locale "%s" found. please add it to your i18n translation config',
-                $key, $locale));
+                $key,
+                $locale
+            ));
         }
 
         return $translationConfig[$keyIndex]['values'][$locale];

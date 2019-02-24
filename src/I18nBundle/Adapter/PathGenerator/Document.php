@@ -33,6 +33,7 @@ class Document extends AbstractPathGenerator
         }
 
         $this->cachedUrls[$currentDocument->getId()] = $urls;
+
         return $urls;
     }
 
@@ -70,19 +71,18 @@ class Document extends AbstractPathGenerator
             return $routes;
         }
 
-        $service = new PimcoreDocument\Service;
+        $service = new PimcoreDocument\Service();
         $translations = $service->getTranslations($currentDocument);
 
         foreach ($tree as $pageInfo) {
-
             if (empty($pageInfo['languageIso'])) {
                 continue;
             }
 
             $pageInfoLocale = $pageInfo['languageIso'];
             if (isset($translations[$pageInfoLocale])) {
-
                 try {
+                    /** @var PimcoreDocument\Page $document */
                     $document = PimcoreDocument::getById($translations[$pageInfoLocale]);
                 } catch (\Exception $e) {
                     continue;
@@ -146,15 +146,16 @@ class Document extends AbstractPathGenerator
                 }
             }
         } else {
-
             $hardLinksToCheck = [];
-            $service = new PimcoreDocument\Service;
+            $service = new PimcoreDocument\Service();
             $translations = $service->getTranslations($currentDocument);
 
             //if no translation has been found, add document itself:
             if (empty($translations) && $currentDocument->hasProperty('language')) {
                 if ($currentDocument instanceof PimcoreDocument\Hardlink\Wrapper\WrapperInterface) {
-                    $locale = $currentDocument->getHardLinkSource()->getSourceDocument()->getProperty('language');
+                    /** @var PimcoreDocument\Hardlink\Wrapper $wrapperDocument */
+                    $wrapperDocument = $currentDocument;
+                    $locale = $wrapperDocument->getHardLinkSource()->getSourceDocument()->getProperty('language');
                 } else {
                     $locale = $currentDocument->getProperty('language');
                 }
@@ -173,8 +174,8 @@ class Document extends AbstractPathGenerator
                 }
 
                 if (isset($translations[$pageInfoLocale])) {
-
                     try {
+                        /** @var PimcoreDocument\Page $document */
                         $document = PimcoreDocument::getById($translations[$pageInfoLocale]);
                     } catch (\Exception $e) {
                         continue;
@@ -208,14 +209,13 @@ class Document extends AbstractPathGenerator
                         'url'              => $url
                     ];
 
-                    //document does not exist.
+                //document does not exist.
                 } else {
                     $hardLinksToCheck[] = $pageInfo;
                 }
             }
 
             if (!empty($hardLinksToCheck)) {
-
                 foreach ($hardLinksToCheck as $hardLinkWrapper) {
                     $sameLanguageContext = array_search($hardLinkWrapper['languageIso'], array_column($routes, 'languageIso'));
                     if ($sameLanguageContext === false || !isset($routes[$sameLanguageContext])) {

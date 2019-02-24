@@ -46,10 +46,11 @@ class StaticRoute extends AbstractPathGenerator
     }
 
     /**
-     * @param PimcoreDocument|NULL $currentDocument
+     * @param PimcoreDocument|null $currentDocument
      * @param bool                 $onlyShowRootLanguages
      *
      * @return array
+     *
      * @throws \Exception
      */
     public function getUrls(PimcoreDocument $currentDocument = null, $onlyShowRootLanguages = false)
@@ -126,7 +127,6 @@ class StaticRoute extends AbstractPathGenerator
         }
 
         foreach ($i18nList as $key => $routeInfo) {
-
             if (!isset($routeData[$key])) {
                 continue;
             }
@@ -148,16 +148,15 @@ class StaticRoute extends AbstractPathGenerator
                 'locale'           => $routeInfo['locale'],
                 'hrefLang'         => $routeInfo['hrefLang'],
                 'localeUrlMapping' => $routeInfo['localeUrlMapping'],
-                # use domainUrl element since $link already comes with the locale part!
+                // use domainUrl element since $link already comes with the locale part!
                 'url'              => System::joinPath([$routeInfo['domainUrl'], $link])
             ];
 
             $routes[] = $finalStoreData;
-
         }
 
         $this->cachedUrls[$currentDocument->getId()] = $routes;
+
         return $routes;
     }
-
 }

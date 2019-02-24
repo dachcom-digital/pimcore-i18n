@@ -20,12 +20,13 @@ class PathGeneratorManager
     protected $pathGeneratorRegistry;
 
     /**
-     * @var
+     * @var PathGeneratorInterface
      */
     protected $currentPathGenerator;
 
     /**
-     * {@inheritdoc}
+     * @param Configuration         $configuration
+     * @param PathGeneratorRegistry $pathGeneratorRegistry
      */
     public function __construct(Configuration $configuration, PathGeneratorRegistry $pathGeneratorRegistry)
     {
@@ -34,7 +35,7 @@ class PathGeneratorManager
     }
 
     /**
-     * @param $contextIdentifier
+     * @param string $contextIdentifier
      *
      * @throws \Exception
      */
@@ -59,6 +60,7 @@ class PathGeneratorManager
 
     /**
      * @return PathGeneratorInterface
+     *
      * @throws \Exception
      */
     public function getPathGenerator()

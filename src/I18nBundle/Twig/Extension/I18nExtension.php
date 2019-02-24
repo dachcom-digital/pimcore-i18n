@@ -10,7 +10,7 @@ class I18nExtension extends \Twig_Extension
     /**
      * @var ZoneManager
      */
-    var $zoneManager;
+    public $zoneManager;
 
     /**
      * @var ContextManager
@@ -45,6 +45,7 @@ class I18nExtension extends \Twig_Extension
      * @param array  $options
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     public function getI18Context($method = '', $options = [])
@@ -56,6 +57,7 @@ class I18nExtension extends \Twig_Extension
      * @param string $slot
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     public function getI18nZoneInfo($slot = '')

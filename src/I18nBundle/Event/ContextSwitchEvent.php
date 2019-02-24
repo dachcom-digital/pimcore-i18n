@@ -7,14 +7,14 @@ use Symfony\Component\EventDispatcher\Event;
 class ContextSwitchEvent extends Event
 {
     /**
-     * @var
+     * @var array
      */
     private $params = [];
 
     /**
      * ContextSwitchEvent constructor.
      *
-     * @param $params
+     * @param array $params
      */
     public function __construct($params)
     {

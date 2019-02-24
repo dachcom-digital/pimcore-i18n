@@ -4,7 +4,7 @@ namespace I18nBundle\Finder;
 
 use I18nBundle\Definitions;
 use I18nBundle\Manager\ZoneManager;
-use Pimcore\Localization\Locale;
+use Pimcore\Localization\LocaleServiceInterface;
 use Pimcore\Model\Document;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +18,7 @@ class PathFinder
     protected $requestStack;
 
     /**
-     * @var Locale
+     * @var LocaleServiceInterface
      */
     protected $locale;
 
@@ -35,13 +35,13 @@ class PathFinder
     /**
      * PathFinder constructor.
      *
-     * @param RequestStack $requestStack
-     * @param Locale       $locale
-     * @param ZoneManager  $zoneManager
+     * @param RequestStack           $requestStack
+     * @param LocaleServiceInterface $locale
+     * @param ZoneManager            $zoneManager
      */
     public function __construct(
         RequestStack $requestStack,
-        Locale $locale,
+        LocaleServiceInterface $locale,
         ZoneManager $zoneManager
     ) {
         $this->requestStack = $requestStack;
@@ -53,7 +53,7 @@ class PathFinder
      * Valid Paths:
      * /de/test
      * /global-de/test
-     * /de-de/test
+     * /de-de/test.
      *
      * @todo implement zone manager to check valid languages/countries
      *
@@ -159,7 +159,7 @@ class PathFinder
     }
 
     /**
-     * @param $path
+     * @param string $path
      *
      * @return bool
      */
@@ -169,7 +169,7 @@ class PathFinder
     }
 
     /**
-     * @param $fragment
+     * @param string $fragment
      *
      * @return bool
      */

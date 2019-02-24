@@ -171,7 +171,7 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * @param $request
+     * @param Request $request
      *
      * @throws \Exception
      */
@@ -184,7 +184,9 @@ class DetectorListener implements EventSubscriberInterface
         if ($this->document instanceof Document) {
             $document = $this->document;
             if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-                $document = $this->document->getHardLinkSource();
+                /** @var Document\Hardlink\Wrapper $wrapperDocument */
+                $wrapperDocument = $this->document;
+                $document = $wrapperDocument->getHardLinkSource();
             }
         }
 
@@ -212,7 +214,6 @@ class DetectorListener implements EventSubscriberInterface
         if (strpos($locale, '_') !== false) {
             $localeFragments = explode('_', $locale);
             $languageIso = $localeFragments[0];
-
         }
 
         //fallback.
@@ -247,7 +248,7 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * Apply this method after the pimcore context resolver
+     * Apply this method after the pimcore context resolver.
      *
      * @param GetResponseEvent $event
      *
@@ -296,12 +297,10 @@ class DetectorListener implements EventSubscriberInterface
         // currently, redirect works only with pimcore documents and static routes.
         // symfony routes will be ignored.
         if ($validRoute) {
-
             $redirectUrl = false;
             $validForRedirect = $validLocale === false;
 
             if ($this->canRedirect() && $validForRedirect === true) {
-
                 $options = [
                     'i18nType'        => $this->i18nType,
                     'request'         => $this->request,
@@ -315,7 +314,6 @@ class DetectorListener implements EventSubscriberInterface
 
                 /** @var RedirectorInterface $redirector */
                 foreach ($this->redirectorRegistry->all() as $redirector) {
-
                     $redirector->makeDecision($redirectorBag);
                     $decision = $redirector->getDecision();
 
@@ -329,6 +327,7 @@ class DetectorListener implements EventSubscriberInterface
 
             if ($redirectUrl !== false) {
                 $event->setResponse(new RedirectResponse($this->getRedirectUrl($redirectUrl)));
+
                 return;
             }
         }
@@ -402,7 +401,6 @@ class DetectorListener implements EventSubscriberInterface
         //check if url is valid
         $indexId = array_search($validUri, array_column($zoneDomains, 'url'));
         if ($indexId !== false) {
-
             $cookieData = [
                 'url'      => $validUri,
                 'locale'   => $currentLocale,
@@ -417,9 +415,7 @@ class DetectorListener implements EventSubscriberInterface
     /**
      * Important: ContextSwitch only works in same domain levels.
      * Since there is no way for simple cross-domain session ids,
-     * the zone switch will be sort of useless most of the time. :(
-     *
-     * @return void
+     * the zone switch will be sort of useless most of the time. :(.
      */
     private function detectContextSwitch()
     {
@@ -453,7 +449,6 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         if ($zoneHasSwitched || $localeHasSwitched || $languageHasSwitched || $countryHasSwitched) {
-
             $params = [
                 'zoneHasSwitched'     => $zoneHasSwitched,
                 'zoneFrom'            => $session['lastZoneId'],
@@ -553,9 +548,6 @@ class DetectorListener implements EventSubscriberInterface
         return $data;
     }
 
-    /**
-     * @return void
-     */
     private function updateSessionData()
     {
         if (!$this->isValidI18nCheckRequest($this->request)) {
@@ -583,7 +575,7 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * @param $path
+     * @param string $path
      *
      * @return string
      */
@@ -679,10 +671,9 @@ class DetectorListener implements EventSubscriberInterface
 
             $response->setContent($this->templating->render('I18nBundle::not_editable_aware_message.html.twig', ['adminLocale' => $language]));
             $event->setResponse($response);
+
             return;
-
         } else {
-
             $siteId = 1;
             if (\Pimcore\Model\Site::isSiteRequest() === true) {
                 $site = \Pimcore\Model\Site::getCurrentSite();
@@ -699,7 +690,9 @@ class DetectorListener implements EventSubscriberInterface
     private function setDocumentLocale()
     {
         if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            $this->documentLocale = $this->document->getHardLinkSource()->getProperty('language');
+            /** @var Document\Hardlink\Wrapper $wrapperDocument */
+            $wrapperDocument = $this->document;
+            $this->documentLocale = $wrapperDocument->getHardLinkSource()->getProperty('language');
         } else {
             $this->documentLocale = $this->document->getProperty('language');
         }
@@ -720,7 +713,7 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * Adjust Request locale
+     * Adjust Request locale.
      */
     private function adjustRequestLocale()
     {

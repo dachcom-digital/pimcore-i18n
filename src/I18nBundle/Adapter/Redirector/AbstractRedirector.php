@@ -79,11 +79,11 @@ abstract class AbstractRedirector implements RedirectorInterface
         $lastDecisionBag = $redirectorBag->getLastValidRedirectorDecision();
         if (!is_null($lastDecisionBag) && $lastDecisionBag['decision']['valid'] === true) {
             $this->setDecision(['valid' => false]);
+
             return true;
         }
 
         return false;
-
     }
 
     /**

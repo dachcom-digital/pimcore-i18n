@@ -8,7 +8,6 @@ use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use Pimcore\Model\Document;
 use Pimcore\Cache;
-
 use Symfony\Component\Intl\Intl;
 
 abstract class AbstractContext implements ContextInterface
@@ -68,6 +67,7 @@ abstract class AbstractContext implements ContextInterface
 
     /**
      * @return Document
+     *
      * @throws \Exception
      */
     public function getDocument()
@@ -80,7 +80,7 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
-     * Helper: Get current Locale
+     * Helper: Get current Locale.
      *
      * @return string
      */
@@ -88,6 +88,7 @@ abstract class AbstractContext implements ContextInterface
     {
         if (Cache\Runtime::isRegistered('i18n.locale')) {
             $locale = Cache\Runtime::get('i18n.locale');
+
             return $locale;
         }
 
@@ -95,7 +96,7 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
-     * Helper: Get current Language Iso
+     * Helper: Get current Language Iso.
      *
      * @return string
      */
@@ -103,6 +104,7 @@ abstract class AbstractContext implements ContextInterface
     {
         if (Cache\Runtime::isRegistered('i18n.languageIso')) {
             $isoCode = Cache\Runtime::get('i18n.languageIso');
+
             return $isoCode;
         }
 
@@ -110,7 +112,7 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
-     * Helper: Get current Country Iso
+     * Helper: Get current Country Iso.
      *
      * Get valid Country Iso
      *
@@ -122,26 +124,28 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
-     * Helper: Get all linked pages from current document
+     * Helper: Get all linked pages from current document.
      *
      * @param bool $onlyShowRootLanguages
      *
      * @return array
+     *
      * @throws \Exception
      */
     public function getLinkedLanguages($onlyShowRootLanguages = false)
     {
         $currentDocument = $this->getDocument();
         $urls = $this->pathGeneratorManager->getPathGenerator()->getUrls($currentDocument, $onlyShowRootLanguages);
+
         return $urls;
     }
 
     /**
-     * Helper: Get Language Name By Iso Code
+     * Helper: Get Language Name By Iso Code.
      *
-     * @param              $languageIso
-     * @param string       $locale
-     * @param string       $region ignored in abstract context. only available in country context.
+     * @param string $languageIso
+     * @param string $locale
+     * @param string $region      ignored in abstract context. only available in country context.
      *
      * @return string|null
      */
@@ -161,11 +165,12 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
-     * Helper: Get Information about current Context
+     * Helper: Get Information about current Context.
      *
      * @param null $slot
      *
      * @return mixed
+     *
      * @throws \Exception
      */
     public function getCurrentContextInfo($slot = null)
@@ -189,13 +194,13 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
-     * @param $languageIso
-     * @param $countryIso
-     * @param $href
+     * @param string $languageIso
+     * @param string $countryIso
+     * @param string $href
      *
      * @return array
      */
-    protected function mapLanguageInfo($languageIso, $countryIso = null, $href)
+    protected function mapLanguageInfo($languageIso, $countryIso, $href)
     {
         return [
             'iso'         => $languageIso,

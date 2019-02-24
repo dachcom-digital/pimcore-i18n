@@ -4,7 +4,6 @@ namespace I18nBundle\Registry;
 
 class RedirectorRegistry
 {
-
     /**
      * @var array
      */
@@ -23,9 +22,6 @@ class RedirectorRegistry
         $this->interface = $interface;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function register($service, $alias)
     {
         if (empty($alias)) {
@@ -41,17 +37,11 @@ class RedirectorRegistry
         $this->adapter[$alias] = $service;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function has($alias)
     {
         return isset($this->adapter[$alias]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function get($alias)
     {
         if (!$this->has($alias)) {
@@ -61,9 +51,6 @@ class RedirectorRegistry
         return $this->adapter[$alias];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function all()
     {
         $list = [];
@@ -76,5 +63,4 @@ class RedirectorRegistry
 
         return $list;
     }
-
 }

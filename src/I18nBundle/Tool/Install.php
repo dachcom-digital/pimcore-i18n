@@ -123,7 +123,7 @@ class Install extends AbstractInstaller
     }
 
     /**
-     * install config file
+     * install config file.
      */
     private function installOrUpdateConfigFile()
     {
@@ -167,7 +167,7 @@ class Install extends AbstractInstaller
             $property->setCtype($propertyConfig['ctype']);
             $property->setConfig($propertyConfig['config']);
             $property->setInheritable(false);
-            $property->save();
+            $property->getDao()->save();
         }
 
         return true;
@@ -180,7 +180,7 @@ class Install extends AbstractInstaller
     {
         $csvAdmin = $this->installSourcesPath . '/translations/admin.csv';
         Translation\Admin::importTranslationsFromFile($csvAdmin, true, Admin::getLanguages());
+
         return true;
     }
-
 }

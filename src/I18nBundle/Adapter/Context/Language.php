@@ -7,9 +7,9 @@ use Pimcore\Cache;
 class Language extends AbstractContext
 {
     /**
-     * Helper: Get current Language Info
+     * Helper: Get current Language Info.
      *
-     * @param $field
+     * @param string $field
      *
      * @return string
      */
@@ -25,9 +25,10 @@ class Language extends AbstractContext
     }
 
     /**
-     * Helper: Get all active languages
+     * Helper: Get all active languages.
      *
      * @return array
+     *
      * @throws \Exception
      */
     public function getActiveLanguages()
@@ -47,6 +48,7 @@ class Language extends AbstractContext
             foreach ($linkedLanguages as $linkedLanguage) {
                 if ($linkedLanguage['languageIso'] === $domainElement['languageIso']) {
                     $languageData['linkedHref'] = $linkedLanguage['url'];
+
                     break;
                 }
             }

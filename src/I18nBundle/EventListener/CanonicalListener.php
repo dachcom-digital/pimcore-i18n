@@ -3,7 +3,7 @@
 namespace I18nBundle\EventListener;
 
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
-use Pimcore\Model\Document\Hardlink\Wrapper\WrapperInterface;
+use Pimcore\Model\Document\Hardlink\Wrapper;
 use Pimcore\Model\Staticroute;
 use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
@@ -29,7 +29,7 @@ class CanonicalListener implements EventSubscriberInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
      */
     public static function getSubscribedEvents()
     {
@@ -57,9 +57,11 @@ class CanonicalListener implements EventSubscriberInterface
             return;
         }
 
-        if ($document instanceof WrapperInterface && !Staticroute::getCurrentRoute()) {
+        if ($document instanceof Wrapper\WrapperInterface && !Staticroute::getCurrentRoute()) {
             //only remove canonical link if hardlink source is the country wrapper:
-            if ($document->getHardLinkSource()->getPath() === '/') {
+            /** @var Wrapper $wrapperDocument */
+            $wrapperDocument = $document;
+            if ($wrapperDocument->getHardLinkSource()->getPath() === '/') {
                 $event->getResponse()->headers->remove('Link');
             }
         }

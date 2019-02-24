@@ -10,7 +10,7 @@ use I18nBundle\Definitions;
 class Country extends AbstractContext
 {
     /**
-     * Helper: Get current Country Iso
+     * Helper: Get current Country Iso.
      *
      * Get valid Country Iso
      *
@@ -20,6 +20,7 @@ class Country extends AbstractContext
     {
         if (Cache\Runtime::isRegistered('i18n.countryIso')) {
             $isoCode = Cache\Runtime::get('i18n.countryIso');
+
             return $isoCode;
         }
 
@@ -27,11 +28,12 @@ class Country extends AbstractContext
     }
 
     /**
-     * Helper: Get current Country Info
+     * Helper: Get current Country Info.
      *
      * @param string $field
      *
      * @return mixed|null
+     *
      * @throws \Exception
      */
     public function getCurrentCountryInfo($field = 'name')
@@ -47,11 +49,11 @@ class Country extends AbstractContext
     }
 
     /**
-     * Helper: Get Language Name By Iso Code
+     * Helper: Get Language Name By Iso Code.
      *
-     * @param              $languageIso
-     * @param string       $locale
-     * @param string       $region
+     * @param string $languageIso
+     * @param string $locale
+     * @param string $region
      *
      * @return string|null
      */
@@ -71,10 +73,10 @@ class Country extends AbstractContext
     }
 
     /**
-     * Helper: Get Country Name by Iso Code
+     * Helper: Get Country Name by Iso Code.
      *
-     * @param              $countryIso
-     * @param string       $locale
+     * @param string $countryIso
+     * @param string $locale
      *
      * @return string|null
      */
@@ -122,9 +124,10 @@ class Country extends AbstractContext
     }
 
     /**
-     * Helper: Get all active countries with all language related sites
+     * Helper: Get all active countries with all language related sites.
      *
      * @return array
+     *
      * @throws \Exception
      */
     public function getActiveCountries()
@@ -133,7 +136,6 @@ class Country extends AbstractContext
 
         $validCountries = [];
         foreach ($activeLocales as $id => $localeData) {
-
             $extendedCountryData = $localeData;
 
             // override the default locale isoCode,
@@ -160,7 +162,6 @@ class Country extends AbstractContext
         $countryData = [];
         if (!empty($validCountries)) {
             foreach ($validCountries as $country) {
-
                 if (is_null($country['isoCode'])) {
                     continue;
                 }
@@ -201,6 +202,7 @@ class Country extends AbstractContext
      * @param null $countryIso
      *
      * @return array
+     *
      * @throws \Exception
      */
     private function getActiveLanguagesForCountry($countryIso = null)
@@ -223,6 +225,7 @@ class Country extends AbstractContext
                 foreach ($linkedLanguages as $linkedLanguage) {
                     if ($linkedLanguage['languageIso'] === $domainElement['languageIso'] && $countryIso === $linkedLanguage['countryIso']) {
                         $languageData['linkedHref'] = $linkedLanguage['url'];
+
                         break;
                     }
                 }

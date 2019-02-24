@@ -67,6 +67,7 @@ class GeoRedirector extends AbstractRedirector
 
         if ($userLanguageIso === false) {
             $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
+
             return;
         }
 
@@ -75,6 +76,7 @@ class GeoRedirector extends AbstractRedirector
             $redirectorOptions['geoCountry'] = $userCountryIso;
             if ($userCountryIso === false) {
                 $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
+
                 return;
             }
         }
@@ -99,9 +101,8 @@ class GeoRedirector extends AbstractRedirector
     }
 
     /**
-     *
      * Returns absolute Url to website with language context.
-     * Because this could be a different domain, absolute url is necessary
+     * Because this could be a different domain, absolute url is necessary.
      *
      * @param null $languageIso
      * @param null $countryIso
@@ -120,19 +121,22 @@ class GeoRedirector extends AbstractRedirector
         if (empty($countryIso)) { // search in language context
             $indexId = array_search($languageIso, array_column($zoneDomains, 'languageIso'));
         } else { // search in country context
-
             // check if country and language match
-            $index = array_keys(array_filter($zoneDomains,
+            $index = array_keys(array_filter(
+                $zoneDomains,
                 function ($v) use ($languageIso, $countryIso) {
                     return $v['languageIso'] === $languageIso && $v['countryIso'] === $countryIso;
-                }));
+                }
+            ));
 
             //check if only language is available.
             if (empty($index)) {
-                $index = array_keys(array_filter($zoneDomains,
+                $index = array_keys(array_filter(
+                    $zoneDomains,
                     function ($v) use ($languageIso) {
                         return $v['languageIso'] === $languageIso;
-                    }));
+                    }
+                ));
             }
 
             if (isset($index[0])) {

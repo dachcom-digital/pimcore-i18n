@@ -1,0 +1,35 @@
+i18n:
+    mode: language
+    locale_adapter: system
+    default_locale: 'en'
+    translations: ~
+    zones:
+        zone1:
+            id: 1
+            domains:
+                - 'test-domain1.test'
+                - 'test-domain2.test'
+                - 'test-domain3.test'
+            config:
+                mode: language
+                locale_adapter: system
+                translations: ~
+        zone2:
+            id: 2
+            domains:
+                - 'test-domain4.test'
+                - 'test-domain5.test'
+                - 'test-domain6.test'
+            config:
+                mode: country
+                locale_adapter: system
+                default_locale: 'de'
+                translations: ~
+        zone3:
+            id: 3
+            domains:
+                - 'test-domain7.test'
+            config:
+                mode: language
+                locale_adapter: system
+                translations: ~

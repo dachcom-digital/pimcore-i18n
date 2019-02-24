@@ -1,0 +1,14 @@
+i18n:
+    mode: country
+    locale_adapter: system
+    default_locale: 'en'
+    translations:
+        -   key: 'testKey'
+            values:
+                de: 'beitrag'
+                en: 'news'
+                fr: 'nouvelles'
+                it: 'notizia'
+                en_US: 'news'
+                de_CH: 'artikel'
+                de_DE: 'artikel'

@@ -39,7 +39,7 @@ class CookieHelper
 
     /**
      * @param Response $response
-     * @param          $params
+     * @param array    $params
      *
      * @return Cookie
      */
