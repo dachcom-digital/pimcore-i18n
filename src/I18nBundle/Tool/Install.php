@@ -113,6 +113,7 @@ class Install extends MigrationInstaller
 
     /**
      * @return bool
+     *
      * @throws AbortMigrationException
      */
     private function installProperties()
@@ -156,6 +157,7 @@ class Install extends MigrationInstaller
 
     /**
      * @return bool
+     *
      * @throws AbortMigrationException
      */
     private function installTranslations()
