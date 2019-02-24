@@ -8,6 +8,10 @@ imports:
 swiftmailer:
     disable_delivery: true
 
+pimcore:
+    error_handling:
+        render_error_document: true
+
 framework:
     profiler:
         enabled: true

@@ -19,8 +19,8 @@ return [
         ],
         "defaultLanguage"          => "en",
         "loginscreencustomimage"   => "",
-        "disableusagestatistics"   => false,
-        "debug"                    => true,
+        "disableusagestatistics"   => true,
+        "debug"                    => false,
         "debug_ip"                 => "",
         "http_auth"                => [
             "username" => "",

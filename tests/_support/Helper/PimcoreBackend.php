@@ -11,6 +11,7 @@ use Pimcore\Model\Document\Hardlink;
 use Pimcore\Model\Document\Page;
 use Pimcore\Model\Document\Service;
 use Pimcore\Model\Site;
+use Pimcore\Model\Staticroute;
 use Pimcore\Tests\Util\TestHelper;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -252,6 +253,42 @@ class PimcoreBackend extends Module
         }
 
         return $document;
+    }
+
+    /**
+     * Actor Function to generate a single static route.
+     *
+     * @param string $name
+     * @param string $translationKey
+     *
+     * @return Staticroute
+     */
+    public function haveAStaticRoute(string $name, string $translationKey)
+    {
+        $data = [
+            'id'               => 1,
+            'name'             => $name,
+            'pattern'          => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/	',
+            'reverse'          => '/{%_locale}/@' . $translationKey . '/%testProperty',
+            'module'           => 'AppBundle',
+            'controller'       => '@AppBundle\\Controller\\DefaultController',
+            'action'           => 'default',
+            'variables'        => '_locale,entry',
+            'defaults'         => null,
+            'siteId'           => [],
+            'priority'         => 0,
+            'legacy'           => false,
+            'creationDate'     => 1545383519,
+            'modificationDate' => 1545383619
+        ];
+
+        $route = new Staticroute();
+        $route->setValues($data);
+        $route->save();
+
+        $this->assertInstanceOf(Staticroute::class, $route);
+
+        return $route;
     }
 
     /**
