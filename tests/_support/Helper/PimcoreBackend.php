@@ -91,6 +91,63 @@ class PimcoreBackend extends Module
     }
 
     /**
+     * Actor Function to create a link
+     *
+     * @param Page   $source
+     * @param string $linkKey
+     * @param string $locale
+     *
+     * @return Document\Link
+     */
+    public function haveALink(
+        Page $source,
+        $linkKey = 'test-link',
+        $locale = null
+    ) {
+        $link = $this->generateLink($source, $linkKey, $locale);
+
+        try {
+            $link->save();
+        } catch (\Exception $e) {
+            \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while saving link. message was: ' . $e->getMessage()));
+        }
+
+        $this->assertInstanceOf(Document\Link::class, Document\Link::getById($link->getId()));
+
+        return $link;
+    }
+
+    /**
+     * Actor Function to create a link
+     *
+     * @param Document $parent
+     * @param Page     $source
+     * @param string   $linkKey
+     * @param string   $locale
+     *
+     * @return Document\Link
+     */
+    public function haveASubLink(
+        Document $parent,
+        Page $source,
+        $linkKey = 'test-link',
+        $locale = null
+    ) {
+        $link = $this->generateLink($source, $linkKey, $locale);
+        $link->setParent($parent);
+
+        try {
+            $link->save();
+        } catch (\Exception $e) {
+            \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while saving sub link. message was: ' . $e->getMessage()));
+        }
+
+        $this->assertInstanceOf(Document\Link::class, Document\Link::getById($link->getId()));
+
+        return $link;
+    }
+
+    /**
      * Actor Function to create a Hardlink
      *
      * @param Page   $source
@@ -139,7 +196,7 @@ class PimcoreBackend extends Module
         try {
             $hardlink->save();
         } catch (\Exception $e) {
-            \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while saving hardlink. message was: ' . $e->getMessage()));
+            \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while saving sub hardlink. message was: ' . $e->getMessage()));
         }
 
         $this->assertInstanceOf(Hardlink::class, Hardlink::getById($hardlink->getId()));
@@ -335,6 +392,8 @@ class PimcoreBackend extends Module
         $document->setController('@AppBundle\Controller\DefaultController');
         $document->setAction('default');
         $document->setKey($key);
+        $document->setProperty('navigation_title', 'text', $key);
+        $document->setProperty('navigation_name', 'text', $key);
 
         if ($locale !== null) {
             $document->setProperty('language', 'text', $locale, false, true);
@@ -360,6 +419,8 @@ class PimcoreBackend extends Module
         $hardlink->setSourceId($source->getId());
         $hardlink->setPropertiesFromSource(true);
         $hardlink->setChildrenFromSource(true);
+        $hardlink->setProperty('navigation_title', 'text', $key);
+        $hardlink->setProperty('navigation_name', 'text', $key);
 
         if ($locale !== null) {
             $hardlink->setProperty('language', 'text', $locale, false, true);
@@ -367,6 +428,36 @@ class PimcoreBackend extends Module
 
         return $hardlink;
     }
+
+
+    /**
+     * API Function to create a link document
+     *
+     * @param Page   $source
+     * @param string $key
+     * @param string $locale
+     *
+     * @return Document\Link
+     */
+    protected function generateLink(Page $source, $key = 'link-test', $locale = null)
+    {
+        $link = new Document\Link();
+        $link->setKey($key);
+        $link->setParentId(1);
+        $link->setLinktype('internal');
+        $link->setInternalType('document');
+        $link->setInternal($source->getId());
+        $link->setProperty('navigation_title', 'text', $key);
+        $link->setProperty('navigation_name', 'text', $key);
+
+        if ($locale !== null) {
+            $link->setProperty('language', 'text', $locale, false, true);
+        }
+
+        return $link;
+    }
+
+
 
     /**
      * API Function to create a site document
@@ -379,6 +470,9 @@ class PimcoreBackend extends Module
     protected function generateSiteDocument($domain, $locale = null)
     {
         $document = TestHelper::createEmptyDocumentPage($domain, false);
+        $document->setProperty('navigation_title', 'text', $domain);
+        $document->setProperty('navigation_name', 'text', $domain);
+
         $document->setKey(str_replace('.', '-', $domain));
 
         if ($locale !== null) {
