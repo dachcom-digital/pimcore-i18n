@@ -17,7 +17,6 @@ class HrefLangCest
         $I->amOnPageWithLocale('/', 'de-CH');
 
         $I->seeCurrentUrlEquals('/en');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'international']);
         $I->seeElement('html', ['lang' => 'en']);
@@ -39,7 +38,6 @@ class HrefLangCest
         $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/de-ch');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'CH']);
         $I->seeElement('html', ['lang' => 'de_CH']);
@@ -62,7 +60,6 @@ class HrefLangCest
         $I->amOnPageWithLocaleAndCountry('/', 'en-US', 'us');
 
         $I->seeCurrentUrlEquals('/en-us');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'US']);
         $I->seeElement('html', ['lang' => 'en_US']);
@@ -87,7 +84,6 @@ class HrefLangCest
         $I->amOnPageWithLocaleAndCountry('/', 'en-US', 'us');
 
         $I->seeCurrentUrlEquals('/en-us');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'US']);
         $I->seeElement('html', ['lang' => 'en_US']);

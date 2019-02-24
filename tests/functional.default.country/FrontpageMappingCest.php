@@ -18,7 +18,6 @@ class FrontpageMappingCest
         $I->amOnPageWithLocaleAndCountry('/', 'en-US', 'us');
 
         $I->seeCurrentUrlEquals('/en-us');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->see($document3->getId(), '#page-id');
     }

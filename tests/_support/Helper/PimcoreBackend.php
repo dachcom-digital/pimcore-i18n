@@ -118,6 +118,36 @@ class PimcoreBackend extends Module
     }
 
     /**
+     * Actor Function to create a child Hardlink
+     *
+     * @param Document $parent
+     * @param Page     $source
+     * @param string   $hardlinkKey
+     * @param string   $locale
+     *
+     * @return Hardlink
+     */
+    public function haveASubHardLink(
+        Document $parent,
+        Page $source,
+        $hardlinkKey = 'test-document',
+        $locale = null
+    ) {
+        $hardlink = $this->generateHardlink($source, $hardlinkKey, $locale);
+        $hardlink->setParent($parent);
+
+        try {
+            $hardlink->save();
+        } catch (\Exception $e) {
+            \Codeception\Util\Debug::debug(sprintf('[I18N ERROR] error while saving hardlink. message was: ' . $e->getMessage()));
+        }
+
+        $this->assertInstanceOf(Hardlink::class, Hardlink::getById($hardlink->getId()));
+
+        return $hardlink;
+    }
+
+    /**
      * Actor Function to create a Site Document
      *
      * @param string $siteKey

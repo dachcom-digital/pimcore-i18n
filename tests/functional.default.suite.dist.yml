@@ -7,7 +7,6 @@ modules:
                 configuration_file: 'config_default.yml'
         - \DachcomBundle\Test\Helper\PimcoreBundleCore:
                 run_installer: true
-        - \DachcomBundle\Test\Helper\Browser\PhpBrowserRedirects:
         - \DachcomBundle\Test\Helper\Browser\PhpBrowser:
                 depends: \DachcomBundle\Test\Helper\PimcoreCore
         - \DachcomBundle\Test\Helper\PimcoreBackend

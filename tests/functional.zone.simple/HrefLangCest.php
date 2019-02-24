@@ -19,7 +19,6 @@ class HrefLangCest
         $I->amOnPageWithLocale('http://test-domain1.test/', 'de-CH');
 
         $I->seeCurrentUrlEquals('/de');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('html', ['lang' => 'de']);
 
@@ -44,7 +43,6 @@ class HrefLangCest
         $I->amOnPageWithLocale('http://test-domain1.test/', 'de-CH');
 
         $I->seeCurrentUrlEquals('/de');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('html', ['lang' => 'de']);
         $I->seeElement('link', ['href' => 'http://test-domain1.test/en', 'hreflang' => 'x-default']);

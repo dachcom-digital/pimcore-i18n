@@ -17,7 +17,6 @@ class HardLinkWrappingCest
         $I->amOnPageWithLocaleAndCountry('/', 'en-US', 'us');
 
         $I->seeCurrentUrlEquals('/en-us');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'US']);
         $I->seeElement('html', ['lang' => 'en_US']);

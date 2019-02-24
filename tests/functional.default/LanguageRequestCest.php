@@ -16,7 +16,6 @@ class LanguageRequestCest
         $I->amOnPageWithLocale('/', 'de-CH');
 
         $I->seeCurrentUrlEquals('/en');
-        $I->seePreviousResponseCodeIsRedirection();
     }
 
     /**
@@ -29,7 +28,6 @@ class LanguageRequestCest
         $I->amOnPageWithLocale('/', 'de-CH');
 
         $I->seeCurrentUrlEquals('/de');
-        $I->seePreviousResponseCodeIsRedirection();
     }
 
     /**
@@ -41,9 +39,6 @@ class LanguageRequestCest
         $document2 = $I->haveAPageDocument('de', 'de');
 
         $I->amOnPageWithLocale('/', 'de-CH');
-
         $I->seeCurrentUrlEquals('/de');
-        $I->seePreviousResponseCodeIsRedirection();
-
     }
 }

@@ -208,6 +208,27 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
     }
 
     /**
+     * Actor Function to see canonical rel in link header
+     */
+    public function seeCanonicalLinkInResponse()
+    {
+        $link = $this->pimcoreCore->client->getInternalResponse()->getHeader('Link');
+
+        $this->assertInternalType('string', $link);
+        $this->assertContains('rel="canonical"', $link);
+    }
+
+    /**
+     * Actor Function to not see canonical rel in link header
+     */
+    public function dontSeeCanonicalLinkInResponse()
+    {
+        $link = $this->pimcoreCore->client->getInternalResponse()->getHeader('Link');
+
+        $this->assertNull($link);
+    }
+
+    /**
      * Actor Function to check if last _fragment request has given properties in request attributes.
      *
      * @param array $properties

@@ -16,7 +16,6 @@ class CountryRequestCest
         $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/en');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'international']);
         $I->seeElement('html', ['lang' => 'en']);
@@ -32,7 +31,6 @@ class CountryRequestCest
         $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/de');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'international']);
         $I->seeElement('html', ['lang' => 'de']);
@@ -49,7 +47,6 @@ class CountryRequestCest
         $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/de');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'international']);
         $I->seeElement('html', ['lang' => 'de']);
@@ -66,7 +63,6 @@ class CountryRequestCest
         $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/en');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'international']);
         $I->seeElement('html', ['lang' => 'en']);
@@ -82,7 +78,6 @@ class CountryRequestCest
         $I->amOnPageWithLocaleAndCountry('/', 'en-US', 'us');
 
         $I->seeCurrentUrlEquals('/en-us');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'US']);
         $I->seeElement('html', ['lang' => 'en_US']);
@@ -99,7 +94,6 @@ class CountryRequestCest
         $I->amOnPageWithLocaleAndCountry('/', 'de-DE', 'germany');
 
         $I->seeCurrentUrlEquals('/de-de');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'DE']);
         $I->seeElement('html', ['lang' => 'de_DE']);

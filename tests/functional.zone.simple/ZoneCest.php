@@ -19,7 +19,6 @@ class ZoneCest
 
         $I->seeCurrentUrlEquals('/en');
         $I->seeCurrentHostEquals('test-domain1.test');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->see($document->getId(), '#page-id');
     }
@@ -37,7 +36,6 @@ class ZoneCest
 
         $I->seeCurrentUrlEquals('/de');
         $I->seeCurrentHostEquals('test-domain1.test');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->see($document->getId(), '#page-id');
     }
@@ -56,7 +54,6 @@ class ZoneCest
 
         $I->seeCurrentUrlEquals('/de');
         $I->seeCurrentHostEquals('test-domain1.test');
-        $I->seePreviousResponseCodeIsRedirection();
 
         $I->see($document2->getId(), '#page-id');
     }
