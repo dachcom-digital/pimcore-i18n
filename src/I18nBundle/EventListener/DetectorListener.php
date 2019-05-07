@@ -359,6 +359,10 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
+        if (!$this->matchesPimcoreContext($event->getRequest(), PimcoreContextResolver::CONTEXT_DEFAULT)) {
+            return;
+        }
+
         if ($event->getRequest()->getPathInfo() === '/') {
             return;
         }
@@ -408,7 +412,7 @@ class DetectorListener implements EventSubscriberInterface
                 'country'  => $currentCountry
             ];
 
-            $cookie = $this->cookieHelper->set($event->getResponse(), $cookieData);
+            $this->cookieHelper->set($event->getResponse(), $cookieData);
         }
     }
 
