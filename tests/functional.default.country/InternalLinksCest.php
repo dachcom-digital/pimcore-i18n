@@ -15,8 +15,8 @@ class InternalLinksCest
         $documentSub1 = $I->haveASubPageDocument($document1, 'sub-page-1');
         $documentSubSub1 = $I->haveASubPageDocument($documentSub1, 'sub-sub-page-1');
 
-        $link1 = $I->haveASubLink($document1, $documentSubSub1, 'sub-link-1');
-        $hardlink1 = $I->haveAHardLink($document1, 'en-us', 'en_US');
+        $I->haveASubLink($document1, $documentSubSub1, 'sub-link-1');
+        $I->haveAHardLink($document1, 'en-us', 'en_US');
 
         $I->amOnPageWithLocaleAndCountry('/en', 'en-US', 'us');
         $I->seeLink('sub-link-1', '/en/sub-page-1/sub-sub-page-1');

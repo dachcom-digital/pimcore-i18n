@@ -419,8 +419,6 @@ class PimcoreBackend extends Module
         $hardlink->setSourceId($source->getId());
         $hardlink->setPropertiesFromSource(true);
         $hardlink->setChildrenFromSource(true);
-        $hardlink->setProperty('navigation_title', 'text', $key);
-        $hardlink->setProperty('navigation_name', 'text', $key);
 
         if ($locale !== null) {
             $hardlink->setProperty('language', 'text', $locale, false, true);
