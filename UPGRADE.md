@@ -8,6 +8,7 @@ Just click the "update" button or execute the migration command to finish the bu
 
 #### Update from Version 2.3.x to Version 2.4.0
 - **[ATTENTION]**: Installer has moved to the [MigrationBundle](https://github.com/dachcom-digital/pimcore-i18n/issues/19). After updating to this version you need to enable this extension again!
+- **[BUGFIX]**: [Check Pimcore Context on Kernel Response](https://github.com/dachcom-digital/pimcore-i18n/pull/26) 
 - **[NEW FEATURE]**: Pimcore 5.6.0 ready
 - ([Milestone for 2.4.0](https://github.com/dachcom-digital/pimcore-i18n/milestone/3?closed=1))
 
