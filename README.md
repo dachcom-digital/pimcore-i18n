@@ -1,4 +1,4 @@
-# Pimcore 5 - i18n Manager
+# Pimcore - i18n Manager
 
 [![Software License](https://img.shields.io/badge/license-GPLv3-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Latest Release](https://img.shields.io/packagist/v/dachcom-digital/i18n.svg?style=flat-square)](https://packagist.org/packages/dachcom-digital/i18n)
@@ -6,9 +6,6 @@
 [![PhpStan](https://img.shields.io/badge/PHPStan-level%202-brightgreen.svg?style=flat-square)](#)
 
 ![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
-
-## Requirements
-* Pimcore >= 5.4.0
 
 ## Introduction
 Pimcore already comes with some great features to build internationalized websites. But there are some gaps we have to handle by ourselves: search engine guidelines, geo based redirects and a dynamic link handling for internal documents. 
@@ -25,7 +22,7 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 
 ```json
 "require" : {
-    "dachcom-digital/i18n" : "~2.4.0"
+    "dachcom-digital/i18n" : "~3.0.0"
 }
 ```
 
