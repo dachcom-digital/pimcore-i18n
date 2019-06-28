@@ -16,10 +16,10 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 
 ### Release Plan
 
-| Release | Supported Pimcore Versions        | Release Date | Maintained     | Branch     |
-|---------|-----------------------------------|--------------|----------------|------------|
-| **3.0** | `6.0`                             | --           | Feature Branch | dev-master |
-| **2.4** | `5.4`, `5.5`, `5.6`, `5.7`, `5.8` | 24.05.2019   | Bugfix only    | 2.4        |
+| Release | Supported Pimcore Versions        | Supported Symfony Versions | Release Date | Maintained     | Branch     |
+|---------|-----------------------------------|----------------------------|--------------|----------------|------------|
+| **3.0** | `6.0`                             | `3.4`, `^4.0`               | --          | Feature Branch | dev-master |
+| **2.4** | `5.4`, `5.5`, `5.6`, `5.7`, `5.8` | `3.4`                      | 24.05.2019   | Bugfix only    | 2.4        |
 
 ### Installation  
 
