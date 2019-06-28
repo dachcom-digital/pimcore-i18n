@@ -24,7 +24,7 @@ pimcore:
             steps: 10
             days: null
         error_pages:
-            default: /404
+            default: /error
         create_redirect_when_moved: false
         allow_trailing_slash: 'no'
         generate_preview: false
