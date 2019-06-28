@@ -71,9 +71,8 @@ mv -nv GeoLite2-City.mmdb var/config/
 
 ##  install composer dependencies
 
-COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts
-
 COMPOSER_MEMORY_LIMIT=-1 composer require symfony/symfony:$SYMFONY_VERSION --no-interaction --no-update
+COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts
 COMPOSER_MEMORY_LIMIT=-1 composer require phpstan/phpstan:^0.11.1 phpstan/phpstan-symfony:^0.11.0 symplify/easy-coding-standard:^5.4 --no-scripts
 
 ##  install $DACHCOM_BUNDLE_NAME dependencies
