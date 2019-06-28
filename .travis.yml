@@ -1,7 +1,7 @@
-sudo: required
+sudo: true
 language: php
 addons:
-    mariadb: '10.1'
+    mariadb: '10.2'
     hosts:
         - test-domain1.test
         - test-domain2.test
@@ -10,7 +10,8 @@ addons:
         - test-domain5.test
         - test-domain6.test
         - test-domain7.test
-
+services:
+    - mysql
 env:
     global:
         - PIMCORE_ENVIRONMENT=test
