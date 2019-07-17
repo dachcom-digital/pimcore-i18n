@@ -70,6 +70,7 @@ mv -nv GeoLite2-City.mmdb var/config/
 
 
 ##  install composer dependencies
+rm composer.lock
 
 COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts
 
