@@ -259,15 +259,17 @@ class ResponseExceptionListener implements EventSubscriberInterface
         DataObject\AbstractObject::setGetInheritedValues(true);
         DataObject\Localizedfield::setGetFallbackValues(true);
 
-        $request->setLocale($newDocumentLocale);
-        $request->setDefaultLocale($newDocumentLocale);
-        $request->attributes->set('_locale', $newDocumentLocale);
-        $document->setProperty('language', 'string', $newDocumentLocale);
+        $saveLocale = is_null($newDocumentLocale) ? 'en' : $newDocumentLocale;
+
+        $request->setLocale($saveLocale);
+        $request->setDefaultLocale($saveLocale);
+        $request->attributes->set('_locale', $saveLocale);
+        $document->setProperty('language', 'string', $saveLocale);
 
         //fix i18n language / country context.
-        Cache\Runtime::set('i18n.locale', $newDocumentLocale);
+        Cache\Runtime::set('i18n.locale', $saveLocale);
 
-        $docLang = explode('_', $newDocumentLocale);
+        $docLang = explode('_', $saveLocale);
         Cache\Runtime::set('i18n.languageIso', strtolower($docLang[0]));
 
         $countryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
