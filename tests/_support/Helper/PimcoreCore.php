@@ -109,6 +109,37 @@ class PimcoreCore extends PimcoreCoreModule
     }
 
     /**
+     * @param string   $exception
+     * @param string   $message
+     * @param \Closure $callback
+     */
+    public function seeException($exception, $message, \Closure $callback)
+    {
+        $function = function () use ($callback, $exception, $message) {
+            try {
+
+                $callback();
+                return false;
+
+            } catch (\Exception $e) {
+
+                if (get_class($e) === $exception or get_parent_class($e) === $exception) {
+
+                    if (empty($message)) {
+                        return true;
+                    }
+
+                    return $message === $e->getMessage();
+                }
+
+                return false;
+            }
+        };
+
+        $this->assertTrue($function());
+    }
+
+    /**
      * Actor Function to boot symfony with a specific bundle configuration
      *
      * @param string $configuration
@@ -246,5 +277,26 @@ class PimcoreCore extends PimcoreCoreModule
         $fileSystem->remove($oldCacheDir);
     }
 
+    /**
+     * Override symfony internal Domains check.
+     *
+     * We're able to allow different hosts via pimcore sites.
+     *
+     * @return array
+     */
+    protected function getInternalDomains()
+    {
+        $internalDomains = [
+            '/test-domain1.test/',
+            '/test-domain2.test/',
+            '/test-domain3.test/',
+            '/test-domain4.test/',
+            '/test-domain5.test/',
+            '/test-domain6.test/',
+            '/test-domain7.test/',
+        ];
+
+        return array_unique($internalDomains);
+    }
 }
 
