@@ -6,6 +6,11 @@
 After every update you should check the pimcore extension manager. 
 Just click the "update" button or execute the migration command to finish the bundle update.
 
+#### Update from Version 2.x to Version 3.0.0
+- **[NEW FEATURE]**: Pimcore 6.0.0 ready
+
+***
+
 #### Update from Version 2.3.x to Version 2.4.0
 - **[ATTENTION]**: Installer has moved to the [MigrationBundle](https://github.com/dachcom-digital/pimcore-i18n/issues/19). After updating to this version you need to enable this extension again!
 - **[BUGFIX]**: [Check Pimcore Context on Kernel Response](https://github.com/dachcom-digital/pimcore-i18n/pull/26) 
@@ -59,6 +64,8 @@ zones:
 - `global_prefix` has been removed, please update your i18n config parameters (remove it before you updating).
 - static route handler implemented
 - translatable static route fragments implemented
+
+***
 
 #### Update from Version 1.x to Version 2.0.0
 Event `website.i18nSwitch`: `I18nEvents::CONTEXT_SWITCH`
