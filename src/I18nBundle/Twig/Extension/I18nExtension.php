@@ -5,13 +5,15 @@ namespace I18nBundle\Twig\Extension;
 use I18nBundle\Exception\ContextNotDefinedException;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Manager\ContextManager;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
 
-class I18nExtension extends \Twig_Extension
+class I18nExtension extends AbstractExtension
 {
     /**
      * @var ZoneManager
      */
-    public $zoneManager;
+    protected $zoneManager;
 
     /**
      * @var ContextManager
@@ -34,8 +36,8 @@ class I18nExtension extends \Twig_Extension
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('i18n_context', [$this, 'getI18Context']),
-            new \Twig_SimpleFunction('i18n_zone_info', [$this, 'getI18nZoneInfo'])
+            new TwigFunction('i18n_context', [$this, 'getI18Context']),
+            new TwigFunction('i18n_zone_info', [$this, 'getI18nZoneInfo'])
         ];
     }
 
