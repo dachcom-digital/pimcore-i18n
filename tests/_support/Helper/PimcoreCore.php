@@ -3,7 +3,8 @@
 namespace DachcomBundle\Test\Helper;
 
 use Codeception\Lib\ModuleContainer;
-use Codeception\Lib\Connector\Symfony as SymfonyConnector;
+use Codeception\TestInterface;
+use Codeception\Util\Debug;
 use Pimcore\Cache;
 use Pimcore\Config;
 use Pimcore\Event\TestEvents;
@@ -12,10 +13,17 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class PimcoreCore extends PimcoreCoreModule
 {
+    const DEFAULT_CONFIG_FILE = 'config_default.yml';
+
     /**
      * @var bool
      */
     protected $kernelHasCustomConfig = false;
+
+    /**
+     * @var bool
+     */
+    protected $kernelHasCustomSuiteConfig = false;
 
     /**
      * @inheritDoc
@@ -28,31 +36,6 @@ class PimcoreCore extends PimcoreCoreModule
         ]);
 
         parent::__construct($moduleContainer, $config);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function _after(\Codeception\TestInterface $test)
-    {
-        parent::_after($test);
-
-        // config has changed, we need to restore default config before starting a new test!
-        if ($this->kernelHasCustomConfig === true) {
-            $this->clearCache();
-            $this->bootKernelWithConfiguration(null);
-            $this->kernelHasCustomConfig = false;
-        }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function _afterSuite()
-    {
-        \Pimcore::collectGarbage();
-        $this->clearCache();
-        parent::_afterSuite();
     }
 
     /**
@@ -69,98 +52,58 @@ class PimcoreCore extends PimcoreCoreModule
     /**
      * @inheritdoc
      */
-    protected function initializeKernel()
+    public function _beforeSuite($settings = [])
     {
-        $maxNestingLevel = 200; // Symfony may have very long nesting level
-        $xdebugMaxLevelKey = 'xdebug.max_nesting_level';
-        if (ini_get($xdebugMaxLevelKey) < $maxNestingLevel) {
-            ini_set($xdebugMaxLevelKey, $maxNestingLevel);
+        parent::_beforeSuite($settings);
+
+        if ($this->config['configuration_file'] === null) {
+            return;
         }
 
-        $configFile = null;
-        if ($this->config['configuration_file'] !== null) {
-            $configFile = $this->config['configuration_file'];
+        if ($this->config['configuration_file'] === self::DEFAULT_CONFIG_FILE) {
+            return;
         }
 
-        $this->bootKernelWithConfiguration($configFile);
-        $this->setupPimcoreDirectories();
+        $configuration = $this->config['configuration_file'];
+
+        $this->kernelHasCustomSuiteConfig = true;
+        $this->rebootKernelWithConfiguration($configuration);
+
     }
 
     /**
-     * @param $configuration
+     * @inheritdoc
      */
-    protected function bootKernelWithConfiguration($configuration)
+    public function _afterSuite()
     {
-        if ($configuration === null) {
-            $configuration = 'config_default.yml';
+        parent::_afterSuite();
+
+        if ($this->kernelHasCustomSuiteConfig !== true) {
+            return;
         }
 
-        putenv('DACHCOM_BUNDLE_CONFIG_FILE=' . $configuration);
-
-        $this->kernel = require __DIR__ . '/../_boot/kernelBuilder.php';
-        $this->getKernel()->boot();
-
-        $this->client = new SymfonyConnector($this->kernel, $this->persistentServices, $this->config['rebootable_client']);
-
-        if ($this->config['cache_router'] === true) {
-            $this->persistService('router', true);
-        }
-
-        // dispatch kernel booted event - will be used from services which need to reset state between tests
-        $this->kernel->getContainer()->get('event_dispatcher')->dispatch(TestEvents::KERNEL_BOOTED);
+        // config has changed!
+        // we need to restore default config before starting a new test!
+        $this->rebootKernelWithConfiguration(null);
+        $this->kernelHasCustomSuiteConfig = false;
     }
 
     /**
-     * @param bool $force
+     * @inheritDoc
      */
-    protected function clearCache($force = true)
+    public function _after(TestInterface $test)
     {
-        \Codeception\Util\Debug::debug('[PIMCORE] Clear Cache!');
+        parent::_after($test);
 
-        $fileSystem = new Filesystem();
-
-        try {
-            $fileSystem->remove(PIMCORE_PROJECT_ROOT . '/var/cache');
-            $fileSystem->mkdir(PIMCORE_PROJECT_ROOT . '/var/cache');
-        } catch (\Exception $e) {
-            //try again later if "directory not empty" error occurs.
-            if ($force === true) {
-                sleep(1);
-                $this->clearCache(false);
-            }
+        if ($this->kernelHasCustomConfig !== true) {
+            return;
         }
-    }
 
-    /**
-     * @param $env
-     */
-    protected function setPimcoreEnvironment($env)
-    {
-        Config::setEnvironment($env);
-    }
+        // config has changed!
+        // we need to restore default config before starting a new test!
+        $this->rebootKernelWithConfiguration(null);
+        $this->kernelHasCustomConfig = false;
 
-    /**
-     * @param string $state
-     */
-    protected function setPimcoreCacheAvailability($state = 'disabled')
-    {
-        if ($state === 'disabled') {
-            Cache::disable();
-        } else {
-            Cache::enable();
-        }
-    }
-
-    /**
-     * Actor Function to boot symfony with a specific bundle configuration
-     *
-     * @param string $configuration
-     */
-    public function haveABootedSymfonyConfiguration(string $configuration)
-    {
-        $this->kernelHasCustomConfig = true;
-        $this->clearCache();
-        $this->bootKernelWithConfiguration($configuration);
     }
 
     /**
@@ -192,6 +135,150 @@ class PimcoreCore extends PimcoreCoreModule
         };
 
         $this->assertTrue($function());
+    }
+
+    /**
+     * Actor Function to boot symfony with a specific bundle configuration
+     *
+     * @param string $configuration
+     */
+    public function haveABootedSymfonyConfiguration(string $configuration)
+    {
+        $this->kernelHasCustomConfig = true;
+        $this->rebootKernelWithConfiguration($configuration);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function initializeKernel()
+    {
+        $maxNestingLevel = 200; // Symfony may have very long nesting level
+        $xdebugMaxLevelKey = 'xdebug.max_nesting_level';
+        if (ini_get($xdebugMaxLevelKey) < $maxNestingLevel) {
+            ini_set($xdebugMaxLevelKey, $maxNestingLevel);
+        }
+
+        $configFile = null;
+        if ($this->config['configuration_file'] !== null) {
+            $configFile = $this->config['configuration_file'];
+        }
+
+        $fileSystem = new Filesystem();
+        $runtimeConfigDir = codecept_data_dir() . 'config' . DIRECTORY_SEPARATOR;
+        $runtimeConfigConfig = $runtimeConfigDir . DIRECTORY_SEPARATOR . 'config.yml';
+
+        if (!$fileSystem->exists($runtimeConfigDir)) {
+            $fileSystem->mkdir($runtimeConfigDir);
+        }
+
+        $clearCache = false;
+        if (!$fileSystem->exists($runtimeConfigConfig)) {
+            $clearCache = true;
+            $fileSystem->touch($runtimeConfigConfig);
+        }
+
+        if ($clearCache === true) {
+            $this->clearCache();
+        }
+
+        $this->setConfiguration($configFile);
+        $this->setupPimcoreDirectories();
+
+        $this->kernel = \Pimcore\Bootstrap::kernel();
+
+        if ($this->config['cache_router'] === true) {
+            $this->persistService('router', true);
+        }
+
+        // dispatch kernel booted event - will be used from services which need to reset state between tests
+        $this->kernel->getContainer()->get('event_dispatcher')->dispatch(TestEvents::KERNEL_BOOTED);
+
+    }
+
+    /**
+     * @param string|null $configFile
+     */
+    protected function rebootKernelWithConfiguration($configFile = null)
+    {
+        $this->setConfiguration($configFile);
+        $this->getKernel()->reboot($this->getKernel()->getCacheDir());
+    }
+
+    /**
+     * @param null|string $configuration
+     */
+    protected function setConfiguration($configuration = null)
+    {
+        if ($this->kernel !== null && $this->getContainer() !== null) {
+            $class = $this->getContainer()->getParameter('kernel.container_class');
+            $cacheDir = $this->kernel->getCacheDir();
+
+            touch($cacheDir . '/' . $class . '.php');
+        }
+
+        // otherwise cache invalidator is not detecting config changes!
+        sleep(1);
+
+        $bundleName = getenv('DACHCOM_BUNDLE_NAME');
+        $bundleClass = getenv('DACHCOM_BUNDLE_HOME');
+
+        if ($configuration === null) {
+            $configuration = self::DEFAULT_CONFIG_FILE;
+        }
+
+        Debug::debug(sprintf('[%s] add custom config file %s', strtoupper($bundleName), $configuration));
+
+        $fileSystem = new Filesystem();
+        $runtimeConfigDir = codecept_data_dir() . 'config';
+        $runtimeConfigDirConfig = $runtimeConfigDir . '/config.yml';
+
+        $resource = $bundleClass . '/_etc/config/bundle/symfony/' . $configuration;
+
+        $fileSystem->dumpFile($runtimeConfigDirConfig, file_get_contents($resource));
+
+    }
+
+    /**
+     * @param $env
+     */
+    protected function setPimcoreEnvironment($env)
+    {
+        Config::setEnvironment($env);
+    }
+
+    /**
+     * @param string $state
+     */
+    protected function setPimcoreCacheAvailability($state = 'disabled')
+    {
+        if ($state === 'disabled') {
+            Cache::disable();
+        } else {
+            Cache::enable();
+        }
+    }
+
+    protected function clearCache()
+    {
+        Debug::debug('[PIMCORE] Clear Cache!');
+
+        $fileSystem = new Filesystem();
+        $cacheDir = PIMCORE_SYMFONY_CACHE_DIRECTORY;
+
+        if (!$fileSystem->exists($cacheDir)) {
+            return;
+        }
+
+        $oldCacheDir = substr($cacheDir, 0, -1) . ('~' === substr($cacheDir, -1) ? '+' : '~');
+
+        if ($fileSystem->exists($oldCacheDir)) {
+            $fileSystem->remove($oldCacheDir);
+        }
+
+        $fileSystem->rename($cacheDir, $oldCacheDir);
+        $fileSystem->mkdir($cacheDir);
+        $fileSystem->remove($oldCacheDir);
     }
 
     /**
