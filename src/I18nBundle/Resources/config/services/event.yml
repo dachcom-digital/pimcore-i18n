@@ -5,6 +5,11 @@ services:
         autoconfigure: true
         public: false
 
+    # event: detect pimcore redirect
+    I18nBundle\EventListener\PimcoreRedirectListener:
+        tags:
+            - { name: kernel.event_subscriber }
+
     # event: i18n detector, register language / country. setup all managers. redirect user
     I18nBundle\EventListener\DetectorListener:
         tags:

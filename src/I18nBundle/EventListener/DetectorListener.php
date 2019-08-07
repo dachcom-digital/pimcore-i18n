@@ -18,6 +18,7 @@ use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Registry\RedirectorRegistry;
 use I18nBundle\Tool\System;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -51,7 +52,7 @@ class DetectorListener implements EventSubscriberInterface
     private $validLocales = [];
 
     /**
-     * @var \Pimcore\Model\Document
+     * @var Document
      */
     private $document = null;
 
@@ -69,6 +70,11 @@ class DetectorListener implements EventSubscriberInterface
      * @var null
      */
     private $documentCountry = null;
+
+    /**
+     * @var Request
+     */
+    private $request;
 
     /**
      * @var EngineInterface
@@ -91,6 +97,11 @@ class DetectorListener implements EventSubscriberInterface
     protected $redirectorRegistry;
 
     /**
+     * @var DocumentResolver
+     */
+    protected $documentResolver;
+
+    /**
      * @var ZoneManager
      */
     protected $zoneManager;
@@ -106,19 +117,9 @@ class DetectorListener implements EventSubscriberInterface
     protected $pathGeneratorManager;
 
     /**
-     * @var DocumentResolver
-     */
-    protected $documentResolver;
-
-    /**
      * @var EditmodeResolver
      */
     protected $editmodeResolver;
-
-    /**
-     * @var Request
-     */
-    protected $request;
 
     /**
      * DetectorListener constructor.
@@ -161,37 +162,15 @@ class DetectorListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            KernelEvents::EXCEPTION => ['onKernelException', 20],       //before responseExceptionListener
+            KernelEvents::EXCEPTION => [
+                ['onKernelException', 20]           // before responseExceptionListener
+            ],
             KernelEvents::REQUEST   => [
-                ['onKernelRequestLocale', 17],                          // before symfony LocaleListener
-                ['onKernelRequest', 2]                                  // after pimcore context resolver
+                ['onKernelRequestLocale', 17],      // before symfony LocaleListener
+                ['onKernelRequest', 2]              // after pimcore context resolver
             ],
             KernelEvents::RESPONSE  => 'onKernelResponse'
         ];
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @throws \Exception
-     */
-    private function initI18nSystem($request)
-    {
-        //initialize all managers!
-        $this->zoneManager->initZones();
-
-        $document = null;
-        if ($this->document instanceof Document) {
-            $document = $this->document;
-            if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-                /** @var Document\Hardlink\Wrapper $wrapperDocument */
-                $wrapperDocument = $this->document;
-                $document = $wrapperDocument->getHardLinkSource();
-            }
-        }
-
-        $this->contextManager->initContext($this->zoneManager->getCurrentZoneInfo('mode'), $document);
-        $this->pathGeneratorManager->initPathGenerator($request->attributes->get('pimcore_request_source'));
     }
 
     /**
@@ -223,11 +202,11 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * If we're in static route context, we need to check the request locale since it could be a invalid one from the url (like
-     * en-us). Always use the document locale then!
+     * If we're in static route context, we need to check the request locale since it could be a invalid one from the url
+     * (like en-us). Always use the document locale then!
      *
-     * Since symfony tries to locate the current locale in LocaleListener via the request attribute "_locale", we need to trigger
-     * this event earlier!
+     * Since symfony tries to locate the current locale in LocaleListener via the request attribute "_locale",
+     * we need to trigger his event earlier!
      *
      * @param GetResponseEvent $event
      *
@@ -352,6 +331,8 @@ class DetectorListener implements EventSubscriberInterface
 
     /**
      * @param FilterResponseEvent $event
+     *
+     * @throws \Exception
      */
     public function onKernelResponse(FilterResponseEvent $event)
     {
@@ -373,7 +354,8 @@ class DetectorListener implements EventSubscriberInterface
 
         $registryConfig = $this->configuration->getConfig('registry');
         $available = isset($registryConfig['redirector']['cookie'])
-            ? $registryConfig['redirector']['cookie']['enabled'] : true;
+            ? $registryConfig['redirector']['cookie']['enabled']
+            : true;
 
         //check if we're allowed to bake a cookie at the first place!
         if ($available === false) {
@@ -414,6 +396,30 @@ class DetectorListener implements EventSubscriberInterface
 
             $this->cookieHelper->set($event->getResponse(), $cookieData);
         }
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @throws \Exception
+     */
+    private function initI18nSystem($request)
+    {
+        //initialize all managers!
+        $this->zoneManager->initZones();
+
+        $document = null;
+        if ($this->document instanceof Document) {
+            $document = $this->document;
+            if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
+                /** @var Document\Hardlink\Wrapper $wrapperDocument */
+                $wrapperDocument = $this->document;
+                $document = $wrapperDocument->getHardLinkSource();
+            }
+        }
+
+        $this->contextManager->initContext($this->zoneManager->getCurrentZoneInfo('mode'), $document);
+        $this->pathGeneratorManager->initPathGenerator($request->attributes->get('pimcore_request_source'));
     }
 
     /**
@@ -524,7 +530,7 @@ class DetectorListener implements EventSubscriberInterface
      */
     private function getSessionData()
     {
-        /** @var \Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag $bag */
+        /** @var NamespacedAttributeBag $bag */
         $bag = $this->request->getSession()->getBag('i18n_session');
 
         $data = [
@@ -560,7 +566,7 @@ class DetectorListener implements EventSubscriberInterface
 
         $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
 
-        /** @var \Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag $bag */
+        /** @var NamespacedAttributeBag $bag */
         $bag = $this->request->getSession()->getBag('i18n_session');
 
         if (!empty($this->documentLocale)) {
@@ -582,8 +588,9 @@ class DetectorListener implements EventSubscriberInterface
      * @param string $path
      *
      * @return string
+     * @throws \Exception
      */
-    private function getRedirectUrl($path)
+    protected function getRedirectUrl($path)
     {
         $config = \Pimcore\Config::getSystemConfig();
 
@@ -602,7 +609,7 @@ class DetectorListener implements EventSubscriberInterface
      *
      * @return bool
      */
-    private function isValidI18nCheckRequest(Request $request, $allowAjax = false)
+    protected function isValidI18nCheckRequest(Request $request, $allowAjax = false)
     {
         if (\Pimcore\Tool::isFrontendRequestByAdmin($request)) {
             return false;
@@ -618,7 +625,7 @@ class DetectorListener implements EventSubscriberInterface
     /**
      * @return bool
      */
-    private function canRedirect()
+    protected function canRedirect()
     {
         return !System::isInBackend($this->request);
     }
@@ -628,7 +635,7 @@ class DetectorListener implements EventSubscriberInterface
      *
      * @return bool
      */
-    private function setValidRequest(GetResponseEvent $event)
+    protected function setValidRequest(GetResponseEvent $event)
     {
         // already initialized.
         if ($this->document instanceof Document) {
@@ -661,7 +668,7 @@ class DetectorListener implements EventSubscriberInterface
      *
      * @throws \Exception
      */
-    private function setNotEditableAwareMessage(GetResponseEvent $event)
+    protected function setNotEditableAwareMessage(GetResponseEvent $event)
     {
         //if document is root, no language tag is required
         if ($this->editmodeResolver->isEditmode()) {
@@ -691,7 +698,7 @@ class DetectorListener implements EventSubscriberInterface
         }
     }
 
-    private function setDocumentLocale()
+    protected function setDocumentLocale()
     {
         if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
             /** @var Document\Hardlink\Wrapper $wrapperDocument */
@@ -716,10 +723,7 @@ class DetectorListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * Adjust Request locale.
-     */
-    private function adjustRequestLocale()
+    protected function adjustRequestLocale()
     {
         // set request locale
         $this->request->attributes->set('_locale', $this->documentLocale);
