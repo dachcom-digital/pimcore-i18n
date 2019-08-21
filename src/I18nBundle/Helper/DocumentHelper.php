@@ -16,6 +16,7 @@ class DocumentHelper
      * @param Document $document
      *
      * @return string
+     *
      * @throws \Exception
      */
     public function getDocumentFullPath($document = null)
@@ -34,6 +35,7 @@ class DocumentHelper
 
     /**
      * @return string
+     *
      * @throws \Exception
      */
     public function getCurrentPageRootPath()
@@ -96,6 +98,7 @@ class DocumentHelper
      * @param bool     $restrictToCurrentSite
      *
      * @return array string document url without trailing slash
+     *
      * @throws \Exception
      */
     protected function getDocumentUrl($document = null, $returnAsArray = false, $restrictToCurrentSite = true)
@@ -150,6 +153,7 @@ class DocumentHelper
      * @param Document $document
      *
      * @return bool
+     *
      * @throws \Exception
      */
     protected function isDocumentInCurrentSite($document)

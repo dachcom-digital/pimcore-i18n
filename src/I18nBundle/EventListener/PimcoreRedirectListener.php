@@ -153,6 +153,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
      * @param bool    $override
      *
      * @return Response|null
+     *
      * @throws \Exception
      */
     protected function checkI18nPimcoreRedirects(Request $request, $override = false)
@@ -203,7 +204,6 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         $redirectorBag = new RedirectorBag($options);
         /** @var RedirectorInterface $redirector */
         foreach ($this->redirectorRegistry->all() as $redirector) {
-
             // do not use redirector with storage functionality
             if ($redirector instanceof CookieRedirector) {
                 continue;
@@ -221,6 +221,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
 
         if ($validDecision === null) {
             $response->setTargetUrl($document->getFullPath());
+
             return $response;
         }
 
@@ -228,6 +229,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
 
         if (count($localizedUrls) === 0) {
             $response->setTargetUrl($document->getFullPath());
+
             return $response;
         }
 
@@ -241,6 +243,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         // no link found, use first one we've found.
         if ($newTargetUrl === null) {
             $response->setTargetUrl($localizedUrls[0]['url']);
+
             return $response;
         }
 

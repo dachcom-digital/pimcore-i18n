@@ -438,6 +438,7 @@ class DetectorListener implements EventSubscriberInterface
      * @param string $path
      *
      * @return string
+     *
      * @throws \Exception
      */
     protected function getRedirectUrl($path)
@@ -506,7 +507,6 @@ class DetectorListener implements EventSubscriberInterface
         if ($this->document->getId() !== $siteId) {
             throw new \Exception(get_class($this->document) . ' (' . $this->document->getId() . ') does not have a valid language property!');
         }
-
     }
 
     protected function setDocumentLocale($i18nType)
