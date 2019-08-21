@@ -39,7 +39,7 @@ class PimcoreCore extends PimcoreCoreModule
 
         // config has changed, we need to restore default config before starting a new test!
         if ($this->kernelHasCustomConfig === true) {
-            $this->clearCache();
+            //$this->clearCache();
             $this->bootKernelWithConfiguration(null);
             $this->kernelHasCustomConfig = false;
         }
@@ -51,7 +51,7 @@ class PimcoreCore extends PimcoreCoreModule
     public function _afterSuite()
     {
         \Pimcore::collectGarbage();
-        $this->clearCache();
+        //$this->clearCache();
         parent::_afterSuite();
     }
 
@@ -159,7 +159,7 @@ class PimcoreCore extends PimcoreCoreModule
     public function haveABootedSymfonyConfiguration(string $configuration)
     {
         $this->kernelHasCustomConfig = true;
-        $this->clearCache();
+        //$this->clearCache();
         $this->bootKernelWithConfiguration($configuration);
     }
 

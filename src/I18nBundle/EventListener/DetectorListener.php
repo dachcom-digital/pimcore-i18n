@@ -3,22 +3,23 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Helper\CookieHelper;
+use I18nBundle\Helper\DocumentHelper;
+use I18nBundle\Helper\RequestValidatorHelper;
 use Pimcore\Cache;
 use Pimcore\Http\Request\Resolver\EditmodeResolver;
-use Pimcore\Logger;
 use I18nBundle\Adapter\Redirector\RedirectorBag;
 use I18nBundle\Adapter\Redirector\RedirectorInterface;
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Definitions;
-use I18nBundle\Event\ContextSwitchEvent;
-use I18nBundle\I18nEvents;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Registry\RedirectorRegistry;
 use I18nBundle\Tool\System;
+use Pimcore\Model\Site;
+use Pimcore\Tool\Admin;
+use Pimcore\Tool\Authentication;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -28,19 +29,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Pimcore\Model\Document;
 use Pimcore\Http\Request\Resolver\DocumentResolver;
-use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
-use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Symfony\Component\Templating\EngineInterface;
 
 class DetectorListener implements EventSubscriberInterface
 {
-    use PimcoreContextAwareTrait;
-
-    /**
-     * @var string
-     */
-    private $i18nType = 'language';
-
     /**
      * @var string
      */
@@ -122,17 +114,27 @@ class DetectorListener implements EventSubscriberInterface
     protected $editmodeResolver;
 
     /**
-     * DetectorListener constructor.
-     *
-     * @param EngineInterface      $templating
-     * @param Configuration        $configuration
-     * @param CookieHelper         $cookieHelper
-     * @param RedirectorRegistry   $redirectorRegistry
-     * @param DocumentResolver     $documentResolver
-     * @param ZoneManager          $zoneManager
-     * @param ContextManager       $contextManager
-     * @param PathGeneratorManager $pathGeneratorManager
-     * @param EditmodeResolver     $editmodeResolver
+     * @var DocumentHelper
+     */
+    protected $documentHelper;
+
+    /**
+     * @var RequestValidatorHelper
+     */
+    protected $requestValidatorHelper;
+
+    /**
+     * @param EngineInterface        $templating
+     * @param Configuration          $configuration
+     * @param CookieHelper           $cookieHelper
+     * @param RedirectorRegistry     $redirectorRegistry
+     * @param DocumentResolver       $documentResolver
+     * @param ZoneManager            $zoneManager
+     * @param ContextManager         $contextManager
+     * @param PathGeneratorManager   $pathGeneratorManager
+     * @param EditmodeResolver       $editmodeResolver
+     * @param DocumentHelper         $documentHelper
+     * @param RequestValidatorHelper $requestValidatorHelper
      */
     public function __construct(
         EngineInterface $templating,
@@ -143,7 +145,9 @@ class DetectorListener implements EventSubscriberInterface
         ZoneManager $zoneManager,
         ContextManager $contextManager,
         PathGeneratorManager $pathGeneratorManager,
-        EditmodeResolver $editmodeResolver
+        EditmodeResolver $editmodeResolver,
+        DocumentHelper $documentHelper,
+        RequestValidatorHelper $requestValidatorHelper
     ) {
         $this->templating = $templating;
         $this->configuration = $configuration;
@@ -154,6 +158,8 @@ class DetectorListener implements EventSubscriberInterface
         $this->contextManager = $contextManager;
         $this->pathGeneratorManager = $pathGeneratorManager;
         $this->editmodeResolver = $editmodeResolver;
+        $this->documentHelper = $documentHelper;
+        $this->requestValidatorHelper = $requestValidatorHelper;
     }
 
     /**
@@ -185,7 +191,6 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         $this->initI18nSystem($event->getRequest());
-        $this->document = $this->documentResolver->getDocument($this->request);
 
         $locale = $event->getRequest()->getLocale();
 
@@ -196,7 +201,7 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         //fallback.
-        Cache\Runtime::set('i18n.locale', $event->getRequest()->getLocale());
+        Cache\Runtime::set('i18n.locale', $locale);
         Cache\Runtime::set('i18n.languageIso', strtolower($languageIso));
         Cache\Runtime::set('i18n.countryIso', Definitions::INTERNATIONAL_COUNTRY_NAMESPACE);
     }
@@ -214,11 +219,18 @@ class DetectorListener implements EventSubscriberInterface
      */
     public function onKernelRequestLocale(GetResponseEvent $event)
     {
-        if ($this->setValidRequest($event) === false) {
+        if ($event->isMasterRequest() === false) {
             return;
         }
 
-        $this->setDocumentLocale();
+        $this->request = $event->getRequest();
+        $this->document = $this->documentResolver->getDocument($this->request);
+
+        if ($this->isValidRequest() === false) {
+            return;
+        }
+
+        $this->setDocumentLocale('language');
 
         $requestSource = $this->request->attributes->get('pimcore_request_source');
         if ($requestSource === 'staticroute' && !empty($this->documentLocale) && $this->request->attributes->get('_locale') !== $this->documentLocale) {
@@ -235,7 +247,14 @@ class DetectorListener implements EventSubscriberInterface
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
-        if ($this->setValidRequest($event) === false) {
+        if ($event->isMasterRequest() === false) {
+            return;
+        }
+
+        $this->request = $event->getRequest();
+        $this->document = $this->documentResolver->getDocument($this->request);
+
+        if ($this->isValidRequest() === false) {
             return;
         }
 
@@ -244,12 +263,12 @@ class DetectorListener implements EventSubscriberInterface
         $currentRouteName = $this->request->get('_route');
         $requestSource = $this->request->attributes->get('pimcore_request_source');
 
-        $this->i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
-
-        $this->setDocumentLocale();
-
         $this->validLocales = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLocales();
         $this->defaultLocale = $this->zoneManager->getCurrentZoneLocaleAdapter()->getDefaultLocale();
+
+        $i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
+
+        $this->setDocumentLocale($i18nType);
 
         /**
          * If a root node hardlink is requested e.g. /en-us, pimcore gets the locale from the source, which is "quite" wrong.
@@ -281,7 +300,7 @@ class DetectorListener implements EventSubscriberInterface
 
             if ($this->canRedirect() && $validForRedirect === true) {
                 $options = [
-                    'i18nType'        => $this->i18nType,
+                    'i18nType'        => $i18nType,
                     'request'         => $this->request,
                     'document'        => $this->document,
                     'documentLocale'  => $this->documentLocale,
@@ -321,12 +340,6 @@ class DetectorListener implements EventSubscriberInterface
         if (!empty($this->documentCountry)) {
             Cache\Runtime::set('i18n.countryIso', $this->documentCountry);
         }
-
-        //check if zone, language or country has been changed, trigger event for 3th party.
-        $this->detectContextSwitch();
-
-        //update session
-        $this->updateSessionData();
     }
 
     /**
@@ -340,7 +353,7 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        if (!$this->matchesPimcoreContext($event->getRequest(), PimcoreContextResolver::CONTEXT_DEFAULT)) {
+        if ($this->requestValidatorHelper->matchesDefaultPimcoreContext($event->getRequest()) === false) {
             return;
         }
 
@@ -405,7 +418,6 @@ class DetectorListener implements EventSubscriberInterface
      */
     private function initI18nSystem($request)
     {
-        //initialize all managers!
         $this->zoneManager->initZones();
 
         $document = null;
@@ -420,168 +432,6 @@ class DetectorListener implements EventSubscriberInterface
 
         $this->contextManager->initContext($this->zoneManager->getCurrentZoneInfo('mode'), $document);
         $this->pathGeneratorManager->initPathGenerator($request->attributes->get('pimcore_request_source'));
-    }
-
-    /**
-     * Important: ContextSwitch only works in same domain levels.
-     * Since there is no way for simple cross-domain session ids,
-     * the zone switch will be sort of useless most of the time. :(.
-     */
-    private function detectContextSwitch()
-    {
-        if (!$this->isValidI18nCheckRequest($this->request)) {
-            return;
-        }
-
-        $session = $this->getSessionData();
-        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
-
-        $localeHasSwitched = false;
-        $languageHasSwitched = false;
-        $countryHasSwitched = false;
-        $zoneHasSwitched = false;
-
-        if (is_null($session['lastLocale']) || (!is_null($session['lastLocale']) && $this->documentLocale !== $session['lastLocale'])) {
-            $localeHasSwitched = true;
-        }
-
-        if (is_null($session['lastLanguage']) || (!is_null($session['lastLanguage']) && $this->documentLanguage !== $session['lastLanguage'])) {
-            $languageHasSwitched = true;
-        }
-
-        if ($session['lastCountry'] !== false && (!is_null($session['lastCountry']) && $this->documentCountry !== $session['lastCountry'])) {
-            $countryHasSwitched = true;
-            $localeHasSwitched = true;
-        }
-
-        if ($currentZoneId !== $session['lastZoneId']) {
-            $zoneHasSwitched = true;
-        }
-
-        if ($zoneHasSwitched || $localeHasSwitched || $languageHasSwitched || $countryHasSwitched) {
-            $params = [
-                'zoneHasSwitched'     => $zoneHasSwitched,
-                'zoneFrom'            => $session['lastZoneId'],
-                'zoneTo'              => $currentZoneId,
-                'localeHasSwitched'   => $localeHasSwitched,
-                'localeFrom'          => $session['lastLocale'],
-                'localeTo'            => $this->documentLocale,
-                'languageHasSwitched' => $languageHasSwitched,
-                'languageFrom'        => $session['lastLanguage'],
-                'languageTo'          => $this->documentLanguage,
-                'countryHasSwitched'  => $countryHasSwitched,
-                'countryFrom'         => $session['lastCountry'],
-                'countryTo'           => $this->documentCountry
-            ];
-
-            if ($zoneHasSwitched === true) {
-                Logger::log(
-                    sprintf(
-                        'switch zone: from %s to %s. triggered by: %s',
-                        $session['lastZoneId'],
-                        $currentZoneId,
-                        $this->request->getRequestUri()
-                    )
-                );
-            }
-
-            if ($localeHasSwitched === true) {
-                Logger::log(
-                    sprintf(
-                        'switch locale: from %s to %s. triggered by: %s',
-                        $session['lastLocale'],
-                        $this->documentLocale,
-                        $this->request->getRequestUri()
-                    )
-                );
-            }
-
-            if ($languageHasSwitched === true) {
-                Logger::log(
-                    sprintf(
-                        'switch language: from %s to %s. triggered by: %s',
-                        $session['lastLanguage'],
-                        $this->documentLanguage,
-                        $this->request->getRequestUri()
-                    )
-                );
-            }
-
-            if ($countryHasSwitched === true) {
-                Logger::log(
-                    sprintf(
-                        'switch country: from %s to %s. triggered by: %s',
-                        $session['lastCountry'],
-                        $this->documentCountry,
-                        $this->request->getRequestUri()
-                    )
-                );
-            }
-
-            \Pimcore::getEventDispatcher()->dispatch(
-                I18nEvents::CONTEXT_SWITCH,
-                new ContextSwitchEvent($params)
-            );
-        }
-    }
-
-    /**
-     * @return array
-     */
-    private function getSessionData()
-    {
-        /** @var NamespacedAttributeBag $bag */
-        $bag = $this->request->getSession()->getBag('i18n_session');
-
-        $data = [
-            'lastLocale'   => null,
-            'lastLanguage' => null,
-            'lastCountry'  => null,
-            'lastZoneId'   => null
-        ];
-
-        if ($bag->has('lastLocale')) {
-            $data['lastLocale'] = $bag->get('lastLocale');
-        }
-
-        if ($bag->has('lastLanguage')) {
-            $data['lastLanguage'] = $bag->get('lastLanguage');
-        }
-
-        if ($bag->get('lastCountry')) {
-            $data['lastCountry'] = $bag->get('lastCountry');
-        }
-
-        //if no zone as been defined, zone id is always NULL.
-        $data['lastZoneId'] = $bag->get('lastZoneId');
-
-        return $data;
-    }
-
-    private function updateSessionData()
-    {
-        if (!$this->isValidI18nCheckRequest($this->request)) {
-            return;
-        }
-
-        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
-
-        /** @var NamespacedAttributeBag $bag */
-        $bag = $this->request->getSession()->getBag('i18n_session');
-
-        if (!empty($this->documentLocale)) {
-            $bag->set('lastLocale', $this->documentLocale);
-        }
-
-        if (!empty($this->documentLanguage)) {
-            $bag->set('lastLanguage', $this->documentLanguage);
-        }
-
-        if (!empty($this->documentCountry)) {
-            $bag->set('lastCountry', $this->documentCountry);
-        }
-
-        $bag->set('lastZoneId', $currentZoneId);
     }
 
     /**
@@ -604,25 +454,6 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * @param Request $request
-     * @param bool    $allowAjax
-     *
-     * @return bool
-     */
-    protected function isValidI18nCheckRequest(Request $request, $allowAjax = false)
-    {
-        if (\Pimcore\Tool::isFrontendRequestByAdmin($request)) {
-            return false;
-        }
-
-        if (System::isInCliMode() || ($allowAjax === false && $request->isXmlHttpRequest())) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * @return bool
      */
     protected function canRedirect()
@@ -631,36 +462,15 @@ class DetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * @param GetResponseEvent $event
-     *
      * @return bool
      */
-    protected function setValidRequest(GetResponseEvent $event)
+    protected function isValidRequest()
     {
-        // already initialized.
-        if ($this->document instanceof Document) {
-            return true;
-        }
-
-        if ($event->isMasterRequest() === false) {
+        if (empty($this->document)) {
             return false;
         }
 
-        $this->request = $event->getRequest();
-        if (!$this->matchesPimcoreContext($this->request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
-            return false;
-        }
-
-        $this->document = $this->documentResolver->getDocument($this->request);
-        if (!$this->document) {
-            return false;
-        }
-
-        if (!$this->isValidI18nCheckRequest($this->request, true)) {
-            return false;
-        }
-
-        return true;
+        return $this->requestValidatorHelper->isValidForRedirect($this->request);
     }
 
     /**
@@ -674,9 +484,9 @@ class DetectorListener implements EventSubscriberInterface
         if ($this->editmodeResolver->isEditmode()) {
             $response = new Response();
             $language = 'en';
-            if ($user = \Pimcore\Tool\Admin::getCurrentUser()) {
+            if ($user = Admin::getCurrentUser()) {
                 $language = $user->getLanguage();
-            } elseif ($user = \Pimcore\Tool\Authentication::authenticateSession()) {
+            } elseif ($user = Authentication::authenticateSession($event->getRequest())) {
                 $language = $user->getLanguage();
             }
 
@@ -684,43 +494,28 @@ class DetectorListener implements EventSubscriberInterface
             $event->setResponse($response);
 
             return;
-        } else {
-            $siteId = 1;
-            if (\Pimcore\Model\Site::isSiteRequest() === true) {
-                $site = \Pimcore\Model\Site::getCurrentSite();
-                $siteId = $site->getRootId();
-            }
-
-            //if document is root, no language tag is required
-            if ($this->document->getId() !== $siteId) {
-                throw new \Exception(get_class($this->document) . ' (' . $this->document->getId() . ') does not have a valid language property!');
-            }
         }
+
+        $siteId = 1;
+        if (Site::isSiteRequest() === true) {
+            $site = Site::getCurrentSite();
+            $siteId = $site->getRootId();
+        }
+
+        //if document is root, no language tag is required
+        if ($this->document->getId() !== $siteId) {
+            throw new \Exception(get_class($this->document) . ' (' . $this->document->getId() . ') does not have a valid language property!');
+        }
+
     }
 
-    protected function setDocumentLocale()
+    protected function setDocumentLocale($i18nType)
     {
-        if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            /** @var Document\Hardlink\Wrapper $wrapperDocument */
-            $wrapperDocument = $this->document;
-            $this->documentLocale = $wrapperDocument->getHardLinkSource()->getProperty('language');
-        } else {
-            $this->documentLocale = $this->document->getProperty('language');
-        }
+        $documentLocaleData = $this->documentHelper->getDocumentLocaleData($this->document, $i18nType);
 
-        if ($this->i18nType === 'country') {
-            $this->documentCountry = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
-        }
-
-        $this->documentLanguage = $this->documentLocale;
-
-        if (strpos($this->documentLocale, '_') !== false) {
-            $parts = explode('_', $this->documentLocale);
-            $this->documentLanguage = strtolower($parts[0]);
-            if (isset($parts[1]) && !empty($parts[1])) {
-                $this->documentCountry = strtoupper($parts[1]);
-            }
-        }
+        $this->documentLocale = $documentLocaleData['documentLocale'];
+        $this->documentLanguage = $documentLocaleData['documentLanguage'];
+        $this->documentCountry = $documentLocaleData['documentCountry'];
     }
 
     protected function adjustRequestLocale()

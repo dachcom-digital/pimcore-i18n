@@ -10,6 +10,7 @@ use Pimcore\Model\Document;
 use Pimcore\Model\Document\Hardlink;
 use Pimcore\Model\Document\Page;
 use Pimcore\Model\Document\Service;
+use Pimcore\Model\Redirect;
 use Pimcore\Model\Site;
 use Pimcore\Model\Staticroute;
 use Pimcore\Tests\Util\TestHelper;
@@ -376,6 +377,22 @@ class PimcoreBackend extends Module
         $this->assertInstanceOf(Staticroute::class, $route);
 
         return $route;
+    }
+
+    /**
+     * Actor Function to generate a single pimcore redirect.
+     *
+     * @param array $data
+     *
+     * @return Redirect
+     */
+    public function haveAPimcoreRedirect(array $data)
+    {
+        $redirect = new Redirect();
+        $redirect->setValues($data);
+        $redirect->save();
+
+        return $redirect;
     }
 
     /**

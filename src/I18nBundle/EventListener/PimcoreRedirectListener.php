@@ -3,16 +3,15 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Adapter\Redirector\CookieRedirector;
+use I18nBundle\Helper\DocumentHelper;
+use I18nBundle\Helper\RequestValidatorHelper;
 use Pimcore\Http\Request\Resolver\SiteResolver;
-use Pimcore\Http\RequestHelper;
 use I18nBundle\Adapter\Redirector\RedirectorBag;
 use I18nBundle\Adapter\Redirector\RedirectorInterface;
-use I18nBundle\Definitions;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Registry\RedirectorRegistry;
-use I18nBundle\Tool\System;
 use Pimcore\Model\Site;
 use Pimcore\Routing\RedirectHandler;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,48 +23,9 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Pimcore\Model\Document;
-use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
-use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 
 class PimcoreRedirectListener implements EventSubscriberInterface
 {
-    use PimcoreContextAwareTrait;
-
-    /**
-     * @var string
-     */
-    private $i18nType = 'language';
-
-    /**
-     * @var string
-     */
-    private $defaultLocale = null;
-
-    /**
-     * @var array
-     */
-    private $validLocales = [];
-
-    /**
-     * @var Document
-     */
-    private $document = null;
-
-    /**
-     * @var null
-     */
-    private $documentLocale = null;
-
-    /**
-     * @var null
-     */
-    private $documentLanguage = null;
-
-    /**
-     * @var null
-     */
-    private $documentCountry = null;
-
     /**
      * @var RedirectorRegistry
      */
@@ -87,11 +47,6 @@ class PimcoreRedirectListener implements EventSubscriberInterface
     protected $pathGeneratorManager;
 
     /**
-     * @var RequestHelper
-     */
-    protected $requestHelper;
-
-    /**
      * @var RedirectHandler
      */
     protected $redirectHandler;
@@ -102,35 +57,43 @@ class PimcoreRedirectListener implements EventSubscriberInterface
     protected $siteResolver;
 
     /**
-     * @var Request
+     * @var SiteResolver
      */
-    protected $request;
+    protected $documentHelper;
 
     /**
-     * @param RedirectorRegistry   $redirectorRegistry
-     * @param RequestHelper        $requestHelper
-     * @param ZoneManager          $zoneManager
-     * @param ContextManager       $contextManager
-     * @param PathGeneratorManager $pathGeneratorManager
-     * @param RedirectHandler      $redirectHandler
-     * @param SiteResolver         $siteResolver
+     * @var RequestValidatorHelper
+     */
+    protected $requestValidatorHelper;
+
+    /**
+     * @param RedirectorRegistry     $redirectorRegistry
+     * @param ZoneManager            $zoneManager
+     * @param ContextManager         $contextManager
+     * @param PathGeneratorManager   $pathGeneratorManager
+     * @param RedirectHandler        $redirectHandler
+     * @param SiteResolver           $siteResolver
+     * @param DocumentHelper         $documentHelper
+     * @param RequestValidatorHelper $requestValidatorHelper
      */
     public function __construct(
         RedirectorRegistry $redirectorRegistry,
-        RequestHelper $requestHelper,
         ZoneManager $zoneManager,
         ContextManager $contextManager,
         PathGeneratorManager $pathGeneratorManager,
         RedirectHandler $redirectHandler,
-        SiteResolver $siteResolver
+        SiteResolver $siteResolver,
+        DocumentHelper $documentHelper,
+        RequestValidatorHelper $requestValidatorHelper
     ) {
         $this->redirectorRegistry = $redirectorRegistry;
-        $this->requestHelper = $requestHelper;
         $this->zoneManager = $zoneManager;
         $this->contextManager = $contextManager;
         $this->pathGeneratorManager = $pathGeneratorManager;
         $this->redirectHandler = $redirectHandler;
         $this->siteResolver = $siteResolver;
+        $this->documentHelper = $documentHelper;
+        $this->requestValidatorHelper = $requestValidatorHelper;
     }
 
     /**
@@ -140,7 +103,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
     {
         return [
             KernelEvents::EXCEPTION => [['onKernelRedirectException', 65]],     // before pimcore frontend routing listener (redirect check)
-            KernelEvents::REQUEST   => [['onKernelRedirectRequest', 513]],        // before pimcore frontend routing listener (redirect check)
+            KernelEvents::REQUEST   => [['onKernelRedirectRequest', 513]],      // before pimcore frontend routing listener (redirect check)
         ];
     }
 
@@ -168,15 +131,11 @@ class PimcoreRedirectListener implements EventSubscriberInterface
      */
     public function onKernelRedirectRequest(GetResponseEvent $event)
     {
-        if (!$event->isMasterRequest()) {
+        if ($event->isMasterRequest() === false) {
             return;
         }
 
-        if ($this->matchesPimcoreContext($event->getRequest(), PimcoreContextResolver::CONTEXT_ADMIN)) {
-            return;
-        }
-
-        if (!$this->matchesPimcoreContext($event->getRequest(), PimcoreContextResolver::CONTEXT_DEFAULT)) {
+        if ($this->requestValidatorHelper->isValidForRedirect($event->getRequest(), false) === false) {
             return;
         }
 
@@ -220,30 +179,25 @@ class PimcoreRedirectListener implements EventSubscriberInterface
             return $response;
         }
 
-        $this->document = $document;
-        $this->request = $request;
-
-        if (!$this->request->attributes->has('pimcore_request_source')) {
-            $this->request->attributes->set('pimcore_request_source', 'document');
+        if (!$request->attributes->has('pimcore_request_source')) {
+            $request->attributes->set('pimcore_request_source', 'document');
         }
 
         $this->zoneManager->initZones();
-
         $this->contextManager->initContext($this->zoneManager->getCurrentZoneInfo('mode'), $document);
         $this->pathGeneratorManager->initPathGenerator($request->attributes->get('pimcore_request_source'));
-        $this->i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
-        $this->validLocales = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLocales();
-        $this->defaultLocale = $this->zoneManager->getCurrentZoneLocaleAdapter()->getDefaultLocale();
 
-        $this->setDocumentLocale();
+        $i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
+        $defaultLocale = $this->zoneManager->getCurrentZoneLocaleAdapter()->getDefaultLocale();
+        $documentLocaleData = $this->documentHelper->getDocumentLocaleData($document, $i18nType);
 
         $options = [
-            'i18nType'        => $this->i18nType,
-            'request'         => $this->request,
-            'document'        => $this->document,
-            'documentLocale'  => $this->documentLocale,
-            'documentCountry' => $this->documentCountry,
-            'defaultLocale'   => $this->defaultLocale
+            'i18nType'        => $i18nType,
+            'request'         => $request,
+            'document'        => $document,
+            'documentLocale'  => $documentLocaleData['documentLocale'],
+            'documentCountry' => $documentLocaleData['documentCountry'],
+            'defaultLocale'   => $defaultLocale
         ];
 
         $redirectorBag = new RedirectorBag($options);
@@ -266,12 +220,14 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         }
 
         if ($validDecision === null) {
+            $response->setTargetUrl($document->getFullPath());
             return $response;
         }
 
         $localizedUrls = $this->pathGeneratorManager->getPathGenerator()->getUrls($document, false);
 
         if (count($localizedUrls) === 0) {
+            $response->setTargetUrl($document->getFullPath());
             return $response;
         }
 
@@ -300,50 +256,6 @@ class PimcoreRedirectListener implements EventSubscriberInterface
 
     /**
      * @param Request $request
-     * @param bool    $allowAjax
-     *
-     * @return bool
-     */
-    protected function isValidI18nCheckRequest(Request $request, $allowAjax = false)
-    {
-        if ($this->requestHelper->isFrontendRequestByAdmin($request)) {
-            return false;
-        }
-
-        if (System::isInCliMode() || ($allowAjax === false && $request->isXmlHttpRequest())) {
-            return false;
-        }
-
-        return true;
-    }
-
-    protected function setDocumentLocale()
-    {
-        if ($this->document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            /** @var Document\Hardlink\Wrapper $wrapperDocument */
-            $wrapperDocument = $this->document;
-            $this->documentLocale = $wrapperDocument->getHardLinkSource()->getProperty('language');
-        } else {
-            $this->documentLocale = $this->document->getProperty('language');
-        }
-
-        if ($this->i18nType === 'country') {
-            $this->documentCountry = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
-        }
-
-        $this->documentLanguage = $this->documentLocale;
-
-        if (strpos($this->documentLocale, '_') !== false) {
-            $parts = explode('_', $this->documentLocale);
-            $this->documentLanguage = strtolower($parts[0]);
-            if (isset($parts[1]) && !empty($parts[1])) {
-                $this->documentCountry = strtoupper($parts[1]);
-            }
-        }
-    }
-
-    /**
-     * @param Request $request
      *
      * @return string
      */
@@ -351,7 +263,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
     {
         $path = urldecode($request->getPathInfo());
 
-        if ($this->requestHelper->isFrontendRequestByAdmin($request)) {
+        if ($this->requestValidatorHelper->isFrontendRequestByAdmin($request)) {
             return $path;
         }
 
