@@ -57,7 +57,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
     protected $siteResolver;
 
     /**
-     * @var SiteResolver
+     * @var DocumentHelper
      */
     protected $documentHelper;
 
