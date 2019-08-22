@@ -4,5 +4,6 @@ i18n:
     default_locale: 'en'
     translations: ~
 
-parameters:
-    pimcore_system_config.cache.enabled: true
+pimcore:
+    cache:
+        enabled: true

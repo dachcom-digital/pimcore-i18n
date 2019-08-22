@@ -15,8 +15,6 @@ class FullPageCacheCest
         $I->haveAPageDocumentForSite($site1, 'en', 'en');
         $I->haveAPageDocumentForSite($site1, 'de', 'de');
 
-        $I->haveRuntimeFullPageCacheEnabled();
-
         $I->amOnPageWithLocale('http://test-domain1.test/de', 'de');
 
         $I->dontSeePimcoreOutputCacheDisabledHeader();

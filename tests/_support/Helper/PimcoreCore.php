@@ -6,7 +6,6 @@ use Codeception\Lib\ModuleContainer;
 use Codeception\TestInterface;
 use Codeception\Util\Debug;
 use Pimcore\Cache;
-use Pimcore\Cache\Runtime;
 use Pimcore\Config;
 use Pimcore\Event\TestEvents;
 use Pimcore\Tests\Helper\Pimcore as PimcoreCoreModule;
@@ -96,8 +95,6 @@ class PimcoreCore extends PimcoreCoreModule
     {
         parent::_after($test);
 
-        $this->restoreSystemConfig();
-
         if ($this->kernelHasCustomConfig !== true) {
             return;
         }
@@ -149,27 +146,6 @@ class PimcoreCore extends PimcoreCoreModule
     {
         $this->kernelHasCustomConfig = true;
         $this->rebootKernelWithConfiguration($configuration);
-    }
-
-    /**
-     * Actor Function to enabled full page cache
-     * @throws \Exception
-     */
-    public function haveRuntimeFullPageCacheEnabled()
-    {
-        if (!Runtime::isRegistered('pimcore_config_system')) {
-            return;
-        }
-
-        $rawConfig = Runtime::get('pimcore_config_system');
-
-        $rawConfigArray = $rawConfig->toArray();
-        $rawConfigArray['cache']['enabled'] = true;
-
-        $newConfig = new \Pimcore\Config\Config($rawConfigArray);
-
-        Runtime::set('pimcore_config_system', $newConfig);
-        Runtime::set('pimcore_config_system_backup', $rawConfig);
     }
 
     /**
@@ -303,28 +279,6 @@ class PimcoreCore extends PimcoreCoreModule
         $fileSystem->rename($cacheDir, $oldCacheDir);
         $fileSystem->mkdir($cacheDir);
         $fileSystem->remove($oldCacheDir);
-    }
-
-    /**
-     * @throws \Exception
-     */
-    protected function restoreSystemConfig()
-    {
-        if (!Runtime::isRegistered('pimcore_config_system_backup')) {
-            return;
-        }
-
-        $backupConfig = Runtime::get('pimcore_config_system_backup');
-
-        if($backupConfig === null) {
-            return;
-        }
-
-        codecept_debug('restore system config');
-
-        Runtime::set('pimcore_config_system', $backupConfig);
-        Runtime::set('pimcore_config_system_backup', null);
-
     }
 
     /**

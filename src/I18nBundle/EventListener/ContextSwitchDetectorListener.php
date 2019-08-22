@@ -70,9 +70,9 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     protected $requestValidatorHelper;
 
     /**
-     * @var bool
+     * @var array
      */
-    protected $fullPageCacheEnabled;
+    protected $pimcoreConfig;
 
     /**
      * @param EventDispatcherInterface $eventDispatcher
@@ -80,7 +80,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
      * @param ZoneManager              $zoneManager
      * @param DocumentHelper           $documentHelper
      * @param RequestValidatorHelper   $requestValidatorHelper
-     * @param bool                     $fullPageCacheEnabled
+     * @param array                    $pimcoreConfig
      */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
@@ -88,14 +88,14 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
         ZoneManager $zoneManager,
         DocumentHelper $documentHelper,
         RequestValidatorHelper $requestValidatorHelper,
-        $fullPageCacheEnabled
+        $pimcoreConfig
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->documentResolver = $documentResolver;
         $this->zoneManager = $zoneManager;
         $this->documentHelper = $documentHelper;
         $this->requestValidatorHelper = $requestValidatorHelper;
-        $this->fullPageCacheEnabled = $fullPageCacheEnabled;
+        $this->pimcoreConfig = $pimcoreConfig;
     }
 
     /**
@@ -119,7 +119,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
-        if ($this->fullPageCacheEnabled === true) {
+        if ($this->pimcoreConfig['cache']['enabled'] === true) {
             return;
         }
 
