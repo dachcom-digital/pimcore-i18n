@@ -19,6 +19,8 @@ services:
     I18nBundle\EventListener\ContextSwitchDetectorListener:
         tags:
             - { name: kernel.event_subscriber }
+        arguments:
+            $pimcoreConfig: '%pimcore.config%'
 
      # event: checks if hardlink page has a front-page map
     I18nBundle\EventListener\FrontPageMapperListener:

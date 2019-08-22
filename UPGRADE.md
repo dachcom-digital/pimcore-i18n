@@ -8,6 +8,7 @@ Just click the "update" button or execute the migration command to finish the bu
 
 #### Update from Version 3.0.0 to Version 3.1.0
 - **[NEW FEATURE]**: Allow [pimcore redirect modification](https://github.com/dachcom-digital/pimcore-i18n/issues/33).
+- **[BUGFIX]**: Disable context switch event if [pimcore full page cache](https://github.com/dachcom-digital/pimcore-i18n/issues/18) is enabled
 
 #### Update from Version 2.x to Version 3.0.0
 - **[NEW FEATURE]**: Pimcore 6.0.0 ready

@@ -1,0 +1,9 @@
+i18n:
+    mode: language
+    locale_adapter: system
+    default_locale: 'en'
+    translations: ~
+
+pimcore:
+    cache:
+        enabled: true

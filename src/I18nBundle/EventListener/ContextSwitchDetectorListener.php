@@ -70,24 +70,32 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     protected $requestValidatorHelper;
 
     /**
+     * @var array
+     */
+    protected $pimcoreConfig;
+
+    /**
      * @param EventDispatcherInterface $eventDispatcher
      * @param DocumentResolver         $documentResolver
      * @param ZoneManager              $zoneManager
      * @param DocumentHelper           $documentHelper
      * @param RequestValidatorHelper   $requestValidatorHelper
+     * @param array                    $pimcoreConfig
      */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
         DocumentResolver $documentResolver,
         ZoneManager $zoneManager,
         DocumentHelper $documentHelper,
-        RequestValidatorHelper $requestValidatorHelper
+        RequestValidatorHelper $requestValidatorHelper,
+        $pimcoreConfig
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->documentResolver = $documentResolver;
         $this->zoneManager = $zoneManager;
         $this->documentHelper = $documentHelper;
         $this->requestValidatorHelper = $requestValidatorHelper;
+        $this->pimcoreConfig = $pimcoreConfig;
     }
 
     /**
@@ -111,6 +119,10 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
+        if ($this->pimcoreConfig['cache']['enabled'] === true) {
+            return;
+        }
+
         if ($event->isMasterRequest() === false) {
             return;
         }
