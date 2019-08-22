@@ -44,14 +44,16 @@ class PimcoreBackend extends Module
      *
      * @param string $documentKey
      * @param string $locale
+     * @param string $action
      *
      * @return Page
      */
     public function haveAPageDocument(
         $documentKey = 'test-document',
-        $locale = null
+        $locale = null,
+        $action = 'default'
     ) {
-        $document = $this->generatePageDocument($documentKey, $locale);
+        $document = $this->generatePageDocument($documentKey, $locale, $action);
 
         try {
             $document->save();
@@ -429,14 +431,15 @@ class PimcoreBackend extends Module
      *
      * @param string $key
      * @param string $locale
+     * @param string $action
      *
      * @return Page
      */
-    protected function generatePageDocument($key = 'document-test', $locale = null)
+    protected function generatePageDocument($key = 'document-test', $locale = null, $action = 'default')
     {
         $document = TestHelper::createEmptyDocumentPage('', false);
         $document->setController('@AppBundle\Controller\DefaultController');
-        $document->setAction('default');
+        $document->setAction($action);
         $document->setKey($key);
         $document->setProperty('navigation_title', 'text', $key);
         $document->setProperty('navigation_name', 'text', $key);
