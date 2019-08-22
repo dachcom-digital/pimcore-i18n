@@ -5,6 +5,7 @@ namespace DachcomBundle\Test\Helper;
 use Codeception\Lib\ModuleContainer;
 use Codeception\Lib\Connector\Symfony as SymfonyConnector;
 use Pimcore\Cache;
+use Pimcore\Cache\Runtime;
 use Pimcore\Config;
 use Pimcore\Event\TestEvents;
 use Pimcore\Tests\Helper\Pimcore as PimcoreCoreModule;
@@ -36,6 +37,8 @@ class PimcoreCore extends PimcoreCoreModule
     public function _after(\Codeception\TestInterface $test)
     {
         parent::_after($test);
+
+        $this->restoreSystemConfig();
 
         // config has changed, we need to restore default config before starting a new test!
         if ($this->kernelHasCustomConfig === true) {
@@ -164,6 +167,27 @@ class PimcoreCore extends PimcoreCoreModule
     }
 
     /**
+     * Actor Function to enabled full page cache
+     * @throws \Exception
+     */
+    public function haveRuntimeFullPageCacheEnabled()
+    {
+        if (!Runtime::isRegistered('pimcore_config_system')) {
+            return;
+        }
+
+        $rawConfig = Runtime::get('pimcore_config_system');
+
+        $rawConfigArray = $rawConfig->toArray();
+        $rawConfigArray['cache']['enabled'] = true;
+
+        $newConfig = new \Pimcore\Config\Config($rawConfigArray);
+
+        Runtime::set('pimcore_config_system', $newConfig);
+        Runtime::set('pimcore_config_system_backup', $rawConfig);
+    }
+
+    /**
      * @param string   $exception
      * @param string   $message
      * @param \Closure $callback
@@ -192,6 +216,29 @@ class PimcoreCore extends PimcoreCoreModule
         };
 
         $this->assertTrue($function());
+    }
+
+
+    /**
+     * @throws \Exception
+     */
+    protected function restoreSystemConfig()
+    {
+        if (!Runtime::isRegistered('pimcore_config_system_backup')) {
+            return;
+        }
+
+        $backupConfig = Runtime::get('pimcore_config_system_backup');
+
+        if($backupConfig === null) {
+            return;
+        }
+
+        codecept_debug('restore system config');
+
+        Runtime::set('pimcore_config_system', $backupConfig);
+        Runtime::set('pimcore_config_system_backup', null);
+
     }
 
     /**

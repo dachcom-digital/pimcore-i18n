@@ -4,12 +4,12 @@ namespace DachcomBundle\Test\Helper\Browser;
 
 use Codeception\Module;
 use Codeception\Lib;
-use Codeception\Util\Uri;
 use Codeception\Exception\ModuleException;
 use DachcomBundle\Test\Helper\PimcoreCore;
 use DachcomBundle\Test\Helper\PimcoreUser;
 use Pimcore\Model\User;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
+use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector;
 use Symfony\Component\HttpKernel\Profiler\Profile;
@@ -226,6 +226,49 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
         $link = $this->pimcoreCore->client->getInternalResponse()->getHeader('Link');
 
         $this->assertNull($link);
+    }
+
+    /**
+     * Actor Function to see pimcore output cached disabled header
+     *
+     * @param $disabledReasonMessage
+     */
+    public function seePimcoreOutputCacheDisabledHeader($disabledReasonMessage)
+    {
+        $disabledReason = $this->pimcoreCore->client->getInternalResponse()->getHeader('X-Pimcore-Output-Cache-Disable-Reason');
+
+        $this->assertEquals($disabledReasonMessage, $disabledReason);
+    }
+
+    /**
+     * Actor Function to not to see pimcore output cached disabled header
+     */
+    public function dontSeePimcoreOutputCacheDisabledHeader()
+    {
+        $disabledReason = $this->pimcoreCore->client->getInternalResponse()->getHeader('X-Pimcore-Output-Cache-Disable-Reason');
+
+        $this->assertNull($disabledReason);
+    }
+
+    /**
+     * Actor Function to not to see pimcore output cached disabled header
+     */
+    public function seePimcoreOutputCacheIsEnabled()
+    {
+        $cacheDateHeader = $this->pimcoreCore->client->getInternalResponse()->getHeader('x-pimcore-cache-date');
+
+        $this->assertNotNull($cacheDateHeader);
+    }
+
+    /**
+     * Actor Function to assert empty i18n session bag
+     */
+    public function seeEmptyI18nSessionBag()
+    {
+        /** @var NamespacedAttributeBag $sessionBag */
+        $sessionBag = $this->pimcoreCore->client->getRequest()->getSession()->getBag('i18n_session');
+
+        $this->assertCount(0, $sessionBag->all());
     }
 
     /**
