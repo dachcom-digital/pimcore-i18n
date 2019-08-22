@@ -10,3 +10,5 @@ services:
     I18nBundle\Helper\CookieHelper: ~
 
     I18nBundle\Helper\UserHelper: ~
+
+    I18nBundle\Helper\RequestValidatorHelper: ~

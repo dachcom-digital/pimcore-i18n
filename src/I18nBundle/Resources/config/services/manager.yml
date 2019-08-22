@@ -5,7 +5,9 @@ services:
         public: false
 
     # manager: zone
-    I18nBundle\Manager\ZoneManager: ~
+    I18nBundle\Manager\ZoneManager:
+        arguments:
+            $generalDomain: '%router.request_context.host%'
 
     # manager: path_generator
     I18nBundle\Manager\PathGeneratorManager: ~
