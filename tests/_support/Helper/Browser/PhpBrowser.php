@@ -253,7 +253,7 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
     /**
      * Actor Function to not to see pimcore output cached disabled header
      */
-    public function seePimcoreOutputCacheIsEnabled()
+    public function seePimcoreOutputCacheDate()
     {
         $cacheDateHeader = $this->pimcoreCore->client->getInternalResponse()->getHeader('x-pimcore-cache-date');
 

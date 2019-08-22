@@ -20,7 +20,7 @@ class FullPageCacheCest
         $I->amOnPageWithLocale('http://test-domain1.test/de', 'de');
 
         $I->dontSeePimcoreOutputCacheDisabledHeader();
-        $I->seePimcoreOutputCacheIsEnabled();
+        $I->seePimcoreOutputCacheDate();
         $I->seeEmptyI18nSessionBag();
     }
 
