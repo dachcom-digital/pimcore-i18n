@@ -9,6 +9,7 @@ Just click the "update" button or execute the migration command to finish the bu
 #### Update from Version 2.4.0 to Version 2.4.1
 - **[NEW FEATURE]**: Allow [pimcore redirect modification](https://github.com/dachcom-digital/pimcore-i18n/issues/33)
 - **[BUGFIX]**: Disable context switch event if [pimcore full page cache](https://github.com/dachcom-digital/pimcore-i18n/issues/18) is enabled
+- **[BUGFIX]**: Fix context on [xliff export](https://github.com/dachcom-digital/pimcore-i18n/issues/28)
 
 #### Update from Version 2.3.x to Version 2.4.0
 - **[ATTENTION]**: Installer has moved to the [MigrationBundle](https://github.com/dachcom-digital/pimcore-i18n/issues/19). After updating to this version you need to enable this extension again!
