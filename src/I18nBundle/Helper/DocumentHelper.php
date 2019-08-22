@@ -2,22 +2,28 @@
 
 namespace I18nBundle\Helper;
 
+use I18nBundle\Definitions;
+use Pimcore\Model\Document;
 use Pimcore\Model\Site as PimcoreSite;
+use Pimcore\Tool;
+use Pimcore\Tool\Frontend;
 
 class DocumentHelper
 {
     /**
      * Get Documents Url and Path.
      *
-     * @param \Pimcore\Model\Document $document
+     * @param Document $document
      *
      * @return string
+     *
+     * @throws \Exception
      */
     public function getDocumentFullPath($document = null)
     {
-        $hostUrl = \Pimcore\Tool::getHostUrl();
+        $hostUrl = Tool::getHostUrl();
 
-        if (!$document instanceof \Pimcore\Model\Document) {
+        if (!$document instanceof Document) {
             return $hostUrl;
         }
 
@@ -29,6 +35,8 @@ class DocumentHelper
 
     /**
      * @return string
+     *
+     * @throws \Exception
      */
     public function getCurrentPageRootPath()
     {
@@ -42,44 +50,87 @@ class DocumentHelper
     }
 
     /**
+     * @param Document $document
+     * @param string   $i18nType
+     *
+     * @return array
+     */
+    public function getDocumentLocaleData(Document $document, $i18nType = 'language')
+    {
+        $documentLocale = null;
+        $documentLanguage = null;
+        $documentCountry = null;
+
+        if ($document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
+            /** @var Document\Hardlink\Wrapper $wrapperDocument */
+            $wrapperDocument = $document;
+            $documentLocale = $wrapperDocument->getHardLinkSource()->getProperty('language');
+        } else {
+            $documentLocale = $document->getProperty('language');
+        }
+
+        if ($i18nType === 'country') {
+            $documentCountry = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
+        }
+
+        $documentLanguage = $documentLocale;
+
+        if (strpos($documentLocale, '_') !== false) {
+            $parts = explode('_', $documentLocale);
+            $documentLanguage = strtolower($parts[0]);
+            if (isset($parts[1]) && !empty($parts[1])) {
+                $documentCountry = strtoupper($parts[1]);
+            }
+        }
+
+        return [
+            'documentLocale'   => $documentLocale,
+            'documentLanguage' => $documentLanguage,
+            'documentCountry'  => $documentCountry
+        ];
+    }
+
+    /**
      *  Get Documents Url without it's own path.
      *
-     * @param \Pimcore\Model\Document $document
-     * @param bool                    $returnAsArray
-     * @param bool                    $restrictToCurrentSite
+     * @param Document $document
+     * @param bool     $returnAsArray
+     * @param bool     $restrictToCurrentSite
      *
      * @return array string document url without trailing slash
+     *
+     * @throws \Exception
      */
-    private function getDocumentUrl($document = null, $returnAsArray = false, $restrictToCurrentSite = true)
+    protected function getDocumentUrl($document = null, $returnAsArray = false, $restrictToCurrentSite = true)
     {
         $siteIsLanguageRoot = false;
         $url = '';
 
-        if (!\Pimcore\Model\Site::isSiteRequest()) {
-            $url = rtrim(\Pimcore\Tool::getHostUrl(), '/');
+        if (!PimcoreSite::isSiteRequest()) {
+            $url = rtrim(Tool::getHostUrl(), '/');
 
             return $returnAsArray ? ['url' => $url, 'siteIsLanguageRoot' => $siteIsLanguageRoot] : $url;
         }
 
         if ($restrictToCurrentSite === false || $this->isDocumentInCurrentSite($document)) {
-            $site = \Pimcore\Model\Site::getCurrentSite();
+            $site = PimcoreSite::getCurrentSite();
 
             //we're in the current documents domain. add Host!
-            if ($site->getRootId() === $document->getId() || \Pimcore\Tool\Frontend::isDocumentInCurrentSite($document)) {
+            if ($site->getRootId() === $document->getId() || Frontend::isDocumentInCurrentSite($document)) {
                 if ($site->getRootId() === $document->getId()) {
                     $siteIsLanguageRoot = true;
                 }
 
-                $hostUrl = \Pimcore\Tool::getHostUrl();
+                $hostUrl = Tool::getHostUrl();
             } else {
-                /** @var \Pimcore\Model\Site $documentSite */
-                $documentSite = \Pimcore\Tool\Frontend::getSiteForDocument($document);
+                /** @var PimcoreSite $documentSite */
+                $documentSite = Frontend::getSiteForDocument($document);
 
                 if ($documentSite->getRootId() === $document->getId()) {
                     $siteIsLanguageRoot = true;
                 }
 
-                $hostUrl = \Pimcore\Tool::getRequestScheme() . '://' . $documentSite->getMainDomain();
+                $hostUrl = Tool::getRequestScheme() . '://' . $documentSite->getMainDomain();
             }
 
             $url = rtrim($hostUrl, '/');
@@ -99,19 +150,24 @@ class DocumentHelper
      * Checks if document is in current site.
      * also true if given document is actually current site.
      *
-     * @param \Pimcore\Model\Document $document
+     * @param Document $document
      *
      * @return bool
+     *
+     * @throws \Exception
      */
-    private function isDocumentInCurrentSite($document)
+    protected function isDocumentInCurrentSite($document)
     {
-        if (!\Pimcore\Model\Site::isSiteRequest()) {
+        if (!PimcoreSite::isSiteRequest()) {
             return false;
         }
 
-        $site = \Pimcore\Model\Site::getCurrentSite();
+        if (Frontend::isDocumentInCurrentSite($document)) {
+            return true;
+        }
 
-        if (\Pimcore\Tool\Frontend::isDocumentInCurrentSite($document) || $site->getRootId() === $document->getId()) {
+        $site = PimcoreSite::getCurrentSite();
+        if ($site->getRootId() === $document->getId()) {
             return true;
         }
 
