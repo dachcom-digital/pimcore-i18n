@@ -70,6 +70,7 @@ Does actually the same as the update command and preferred in CI-Workflow:
 - [Localized Error Documents](docs/40_LocaleErrorDocument.md): Learn how to create localized error documents.
 - [Custom Locale Adapter](docs/50_CustomLocaleAdapter.md): Learn how to create a custom locale adapter.
 - [Redirector Adapter](docs/51_RedirectorAdapter.md): Learn more about redirector adapter and how to implement a custom one.
+- [Pimcore Redirects with I18n](docs/52_PimcoreRedirects.md): Learn how to create localized pimcore redirects.
 - [Code Examples](docs/60_CodeExamples.md): See some examples.
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
 - [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in hardlinks.

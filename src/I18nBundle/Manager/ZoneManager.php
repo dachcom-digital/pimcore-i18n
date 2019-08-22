@@ -6,6 +6,7 @@ use I18nBundle\Adapter\Locale\LocaleInterface;
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Definitions;
 use I18nBundle\Registry\LocaleRegistry;
+use Pimcore\Db\Connection;
 use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use Pimcore\Http\Request\Resolver\SiteResolver;
@@ -15,6 +16,16 @@ use Pimcore\Model\Site;
 
 class ZoneManager
 {
+    /**
+     * @var string|null
+     */
+    protected $generalDomain;
+
+    /**
+     * @var Connection
+     */
+    protected $db;
+
     /**
      * @var RequestHelper
      */
@@ -65,8 +76,8 @@ class ZoneManager
     protected $isInZone = false;
 
     /**
-     * ZoneManager constructor.
-     *
+     * @param string|null      $generalDomain
+     * @param Connection       $db
      * @param RequestHelper    $requestHelper
      * @param SiteResolver     $siteResolver
      * @param Configuration    $configuration
@@ -75,6 +86,8 @@ class ZoneManager
      * @param DocumentResolver $documentResolver
      */
     public function __construct(
+        $generalDomain,
+        Connection $db,
         RequestHelper $requestHelper,
         SiteResolver $siteResolver,
         Configuration $configuration,
@@ -82,6 +95,8 @@ class ZoneManager
         EditmodeResolver $editmodeResolver,
         DocumentResolver $documentResolver
     ) {
+        $this->db = $db;
+        $this->generalDomain = $generalDomain;
         $this->requestHelper = $requestHelper;
         $this->siteResolver = $siteResolver;
         $this->configuration = $configuration;
@@ -158,14 +173,13 @@ class ZoneManager
             return $this->currentZoneDomains;
         }
 
-        $db = \Pimcore\Db::get();
-        $availableSites = $db->fetchAll('SELECT * FROM sites');
+        $availableSites = $this->db->fetchAll('SELECT * FROM sites');
 
         $zoneDomains = [];
-
         //it's a simple page, no sites.
         if (empty($availableSites)) {
-            $zoneDomains[] = $this->mapDomainData(\Pimcore\Tool::getHostUrl(), 1);
+            $hostUrl = !empty($this->generalDomain) && $this->generalDomain !== 'localhost' ? $this->generalDomain : \Pimcore\Tool::getHostUrl();
+            $zoneDomains[] = $this->mapDomainData($hostUrl, 1);
         } else {
             foreach ($availableSites as $site) {
                 $domainInfo = $this->mapDomainData($site['mainDomain'], $site['rootId']);
