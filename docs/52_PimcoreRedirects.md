@@ -3,7 +3,10 @@
 ![Pimcore Redirects](https://user-images.githubusercontent.com/700119/63445786-4917fe80-c439-11e9-8007-e19576cdf8bc.png)
 
 If you want to implement the i18n redirect guesser, you need to add `{i18n_localized_target_page=4}` instead of the document path in the `target` section.
-Be sure that your documents are connected, otherwise the detection won`t work.
+
+## Facts
+- Be sure that your documents are connected, otherwise the detection won`t work.
+- If you want to redirect an unknown host (Example A), be sure you set the redirect `priority` to `99`.
 
 ## Example
 

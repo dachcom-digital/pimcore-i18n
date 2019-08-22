@@ -3,6 +3,7 @@
 namespace DachcomBundle\Test\Util;
 
 use Pimcore\Model\Document;
+use Pimcore\Model\Redirect;
 use Pimcore\Tests\Util\TestHelper;
 
 class I18nHelper
@@ -28,6 +29,12 @@ class I18nHelper
             foreach ($availableSites as $availableSite) {
                 $db->delete('sites', ['id' => $availableSite['id']]);
             }
+        }
+
+        // remove all redirects
+        $redirects = new Redirect\Listing();
+        foreach ($redirects->load() as $redirect) {
+            $redirect->delete();
         }
     }
 }
