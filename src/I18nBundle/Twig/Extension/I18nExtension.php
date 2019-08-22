@@ -2,6 +2,7 @@
 
 namespace I18nBundle\Twig\Extension;
 
+use I18nBundle\Exception\ContextNotDefinedException;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Manager\ContextManager;
 use Twig\Extension\AbstractExtension;
@@ -50,7 +51,13 @@ class I18nExtension extends AbstractExtension
      */
     public function getI18Context($method = '', $options = [])
     {
-        return call_user_func_array([$this->contextManager->getContext(), $method], $options);
+        try {
+            $context = $this->contextManager->getContext();
+        } catch (ContextNotDefinedException $e) {
+            return null;
+        }
+
+        return call_user_func_array([$context, $method], $options);
     }
 
     /**

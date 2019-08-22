@@ -4,6 +4,7 @@ namespace DachcomBundle\Test\Helper;
 
 use Codeception\Module;
 use Codeception\TestInterface;
+use DachcomBundle\Test\Helper\Browser\PhpBrowser;
 use DachcomBundle\Test\Util\FileGeneratorHelper;
 use DachcomBundle\Test\Util\I18nHelper;
 use Pimcore\Model\Document;
@@ -43,14 +44,16 @@ class PimcoreBackend extends Module
      *
      * @param string $documentKey
      * @param string $locale
+     * @param string $action
      *
      * @return Page
      */
     public function haveAPageDocument(
         $documentKey = 'test-document',
-        $locale = null
+        $locale = null,
+        $action = 'default'
     ) {
-        $document = $this->generatePageDocument($documentKey, $locale);
+        $document = $this->generatePageDocument($documentKey, $locale, $action);
 
         try {
             $document->save();
@@ -396,18 +399,47 @@ class PimcoreBackend extends Module
     }
 
     /**
+     * @param Document $document
+     *
+     * @throws \Codeception\Exception\ModuleException
+     */
+    public function submitDocumentToXliffExporter(Document $document)
+    {
+        /** @var PimcoreCore $pimcoreCore */
+        $pimcoreCore = $this->getModule('\\' . PimcoreCore::class);
+
+        $pimcoreCore->_loadPage('POST', '/admin/translation/xliff-export', [
+            'csrfToken' => PhpBrowser::PIMCORE_ADMIN_CSRF_TOKEN_NAME,
+            'source'    => 'en',
+            'target'    => 'de',
+            'data'      => json_encode([
+                [
+                    'id'       => $document->getId(),
+                    'path'     => $document->getFullPath(),
+                    'type'     => 'document',
+                    'children' => true
+                ]
+            ]),
+            'type'      => 'xliff'
+        ]);
+
+        $this->assertContains(['successs' => true], json_decode($pimcoreCore->_getResponseContent(), true));
+    }
+
+    /**
      * API Function to create a page document
      *
      * @param string $key
      * @param string $locale
+     * @param string $action
      *
      * @return Page
      */
-    protected function generatePageDocument($key = 'document-test', $locale = null)
+    protected function generatePageDocument($key = 'document-test', $locale = null, $action = 'default')
     {
         $document = TestHelper::createEmptyDocumentPage('', false);
         $document->setController('@AppBundle\Controller\DefaultController');
-        $document->setAction('default');
+        $document->setAction($action);
         $document->setKey($key);
         $document->setProperty('navigation_title', 'text', $key);
         $document->setProperty('navigation_name', 'text', $key);
