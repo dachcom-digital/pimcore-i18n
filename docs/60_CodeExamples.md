@@ -271,53 +271,66 @@ Available Options for the `getCurrentCountryInfo` or `getCurrentLanguageInfo` co
 
 ### Language Drop-Down
 ```twig
-<nav id="navigation">
-    <select>
-        {% for language in i18n_context('getActiveLanguages') %}
-            <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
-        {% endfor %}
-    </select>
-</nav>
+{% set languages = i18n_context('getActiveLanguages') %}
+{% if languages is iterable %}
+    <nav id="navigation">
+        <select>
+            {% for language in languages %}
+                <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+            {% endfor %}
+        </select>
+    </nav>
+{% endif %}
+
 ```
 
 ### Country Selection
 ```twig
-<nav id="navigation">
-    {% for country in i18n_context('getActiveCountries') %}
-        <ul>
-            <li class="country">{{ country.countryTitle }}
-                <ul class="languages">
-                    {% for language in country.languages %}
-                        <li{{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
-                    {% endfor %}
-                </ul>
-            </li>
-        </ul>
-    {% endfor %}
-</nav>
+{% set countries = i18n_context('getActiveCountries') %}
+{% if countries is iterable %}
+    <nav id="navigation">
+        {% for country in countries %}
+            <ul>
+                <li class="country">{{ country.countryTitle }}
+                    <ul class="languages">
+                        {% for language in country.languages %}
+                            <li{{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            </ul>
+        {% endfor %}
+    </nav>
+{% endif %}
 ```
 
 ### Complex Country / Language Selection based on Current Zone
 ```twig
 <nav id="navigation">
 {% if i18n_zone_info('mode') == 'country' %}
-    {% for country in i18n_context('getActiveCountries') %}
-        <ul>
-            <li class="country">{{ country.countryTitle }}
-                <ul class="languages">
-                    {% for language in country.languages %}
-                        <li{{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
-                    {% endfor %}
-                </ul>
-            </li>
-        </ul>
-    {% endfor %}
-{% elseif i18n_zone_info('mode') == 'language' %}
-    <select>
-        {% for language in i18n_context('getActiveLanguages') %}
-            <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+    {% set countries = i18n_context('getActiveCountries') %}
+    {% if countries is iterable %}
+        {% for country in countries %}
+            <ul>
+                <li class="country">{{ country.countryTitle }}
+                    <ul class="languages">
+                        {% for language in country.languages %}
+                            <li{{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            </ul>
         {% endfor %}
-    </select>
+    {% endif %}
+{% elseif i18n_zone_info('mode') == 'language' %}
+    {% set languages = i18n_context('getActiveLanguages') %}
+    {% if languages is iterable %}
+        <select>
+            {% for language in languages %}
+                <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+            {% endfor %}
+        </select>
+    {% endif %}
 {% endif %}
 </nav>
 ```

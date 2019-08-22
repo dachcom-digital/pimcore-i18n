@@ -6,6 +6,7 @@ use I18nBundle\Adapter\Context\AbstractContext;
 use I18nBundle\Adapter\Context\ContextInterface;
 use I18nBundle\Adapter\Context\Country;
 use I18nBundle\Adapter\Context\Language;
+use I18nBundle\Exception\ContextNotDefinedException;
 use I18nBundle\Registry\ContextRegistry;
 use Pimcore\Model\Document;
 
@@ -61,12 +62,12 @@ class ContextManager
     /**
      * @return ContextInterface
      *
-     * @throws \Exception
+     * @throws ContextNotDefinedException
      */
     public function getContext()
     {
         if (empty($this->currentContext)) {
-            throw new \Exception('context is not defined');
+            throw new ContextNotDefinedException();
         }
 
         return $this->currentContext;
