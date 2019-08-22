@@ -1,0 +1,8 @@
+i18n:
+    mode: language
+    locale_adapter: system
+    default_locale: 'en'
+    translations: ~
+
+parameters:
+    pimcore_system_config.cache.enabled: true
