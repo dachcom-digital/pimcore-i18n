@@ -27,8 +27,6 @@ class I18nDataCollector extends DataCollector
     protected $isFrontend = true;
 
     /**
-     * I18nDataCollector constructor.
-     *
      * @param ZoneManager   $zoneManager
      * @param RequestHelper $requestHelper
      */

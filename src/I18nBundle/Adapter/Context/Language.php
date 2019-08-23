@@ -16,9 +16,15 @@ class Language extends AbstractContext
     public function getCurrentLanguageInfo($field = 'name')
     {
         $languageData = null;
-        if (Cache\Runtime::isRegistered('i18n.locale')) {
+        if (!Cache\Runtime::isRegistered('i18n.locale')) {
+            return null;
+        }
+
+        try {
             $locale = Cache\Runtime::get('i18n.locale');
             $languageData = $this->zoneManager->getCurrentZoneLocaleAdapter()->getLocaleData($locale, $field);
+        } catch (\Exception $e) {
+            return null;
         }
 
         return $languageData;
@@ -42,7 +48,7 @@ class Language extends AbstractContext
                 continue;
             }
 
-            $languageData = $this->mapLanguageInfo($domainElement['languageIso'], null, $domainElement['url']);
+            $languageData = $this->mapLanguageInfo($domainElement['locale'], $domainElement['url']);
             $languageData['linkedHref'] = $domainElement['url'];
             $languageData['active'] = $domainElement['languageIso'] === $this->getCurrentLanguageIso();
             foreach ($linkedLanguages as $linkedLanguage) {

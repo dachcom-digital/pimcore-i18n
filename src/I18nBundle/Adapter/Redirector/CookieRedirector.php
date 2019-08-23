@@ -12,8 +12,6 @@ class CookieRedirector extends AbstractRedirector
     protected $cookieHelper;
 
     /**
-     * CookieHelper constructor.
-     *
      * @param CookieHelper $cookieHelper
      */
     public function __construct(CookieHelper $cookieHelper)

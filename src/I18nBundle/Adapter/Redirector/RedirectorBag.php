@@ -43,8 +43,6 @@ class RedirectorBag
     protected $defaultLocale;
 
     /**
-     * RedirectorBag constructor.
-     *
      * @param array $options
      */
     public function __construct(array $options)
