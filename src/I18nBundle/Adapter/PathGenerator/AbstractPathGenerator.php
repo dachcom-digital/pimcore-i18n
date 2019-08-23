@@ -18,15 +18,11 @@ abstract class AbstractPathGenerator implements PathGeneratorInterface
     protected $documentHelper;
 
     /**
-     * DetectorListener constructor.
-     *
      * @param ZoneManager    $zoneManager
      * @param DocumentHelper $documentHelper
      */
-    public function __construct(
-        ZoneManager $zoneManager,
-        DocumentHelper $documentHelper
-    ) {
+    public function __construct(ZoneManager $zoneManager, DocumentHelper $documentHelper)
+    {
         $this->zoneManager = $zoneManager;
         $this->documentHelper = $documentHelper;
     }

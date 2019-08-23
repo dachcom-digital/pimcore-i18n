@@ -6,7 +6,10 @@
 After every update you should check the pimcore extension manager. 
 Just click the "update" button or execute the migration command to finish the bundle update.
 
-#### Update from Version 3.0 to Version 3.1.0
+#### Update from Version 3.1.0 to Version 3.1.1
+- **[ENHANCEMENT]**: Use locale instead of languageIso in [Document PathGenerator](https://github.com/dachcom-digital/pimcore-i18n/issues/41)
+
+#### Update from Version 3.0.0 to Version 3.1.0
 - **[NEW FEATURE]**: Allow [pimcore redirect modification](https://github.com/dachcom-digital/pimcore-i18n/issues/33).
 - **[BUGFIX]**: Disable context switch event if [pimcore full page cache](https://github.com/dachcom-digital/pimcore-i18n/issues/18) is enabled
 - **[BUGFIX]**: Fix context on [xliff export](https://github.com/dachcom-digital/pimcore-i18n/issues/28)

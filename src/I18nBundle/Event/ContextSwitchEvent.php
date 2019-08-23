@@ -12,8 +12,6 @@ class ContextSwitchEvent extends Event
     private $params = [];
 
     /**
-     * ContextSwitchEvent constructor.
-     *
      * @param array $params
      */
     public function __construct($params)

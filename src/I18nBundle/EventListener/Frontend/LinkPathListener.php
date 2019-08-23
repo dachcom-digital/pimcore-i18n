@@ -27,8 +27,6 @@ class LinkPathListener implements EventSubscriberInterface
     protected $pathfinder;
 
     /**
-     * I18nRedirect constructor.
-     *
      * @param DocumentResolver $documentResolver
      * @param PathFinder       $pathfinder
      */
