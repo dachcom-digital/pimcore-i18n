@@ -6,6 +6,8 @@ use I18nBundle\Definitions;
 use I18nBundle\Event\AlternateStaticRouteEvent;
 use I18nBundle\I18nEvents;
 use I18nBundle\Tool\System;
+use Pimcore\Model\DataObject\ClassDefinition\LinkGeneratorInterface;
+use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\Document as PimcoreDocument;
 use Pimcore\Model\Staticroute as PimcoreStaticRoute;
 use Symfony\Component\HttpFoundation\Request;
@@ -132,15 +134,15 @@ class StaticRoute extends AbstractPathGenerator
             }
 
             $staticRouteData = $routeData[$key];
-            $staticRouteParams = $staticRouteData['params'];
-            $staticRouteName = $staticRouteData['name'];
 
-            if (!is_array($staticRouteParams)) {
-                $staticRouteParams = [];
+            $link = $this->generateLink($staticRouteData);
+
+            if ($link === null) {
+                continue;
             }
 
-            //generate static route with url generator.
-            $link = $this->urlGenerator->generate($staticRouteName, $staticRouteParams);
+            // use domainUrl element since $link already comes with the locale part!
+            $url = strpos($link, 'http' !== false) ? $link : System::joinPath([$routeInfo['domainUrl'], $link]);
 
             $finalStoreData = [
                 'languageIso'      => $routeInfo['languageIso'],
@@ -148,8 +150,7 @@ class StaticRoute extends AbstractPathGenerator
                 'locale'           => $routeInfo['locale'],
                 'hrefLang'         => $routeInfo['hrefLang'],
                 'localeUrlMapping' => $routeInfo['localeUrlMapping'],
-                // use domainUrl element since $link already comes with the locale part!
-                'url'              => System::joinPath([$routeInfo['domainUrl'], $link])
+                'url'              => $url
             ];
 
             $routes[] = $finalStoreData;
@@ -158,5 +159,38 @@ class StaticRoute extends AbstractPathGenerator
         $this->cachedUrls[$currentDocument->getId()] = $routes;
 
         return $routes;
+    }
+
+    /**
+     * @param $staticRouteData
+     *
+     * @return string|null
+     */
+    protected function generateLink($staticRouteData)
+    {
+        $staticRouteParams = $staticRouteData['params'];
+
+        if (!is_array($staticRouteParams)) {
+            $staticRouteParams = [];
+        }
+
+        if (isset($staticRouteData['name']) && is_string($staticRouteData['name'])) {
+            $staticRouteName = $staticRouteData['name'];
+            return $this->urlGenerator->generate($staticRouteName, $staticRouteParams);
+        }
+
+        if (!isset($staticRouteData['object']) || !$staticRouteData['object'] instanceof Concrete) {
+            return null;
+        }
+
+        /** @var Concrete $object */
+        $object = $staticRouteData['object'];
+        $linkGenerator = $object->getClass()->getLinkGenerator();
+
+        if (!$linkGenerator instanceof LinkGeneratorInterface) {
+            return null;
+        }
+
+        return $linkGenerator->generate($object, $staticRouteParams);
     }
 }
