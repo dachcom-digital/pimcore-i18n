@@ -162,7 +162,7 @@ class StaticRoute extends AbstractPathGenerator
     }
 
     /**
-     * @param $staticRouteData
+     * @param array $staticRouteData
      *
      * @return string|null
      */
