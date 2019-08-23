@@ -27,8 +27,6 @@ class FallbackRedirector extends AbstractRedirector
     protected $zoneManager;
 
     /**
-     * GeoRedirector constructor.
-     *
      * @param ZoneManager $zoneManager
      */
     public function __construct(ZoneManager $zoneManager)
@@ -61,13 +59,18 @@ class FallbackRedirector extends AbstractRedirector
     }
 
     /**
-     * @param null $fallBackLocale
+     * @param string|null $fallBackLocale
      *
-     * @return bool
+     * @return bool|string
      */
     public function findUrlInZoneTree($fallBackLocale = null)
     {
-        $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+        try {
+            $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+        } catch (\Exception $e) {
+            return false;
+        }
+
         if (!is_array($zoneDomains)) {
             return false;
         }

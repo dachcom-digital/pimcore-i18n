@@ -33,8 +33,6 @@ class PathFinder
     protected $localeFragment = [];
 
     /**
-     * PathFinder constructor.
-     *
      * @param RequestStack           $requestStack
      * @param LocaleServiceInterface $locale
      * @param ZoneManager            $zoneManager
@@ -79,7 +77,13 @@ class PathFinder
         $currentLanguageIso = $document->getProperty('language');
         $currentCountryIso = null;
 
-        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country' && !empty($currentLanguageIso)) {
+        try {
+            $mode = $this->zoneManager->getCurrentZoneInfo('mode');
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        if ($mode === 'country' && !empty($currentLanguageIso)) {
             $currentCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
         }
 
@@ -183,7 +187,13 @@ class PathFinder
      */
     private function getValidLocales()
     {
-        return $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLocales();
+        try {
+            $validLocales = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLocales();
+        } catch (\Exception $e) {
+            return [];
+        }
+
+        return $validLocales;
     }
 
     /**

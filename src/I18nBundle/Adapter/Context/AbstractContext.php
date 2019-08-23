@@ -38,8 +38,6 @@ abstract class AbstractContext implements ContextInterface
     protected $document;
 
     /**
-     * DetectorListener constructor.
-     *
      * @param ZoneManager          $zoneManager
      * @param PathGeneratorManager $pathGeneratorManager
      * @param DocumentHelper       $documentHelper
@@ -86,13 +84,18 @@ abstract class AbstractContext implements ContextInterface
      */
     public function getCurrentLocale()
     {
-        if (Cache\Runtime::isRegistered('i18n.locale')) {
-            $locale = Cache\Runtime::get('i18n.locale');
-
-            return $locale;
+        if (!Cache\Runtime::isRegistered('i18n.locale')) {
+            return false;
         }
 
-        return false;
+        try {
+            $locale = Cache\Runtime::get('i18n.locale');
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        return $locale;
+
     }
 
     /**
@@ -102,13 +105,18 @@ abstract class AbstractContext implements ContextInterface
      */
     public function getCurrentLanguageIso()
     {
-        if (Cache\Runtime::isRegistered('i18n.languageIso')) {
-            $isoCode = Cache\Runtime::get('i18n.languageIso');
-
-            return $isoCode;
+        if (!Cache\Runtime::isRegistered('i18n.languageIso')) {
+            return false;
         }
 
-        return false;
+        try {
+            $isoCode = Cache\Runtime::get('i18n.languageIso');
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        return $isoCode;
+
     }
 
     /**
@@ -194,18 +202,19 @@ abstract class AbstractContext implements ContextInterface
     }
 
     /**
-     * @param string $languageIso
-     * @param string $countryIso
+     * @param string $locale
      * @param string $href
      *
      * @return array
      */
-    protected function mapLanguageInfo($languageIso, $countryIso, $href)
+    protected function mapLanguageInfo($locale, $href)
     {
+        $iso = explode('_', $locale);
+
         return [
-            'iso'         => $languageIso,
-            'titleNative' => Intl::getLanguageBundle()->getLanguageName($languageIso, $countryIso, $languageIso),
-            'title'       => Intl::getLanguageBundle()->getLanguageName($languageIso, $countryIso, $this->getCurrentLanguageIso()),
+            'iso'         => $iso[0],
+            'titleNative' => Intl::getLanguageBundle()->getLanguageName($locale, null, $iso[0]),
+            'title'       => Intl::getLanguageBundle()->getLanguageName($locale, null, $this->getCurrentLanguageIso()),
             'href'        => $href
         ];
     }

@@ -26,7 +26,13 @@ class Document extends AbstractPathGenerator
             return $this->cachedUrls[$currentDocument->getId()];
         }
 
-        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'language') {
+        try {
+            $mode = $this->zoneManager->getCurrentZoneInfo('mode');
+        } catch (\Exception $e) {
+            return [];
+        }
+
+        if ($mode === 'language') {
             $urls = $this->documentUrlsFromLanguage($currentDocument, $onlyShowRootLanguages);
         } else {
             $urls = $this->documentUrlsFromCountry($currentDocument, $onlyShowRootLanguages);
@@ -46,7 +52,13 @@ class Document extends AbstractPathGenerator
     private function documentUrlsFromLanguage(PimcoreDocument $currentDocument, $onlyShowRootLanguages = false)
     {
         $routes = [];
-        $tree = $this->zoneManager->getCurrentZoneDomains(true);
+
+        try {
+            $tree = $this->zoneManager->getCurrentZoneDomains(true);
+        } catch (\Exception $e) {
+            return [];
+        }
+
         $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'));
 
         // case 1: no deep linking requested. only return root pages!
@@ -75,11 +87,11 @@ class Document extends AbstractPathGenerator
         $translations = $service->getTranslations($currentDocument);
 
         foreach ($tree as $pageInfo) {
-            if (empty($pageInfo['languageIso'])) {
+            if (empty($pageInfo['locale'])) {
                 continue;
             }
 
-            $pageInfoLocale = $pageInfo['languageIso'];
+            $pageInfoLocale = $pageInfo['locale'];
             if (isset($translations[$pageInfoLocale])) {
                 try {
                     /** @var PimcoreDocument\Page $document */
@@ -128,7 +140,12 @@ class Document extends AbstractPathGenerator
     {
         $routes = [];
 
-        $tree = $this->zoneManager->getCurrentZoneDomains(true);
+        try {
+            $tree = $this->zoneManager->getCurrentZoneDomains(true);
+        } catch (\Exception $e) {
+            return [];
+        }
+
         $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'));
 
         if ($onlyShowRootLanguages === true || $rootDocumentId !== false) {
@@ -164,14 +181,11 @@ class Document extends AbstractPathGenerator
             }
 
             foreach ($tree as $pageInfo) {
-                if (empty($pageInfo['languageIso']) || empty($pageInfo['countryIso'])) {
+                if (empty($pageInfo['locale'])) {
                     continue;
                 }
 
-                $pageInfoLocale = $pageInfo['languageIso'];
-                if ($pageInfo['countryIso'] !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
-                    $pageInfoLocale .= '_' . $pageInfo['countryIso'];
-                }
+                $pageInfoLocale = $pageInfo['locale'];
 
                 if (isset($translations[$pageInfoLocale])) {
                     try {

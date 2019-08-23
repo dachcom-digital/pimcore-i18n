@@ -22,8 +22,6 @@ class AlternateStaticRouteEvent extends Event
     protected $routes = [];
 
     /**
-     * AlternateStaticRouteEvent constructor.
-     *
      * @param array $params
      */
     public function __construct(array $params)
