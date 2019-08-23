@@ -95,7 +95,6 @@ abstract class AbstractContext implements ContextInterface
         }
 
         return $locale;
-
     }
 
     /**
@@ -116,7 +115,6 @@ abstract class AbstractContext implements ContextInterface
         }
 
         return $isoCode;
-
     }
 
     /**

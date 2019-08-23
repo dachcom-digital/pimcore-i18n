@@ -2,7 +2,6 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
-use I18nBundle\Definitions;
 use I18nBundle\Tool\System;
 use Pimcore\Model\Document as PimcoreDocument;
 
