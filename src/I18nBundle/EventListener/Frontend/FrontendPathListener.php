@@ -15,8 +15,6 @@ class FrontendPathListener implements EventSubscriberInterface
     protected $pathfinder;
 
     /**
-     * FrontendPathListener constructor.
-     *
      * @param PathFinder $pathfinder
      */
     public function __construct(PathFinder $pathfinder)

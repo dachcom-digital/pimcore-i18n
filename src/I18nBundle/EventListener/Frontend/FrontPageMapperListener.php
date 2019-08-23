@@ -21,8 +21,6 @@ class FrontPageMapperListener implements EventSubscriberInterface
     protected $documentResolver;
 
     /**
-     * FrontPageMapperListener constructor.
-     *
      * @param DocumentResolver $documentResolver
      */
     public function __construct(DocumentResolver $documentResolver)

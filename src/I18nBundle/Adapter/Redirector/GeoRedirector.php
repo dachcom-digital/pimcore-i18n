@@ -33,8 +33,6 @@ class GeoRedirector extends AbstractRedirector
     protected $userHelper;
 
     /**
-     * GeoRedirector constructor.
-     *
      * @param ZoneManager $zoneManager
      * @param UserHelper  $userHelper
      */
@@ -111,7 +109,12 @@ class GeoRedirector extends AbstractRedirector
      */
     public function findUrlInZoneTree($languageIso, $countryIso = null)
     {
-        $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+        try {
+            $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+        } catch (\Exception $e) {
+            return false;
+        }
+
         if (!is_array($zoneDomains)) {
             return false;
         }

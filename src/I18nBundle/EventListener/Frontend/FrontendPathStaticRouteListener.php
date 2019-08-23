@@ -16,8 +16,6 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
     protected $zoneManager;
 
     /**
-     * FrontendPathStaticRouteListener constructor.
-     *
      * @param ZoneManager $zoneManager
      */
     public function __construct(ZoneManager $zoneManager)

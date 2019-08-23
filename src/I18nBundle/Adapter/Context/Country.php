@@ -218,7 +218,7 @@ class Country extends AbstractContext
 
         foreach ($tree as $domainElement) {
             if ($domainElement['countryIso'] === $countryIso) {
-                $languageData = $this->mapLanguageInfo($domainElement['languageIso'], $domainElement['countryIso'], $domainElement['url']);
+                $languageData = $this->mapLanguageInfo($domainElement['locale'], $domainElement['url']);
                 $languageData['linkedHref'] = $domainElement['url'];
                 $languageData['active'] = $domainElement['languageIso'] === $this->getCurrentLanguageIso()
                     && $domainElement['countryIso'] === $this->getCurrentCountryIso();

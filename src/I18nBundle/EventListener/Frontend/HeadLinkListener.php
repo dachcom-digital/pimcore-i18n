@@ -46,8 +46,6 @@ class HeadLinkListener implements EventSubscriberInterface
     protected $pathGeneratorManager;
 
     /**
-     * HeadLinkListener constructor.
-     *
      * @param DocumentResolverService $documentResolverService
      * @param HeadLink                $headLink
      * @param ZoneManager             $zoneManager

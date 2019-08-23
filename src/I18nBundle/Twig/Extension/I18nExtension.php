@@ -19,8 +19,6 @@ class I18nExtension extends \Twig_Extension
     protected $contextManager;
 
     /**
-     * CategoriesExtension constructor.
-     *
      * @param ZoneManager    $zoneManager
      * @param ContextManager $contextManager
      */
