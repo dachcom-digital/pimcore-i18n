@@ -175,8 +175,7 @@ class StaticRoute extends AbstractPathGenerator
         }
 
         if (isset($staticRouteData['name']) && is_string($staticRouteData['name'])) {
-            $staticRouteName = $staticRouteData['name'];
-            return $this->urlGenerator->generate($staticRouteName, $staticRouteParams);
+            return $this->urlGenerator->generate($staticRouteData['name'], $staticRouteParams);
         }
 
         if (!isset($staticRouteData['object']) || !$staticRouteData['object'] instanceof Concrete) {
