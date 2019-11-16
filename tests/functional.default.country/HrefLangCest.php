@@ -106,8 +106,8 @@ class HrefLangCest
         $document2 = $I->haveAPageDocument('de', 'de');
         $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'en');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'de');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
 
@@ -134,9 +134,9 @@ class HrefLangCest
         $document2 = $I->haveAPageDocument('de', 'de');
         $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns');
-        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'en');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'de');
+        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns', 'de_DE');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
 
@@ -163,9 +163,9 @@ class HrefLangCest
         $document2 = $I->haveAPageDocument('de', 'de');
         $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns');
-        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'en');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'de');
+        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns', 'de_DE');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub3);
@@ -195,9 +195,9 @@ class HrefLangCest
         $document2 = $I->haveAPageDocument('de', 'de');
         $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns');
-        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'de');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'en');
+        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns', 'de_DE');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub3);

@@ -10,10 +10,10 @@ class ZoneDocumentCest extends AbstractZone
     {
         $data = $this->setupSites($I);
 
-        $document1 = $I->haveASubPageDocument($data['document1'], 'about-us');
-        $document2 = $I->haveASubPageDocument($data['document2'], 'ueber-uns');
-        $document3 = $I->haveASubPageDocument($data['document3'], 'riguardo-a-noi');
-        $document4 = $I->haveASubPageDocument($data['site3']->getRootDocument(), 'propos-de-nous');
+        $document1 = $I->haveASubPageDocument($data['document1'], 'about-us', 'en');
+        $document2 = $I->haveASubPageDocument($data['document2'], 'ueber-uns', 'de');
+        $document3 = $I->haveASubPageDocument($data['document3'], 'riguardo-a-noi', 'it');
+        $document4 = $I->haveASubPageDocument($data['site3']->getRootDocument(), 'propos-de-nous', 'fr');
 
         $I->haveTwoConnectedDocuments($document1, $document2);
         $I->haveTwoConnectedDocuments($document1, $document3);
@@ -33,10 +33,10 @@ class ZoneDocumentCest extends AbstractZone
     {
         $data = $this->setupSites($I);
 
-        $document1 = $I->haveASubPageDocument($data['document4'], 'about-us');
-        $document2 = $I->haveASubPageDocument($data['document5'], 'ueber-uns');
-        $document3 = $I->haveASubPageDocument($data['site6']->getRootDocument(), 'propos-de-nous');
-        $document4 = $I->haveASubPageDocument($data['document6'], 'riguardo-a-noi');
+        $document1 = $I->haveASubPageDocument($data['document4'], 'about-us', 'en');
+        $document2 = $I->haveASubPageDocument($data['document5'], 'ueber-uns', 'de');
+        $document3 = $I->haveASubPageDocument($data['site6']->getRootDocument(), 'propos-de-nous', 'fr');
+        $document4 = $I->haveASubPageDocument($data['document6'], 'riguardo-a-noi', 'it');
 
         $I->haveTwoConnectedDocuments($document1, $document2);
         $I->haveTwoConnectedDocuments($document1, $document3);
@@ -59,7 +59,7 @@ class ZoneDocumentCest extends AbstractZone
     public function zoneThreeWithSubDocumentsTest(FunctionalTester $I)
     {
         $data = $this->setupSites($I);
-        $document1 = $I->haveASubPageDocument($data['site7']->getRootDocument(), 'riguardo-a-nois');
+        $document1 = $I->haveASubPageDocument($data['site7']->getRootDocument(), 'riguardo-a-nois', 'it');
 
         $I->amOnPageWithLocale('http://test-domain7.test/riguardo-a-nois', 'it');
         $I->seeElement('html', ['lang' => 'it']);
