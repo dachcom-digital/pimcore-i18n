@@ -66,9 +66,9 @@ class DisabledDocumentsCest
         $document2 = $I->haveAPageDocument('de', 'de');
         $document3 = $I->haveAPageDocument('it', 'it');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns');
-        $documentSub3 = $I->haveASubPageDocument($document3, 'riguardo-a-noi');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'en');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'de');
+        $documentSub3 = $I->haveASubPageDocument($document3, 'riguardo-a-noi', 'it');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub3);

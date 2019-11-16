@@ -13,10 +13,10 @@ class PimcoreRedirectCest extends AbstractZone
     {
         $data = $this->setupSites($I);
 
-        $document1 = $I->haveASubPageDocument($data['document1'], 'about-us');
-        $document2 = $I->haveASubPageDocument($data['document2'], 'ueber-uns');
-        $document3 = $I->haveASubPageDocument($data['document3'], 'riguardo-a-noi');
-        $document4 = $I->haveASubPageDocument($data['site3']->getRootDocument(), 'propos-de-nous');
+        $document1 = $I->haveASubPageDocument($data['document1'], 'about-us', 'en');
+        $document2 = $I->haveASubPageDocument($data['document2'], 'ueber-uns', 'de');
+        $document3 = $I->haveASubPageDocument($data['document3'], 'riguardo-a-noi', 'it');
+        $document4 = $I->haveASubPageDocument($data['site3']->getRootDocument(), 'propos-de-nous', 'fr');
 
         $I->haveTwoConnectedDocuments($document1, $document2);
         $I->haveTwoConnectedDocuments($document1, $document3);
@@ -44,10 +44,10 @@ class PimcoreRedirectCest extends AbstractZone
     {
         $data = $this->setupSites($I);
 
-        $document1 = $I->haveASubPageDocument($data['document1'], 'about-us');
-        $document2 = $I->haveASubPageDocument($data['document2'], 'ueber-uns');
-        $document3 = $I->haveASubPageDocument($data['document3'], 'riguardo-a-noi');
-        $document4 = $I->haveASubPageDocument($data['site3']->getRootDocument(), 'propos-de-nous');
+        $document1 = $I->haveASubPageDocument($data['document1'], 'about-us', 'en');
+        $document2 = $I->haveASubPageDocument($data['document2'], 'ueber-uns', 'de');
+        $document3 = $I->haveASubPageDocument($data['document3'], 'riguardo-a-noi', 'it');
+        $document4 = $I->haveASubPageDocument($data['site3']->getRootDocument(), 'propos-de-nous', 'fr');
 
         $I->haveTwoConnectedDocuments($document1, $document2);
         $I->haveTwoConnectedDocuments($document1, $document3);
