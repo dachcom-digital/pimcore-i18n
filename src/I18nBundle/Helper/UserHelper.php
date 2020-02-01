@@ -13,11 +13,20 @@ class UserHelper
     protected $requestStack;
 
     /**
-     * @param RequestStack $requestStack
+     * @var string
      */
-    public function __construct(RequestStack $requestStack)
-    {
+    protected $geoIpDbPath;
+
+    /**
+     * @param RequestStack $requestStack
+     * @param string       $geoIpDbPath
+     */
+    public function __construct(
+        RequestStack $requestStack,
+        string $geoIpDbPath
+    ) {
         $this->requestStack = $requestStack;
+        $this->geoIpDbPath = $geoIpDbPath;
     }
 
     /**
@@ -43,17 +52,14 @@ class UserHelper
      */
     public function guessCountry()
     {
-        $masterRequest = $this->requestStack->getMasterRequest();
-
-        $geoDbFile = realpath(PIMCORE_CONFIGURATION_DIRECTORY . '/GeoLite2-City.mmdb');
         $record = null;
-
         $country = null;
         $userCountry = false;
+        $masterRequest = $this->requestStack->getMasterRequest();
 
-        if (file_exists($geoDbFile)) {
+        if (file_exists($this->geoIpDbPath)) {
             try {
-                $reader = new Reader($geoDbFile);
+                $reader = new Reader($this->geoIpDbPath);
                 if ($masterRequest->server->has('HTTP_CLIENT_IP') &&
                     !empty($masterRequest->server->get('HTTP_CLIENT_IP'))) {
                     $ip = $masterRequest->server->get('HTTP_CLIENT_IP');
@@ -67,6 +73,7 @@ class UserHelper
                 $record = $reader->city($ip);
                 $country = $record->country->isoCode;
             } catch (\Exception $e) {
+                // fail silently.
             }
         }
 
