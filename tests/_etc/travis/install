@@ -43,13 +43,10 @@ do
     cp $K ${DACHCOM_INSTALL_CONFIG_FILES[$K]};
 done
 
-
 ## load GeoLite2
-
-wget http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
-gzip -d GeoLite2-City.mmdb.gz
-mv -nv GeoLite2-City.mmdb var/config/
-
+git clone -b 4.0.1 --single-branch https://github.com/geocoder-php/geoip2-provider
+cp ./geoip2-provider/Tests/fixtures/GeoLite2-City.mmdb var/config/
+rm -rf geoip2-provider
 
 ##  install composer dependencies
 rm composer.lock

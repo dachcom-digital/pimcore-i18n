@@ -56,8 +56,10 @@ Does actually the same as the update command and preferred in CI-Workflow:
 ### Preparation
 - If you're using `system` as your `locale_adapter`, which is the default, you need to enable all required locales in pimcore system settings
 - Always be sure that every document translation is connected via the [localization tool](https://www.pimcore.org/docs/5.0.0/Multi_Language_i18n/Localize_your_Documents.html).
+- If you're using the country detection, you need a valid maxmind geoip [data provider](docs/10_GeoControl.md)
 
 ## Further Information
+- [Geo IP/Control](docs/10_GeoControl.md): Enable GeoIP Data Provider.
 - [Zones](docs/20_Zones.md): Learn more about i18n zones and how to manage them.
 - [Href-Lang](docs/25_HrefLang.md): Find out more about the href-lang tag generator.
 - [Language Configuration](docs/26_Languages.md): Configure languages.
