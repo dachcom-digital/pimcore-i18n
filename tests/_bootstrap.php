@@ -20,4 +20,8 @@ if (!defined('TESTS_PATH')) {
     define('TESTS_PATH', __DIR__);
 }
 
+if (!isset($_SERVER['REQUEST_URI'])) {
+    $_SERVER['REQUEST_URI'] = '';
+}
+
 define('PIMCORE_TEST', true);
