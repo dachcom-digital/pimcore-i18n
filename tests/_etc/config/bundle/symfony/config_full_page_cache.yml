@@ -5,5 +5,7 @@ i18n:
     translations: ~
 
 pimcore:
+    full_page_cache:
+        enabled: true
     cache:
         enabled: true
