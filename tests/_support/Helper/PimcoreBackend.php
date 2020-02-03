@@ -423,7 +423,7 @@ class PimcoreBackend extends Module
             'type'      => 'xliff'
         ]);
 
-        $this->assertContains(['successs' => true], json_decode($pimcoreCore->_getResponseContent(), true));
+        $this->assertContains(['success' => true], json_decode($pimcoreCore->_getResponseContent(), true));
     }
 
     /**
