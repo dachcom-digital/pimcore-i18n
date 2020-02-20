@@ -186,7 +186,7 @@ class DetectorListener implements EventSubscriberInterface
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
-        if ($event->isMasterRequest() === false) {
+        if (!$event->getRequest()->get('_pimcore_frontend_request')) {
             return;
         }
 
@@ -219,7 +219,7 @@ class DetectorListener implements EventSubscriberInterface
      */
     public function onKernelRequestLocale(GetResponseEvent $event)
     {
-        if ($event->isMasterRequest() === false) {
+        if (!$event->getRequest()->get('_pimcore_frontend_request')) {
             return;
         }
 
@@ -247,7 +247,7 @@ class DetectorListener implements EventSubscriberInterface
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
-        if ($event->isMasterRequest() === false) {
+        if (!$event->getRequest()->get('_pimcore_frontend_request')) {
             return;
         }
 
@@ -349,7 +349,7 @@ class DetectorListener implements EventSubscriberInterface
      */
     public function onKernelResponse(FilterResponseEvent $event)
     {
-        if ($event->isMasterRequest() === false) {
+        if (!$event->getRequest()->get('_pimcore_frontend_request')) {
             return;
         }
 
