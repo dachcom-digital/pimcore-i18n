@@ -270,17 +270,19 @@ class PimcoreRedirectListener implements EventSubscriberInterface
             return $path;
         }
 
-        try {
-            $site = Site::getByDomain($request->getHost());
-            $path = $site->getRootPath() . $path;
+        $host = $request->getHost();
+        $site = Site::getByDomain($host);
 
-            Site::setCurrentSite($site);
-
-            $this->siteResolver->setSite($request, $site);
-            $this->siteResolver->setSitePath($request, $path);
-        } catch (\Exception $e) {
-            // fail silently
+        if (!$site instanceof Site) {
+            return $path;
         }
+
+        $path = $site->getRootPath() . $path;
+
+        Site::setCurrentSite($site);
+
+        $this->siteResolver->setSite($request, $site);
+        $this->siteResolver->setSitePath($request, $path);
 
         return $path;
     }

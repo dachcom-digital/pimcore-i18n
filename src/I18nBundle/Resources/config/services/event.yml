@@ -20,7 +20,7 @@ services:
         tags:
             - { name: kernel.event_subscriber }
         arguments:
-            $fullPageCacheEnabled: '%pimcore_system_config.cache.enabled%'
+            $pimcoreConfig: '%pimcore.config%'
 
      # event: checks if hardlink page has a front-page map
     I18nBundle\EventListener\FrontPageMapperListener:
