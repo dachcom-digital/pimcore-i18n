@@ -63,17 +63,20 @@ matrix:
             sudo: required
             php: 7.3
             env:
+                - PIMCORE_PHP_ERROR_REPORTING=30711 # E_ALL & ~E_NOTICE & ~E_STRICT: remove this after 6.5.2
                 - PIMCORE_SKELETON_BRANCH="tags/v2.5.0"
         -   name: "Codeception Tests (Pimcore 6.5.x, Symfony ^3.4, PHP 7.3)"
             sudo: required
             php: 7.3
             env:
                 - SYMFONY_VERSION=^3.4
+                - PIMCORE_PHP_ERROR_REPORTING=30711 # E_ALL & ~E_NOTICE & ~E_STRICT: remove this after 6.5.2
                 - PIMCORE_SKELETON_BRANCH="tags/v2.5.0"
         -   name: "Codeception Tests (Pimcore 6.5.x, Symfony ^4.0, PHP 7.4)"
             sudo: required
             php: 7.4
             env:
+                - PIMCORE_PHP_ERROR_REPORTING=30711 # E_ALL & ~E_NOTICE & ~E_STRICT: remove this after 6.5.2
                 - PIMCORE_SKELETON_BRANCH="tags/v2.5.0"
     allow_failures:
         -   env:
@@ -90,7 +93,7 @@ install:
 
 after_failure:
     - cd $TRAVIS_BUILD_DIR
-    - cat ./lib/I18n/tests/_output/*
+    - cat ./lib/I18nBundle/tests/_output/*
 
 script:
     - _etc/travis/script
