@@ -6,6 +6,7 @@ use DachcomBundle\Test\Util\Autoloader;
 include __DIR__ . '/../../../vendor/autoload.php';
 
 define('PIMCORE_KERNEL_CLASS', '\DachcomBundle\Test\App\TestAppKernel');
+define('PIMCORE_TEST', true);
 
 Bootstrap::setProjectRoot();
 Bootstrap::bootstrap();
@@ -28,4 +29,3 @@ if (!isset($_SERVER['HTTP_USER_AGENT'])) {
     $_SERVER['HTTP_USER_AGENT'] = '';
 }
 
-define('PIMCORE_TEST', true);
