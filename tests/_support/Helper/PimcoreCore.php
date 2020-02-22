@@ -233,7 +233,6 @@ class PimcoreCore extends PimcoreCoreModule
         $resource = $bundleClass . '/_etc/config/bundle/symfony/' . $configuration;
 
         $fileSystem->dumpFile($runtimeConfigDirConfig, file_get_contents($resource));
-
     }
 
     /**
