@@ -13,13 +13,11 @@
             "role": "Developer"
         }
     ],
-
     "autoload": {
         "psr-4": {
             "I18nBundle\\": "src/I18nBundle"
         }
     },
-
     "extra": {
         "pimcore": {
             "bundles": [
@@ -27,8 +25,11 @@
             ]
         }
     },
+    "conflict": {
+        "pimcore/pimcore": "6.4.*"
+    },
     "require": {
-        "pimcore/pimcore": "^6.0.0"
+        "pimcore/pimcore": "^6.0"
     },
     "require-dev": {
         "codeception/codeception": "~2.4.0",

@@ -3,6 +3,7 @@
 namespace DachcomBundle\Test\App;
 
 use Pimcore\Kernel;
+use DachcomBundle\Test\DependencyInjection\ServiceChangePass;
 use DachcomBundle\Test\DependencyInjection\MakeServicesPublicPass;
 use DachcomBundle\Test\DependencyInjection\MonologChannelLoggerPass;
 use Pimcore\HttpKernel\BundleCollection\BundleCollection;
@@ -52,6 +53,7 @@ class TestAppKernel extends Kernel
      */
     protected function build(ContainerBuilder $container)
     {
+        $container->addCompilerPass(new ServiceChangePass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -100000);
         $container->addCompilerPass(new MakeServicesPublicPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -100000);
         $container->addCompilerPass(new MonologChannelLoggerPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, 1);
     }

@@ -335,6 +335,10 @@ class PimcoreBackend extends Module
      */
     public function haveAUnPublishedDocument(Document $document)
     {
+        if (method_exists($document, 'setMissingRequiredEditable')) {
+            $document->setMissingRequiredEditable(false);
+        }
+
         $document->setPublished(false);
 
         try {
@@ -423,7 +427,7 @@ class PimcoreBackend extends Module
             'type'      => 'xliff'
         ]);
 
-        $this->assertContains(['successs' => true], json_decode($pimcoreCore->_getResponseContent(), true));
+        $this->assertContains(['success' => true], json_decode($pimcoreCore->_getResponseContent(), true));
     }
 
     /**
@@ -476,7 +480,6 @@ class PimcoreBackend extends Module
         return $hardlink;
     }
 
-
     /**
      * API Function to create a link document
      *
@@ -503,8 +506,6 @@ class PimcoreBackend extends Module
 
         return $link;
     }
-
-
 
     /**
      * API Function to create a site document

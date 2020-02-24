@@ -119,7 +119,14 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
-        if ($this->pimcoreConfig['cache']['enabled'] === true) {
+        $fullPageEnabled = false;
+        if (isset($this->pimcoreConfig['cache']) && isset($this->pimcoreConfig['cache']['enabled'])) {
+            $fullPageEnabled = $this->pimcoreConfig['cache']['enabled'];
+        } elseif (isset($this->pimcoreConfig['full_page_cache']) && isset($this->pimcoreConfig['full_page_cache']['enabled'])) {
+            $fullPageEnabled = $this->pimcoreConfig['full_page_cache']['enabled'];
+        }
+
+        if ($fullPageEnabled === true) {
             return;
         }
 

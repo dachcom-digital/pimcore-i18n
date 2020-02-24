@@ -9,6 +9,9 @@ services:
 
     I18nBundle\Helper\CookieHelper: ~
 
-    I18nBundle\Helper\UserHelper: ~
-
     I18nBundle\Helper\RequestValidatorHelper: ~
+
+    I18nBundle\Helper\UserHelper:
+        arguments:
+            $requestStack: '@request_stack'
+            $geoIpDbPath: '%i18n.geo_ip.db_file%'

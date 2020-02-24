@@ -48,9 +48,14 @@ pimcore:
             browser_api_key: ''
     cache:
         exclude_cookie: ''
-        enabled: true
+        enabled: false
         lifetime: null
         exclude_patterns: ''
+    full_page_cache:
+        enabled: false
+        lifetime: null
+        exclude_patterns: ''
+        exclude_cookie: ''
     httpclient:
         adapter: Socket
         proxy_host: ''

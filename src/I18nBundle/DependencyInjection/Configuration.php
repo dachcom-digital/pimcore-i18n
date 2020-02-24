@@ -64,7 +64,7 @@ class Configuration implements ConfigurationInterface
                     ->prototype('array')
                         ->children()
                             ->integerNode('id')->isRequired()->end()
-                            ->scalarNode('name')->end()
+                            ->scalarNode('name')->defaultValue(null)->end()
                             ->arrayNode('domains')
                                 ->prototype('scalar')->end()
                             ->end()
