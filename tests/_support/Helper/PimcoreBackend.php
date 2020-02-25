@@ -452,6 +452,10 @@ class PimcoreBackend extends Module
             $document->setProperty('language', 'text', $locale, false, true);
         }
 
+        if (method_exists($document, 'setMissingRequiredEditable')) {
+            $document->setMissingRequiredEditable(false);
+        }
+
         return $document;
     }
 
@@ -522,6 +526,10 @@ class PimcoreBackend extends Module
         $document->setProperty('navigation_name', 'text', $domain);
 
         $document->setKey(str_replace('.', '-', $domain));
+
+        if (method_exists($document, 'setMissingRequiredEditable')) {
+            $document->setMissingRequiredEditable(false);
+        }
 
         if ($locale !== null) {
             $document->setProperty('language', 'text', $locale, false, true);
