@@ -8,4 +8,6 @@
 
 > **Note:** Make sure that all your child documents are localized too.
 
-Please ensure that the site documents (domains) do not have a defined language (Document => Tab "Navigation & Settings" => "Language" Dropdown: Select `None` and save). 
+For multi-language sites (e.g. example.org/de and example.org/en): Please ensure that the site document (domain, e.g. example.org) does not have a defined language (Document => Tab "Navigation & Settings" => "Language" Dropdown: Select `None` and save). 
+
+For singe-language sites you have to set the language on the site document.
