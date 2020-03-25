@@ -169,7 +169,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $validElements = array_keys(array_filter(
                 $zoneDomains,
                 function ($v) use ($host, $nearestDocumentLocale) {
-                    return $v['realHost'] === $host && $v['locale'] === $nearestDocumentLocale;
+                    return $v['host'] === $host && $v['locale'] === $nearestDocumentLocale;
                 }
             ));
 
@@ -196,7 +196,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
                     $validSourceElements = array_keys(array_filter(
                         $zoneDomains,
                         function ($v) use ($host, $nearestSourceDocumentLocale) {
-                            return $v['realHost'] === $host && $v['locale'] === $nearestSourceDocumentLocale;
+                            return $v['host'] === $host && $v['locale'] === $nearestSourceDocumentLocale;
                         }
                     ));
 
