@@ -135,7 +135,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
         $exception = $event->getException();
 
-        $host = $event->getRequest()->getHost();
+        $host = preg_replace('/^www./', '', $event->getRequest()->getHost());
 
         // 1. get default system error page ($defaultErrorPath)
         $defaultErrorPath = Config::getSystemConfig()->documents->error_pages->default;
@@ -169,7 +169,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $validElements = array_keys(array_filter(
                 $zoneDomains,
                 function ($v) use ($host, $nearestDocumentLocale) {
-                    return $v['host'] === $host && $v['locale'] === $nearestDocumentLocale;
+                    return $v['realHost'] === $host && $v['locale'] === $nearestDocumentLocale;
                 }
             ));
 
@@ -196,7 +196,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
                     $validSourceElements = array_keys(array_filter(
                         $zoneDomains,
                         function ($v) use ($host, $nearestSourceDocumentLocale) {
-                            return $v['host'] === $host && $v['locale'] === $nearestSourceDocumentLocale;
+                            return $v['realHost'] === $host && $v['locale'] === $nearestSourceDocumentLocale;
                         }
                     ));
 
