@@ -1,6 +1,6 @@
 <?php
 
-namespace I18nBundle\EventListener;
+namespace I18nBundle\EventListener\Frontend;
 
 use I18nBundle\Definitions;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;

@@ -23,7 +23,7 @@ services:
             $pimcoreConfig: '%pimcore.config%'
 
      # event: checks if hardlink page has a front-page map
-    I18nBundle\EventListener\FrontPageMapperListener:
+    I18nBundle\EventListener\Frontend\FrontPageMapperListener:
         tags:
             - { name: kernel.event_subscriber }
 
@@ -59,7 +59,7 @@ services:
             - { name: kernel.event_subscriber }
 
     # override pimcore not found exception handling
-    I18nBundle\EventListener\ResponseExceptionListener:
+    I18nBundle\EventListener\Frontend\ResponseExceptionListener:
         arguments:
             $renderErrorPage: '%pimcore.response_exception_listener.render_error_document%'
         tags:
