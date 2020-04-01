@@ -73,7 +73,7 @@ class System extends AbstractLocale
      */
     public function getLocaleData($locale, $field = null, $keyIdentifier = 'locale')
     {
-        $key = array_search($locale, array_column($this->validLocales, $keyIdentifier));
+        $key = array_search($locale, array_column($this->getActiveLocales(), $keyIdentifier));
         if ($key !== false) {
             return $this->validLocales[$key][$field];
         }
