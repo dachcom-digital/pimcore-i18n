@@ -1,5 +1,4 @@
 services:
-
     # adapter: locale
     I18nBundle\Adapter\Locale\AbstractLocale:
         abstract: true
@@ -11,6 +10,12 @@ services:
         public: false
         tags:
             - { name: i18n.adapter.locale, alias: system }
+
+    I18nBundle\Adapter\Locale\AcceptLanguageHeader:
+        parent: I18nBundle\Adapter\Locale\AbstractLocale
+        public: false
+        tags:
+            - { name: i18n.adapter.locale, alias: browser }
 
     # adapter: pathGenerator
     I18nBundle\Adapter\PathGenerator\AbstractPathGenerator:
