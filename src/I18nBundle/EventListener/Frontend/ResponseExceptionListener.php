@@ -135,7 +135,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
         $exception = $event->getException();
 
-        $host = $event->getRequest()->getHost();
+        $host = preg_replace('/^www./', '', $event->getRequest()->getHost());
 
         // 1. get default system error page ($defaultErrorPath)
         $defaultErrorPath = Config::getSystemConfig()->documents->error_pages->default;

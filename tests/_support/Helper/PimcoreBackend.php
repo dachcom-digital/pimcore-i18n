@@ -213,12 +213,14 @@ class PimcoreBackend extends Module
      *
      * @param string $siteKey
      * @param null   $locale
+     * @param bool   $add3w
+     * @param array  $additionalDomains
      *
      * @return Site
      */
-    public function haveASite($siteKey, $locale = null)
+    public function haveASite($siteKey, $locale = null, $add3w = false, $additionalDomains = [])
     {
-        $site = $this->generateSiteDocument($siteKey, $locale);
+        $site = $this->generateSiteDocument($siteKey, $locale, $add3w, $additionalDomains);
 
         try {
             $site->save();
@@ -264,7 +266,7 @@ class PimcoreBackend extends Module
      * @param string $key
      * @param string $locale
      *
-     * @return Page
+     * @return Hardlink
      */
     public function haveAHardlinkForSite(Site $site, Page $document, $key = 'hardlink-test', $locale = null)
     {
@@ -516,10 +518,12 @@ class PimcoreBackend extends Module
      *
      * @param string $domain
      * @param string $locale
+     * @param bool   $add3w
+     * @param array  $additionalDomains
      *
      * @return Site
      */
-    protected function generateSiteDocument($domain, $locale = null)
+    protected function generateSiteDocument($domain, $locale = null, $add3w = false, $additionalDomains = [])
     {
         $document = TestHelper::createEmptyDocumentPage($domain, false);
         $document->setProperty('navigation_title', 'text', $domain);
@@ -543,7 +547,11 @@ class PimcoreBackend extends Module
 
         $site = new Site();
         $site->setRootId((int) $document->getId());
-        $site->setMainDomain($domain);
+        $site->setMainDomain(($add3w ? 'www.' : '') . $domain);
+
+        if (count($additionalDomains) > 0) {
+            $site->setDomains($additionalDomains);
+        }
 
         return $site;
     }

@@ -1,0 +1,19 @@
+pimcore:
+    documents:
+        error_pages:
+            default: /test-domain8-test/en/error
+
+i18n:
+    mode: language
+    locale_adapter: system
+    default_locale: 'en'
+    translations: ~
+    zones:
+        zone1:
+            id: 1
+            config:
+                mode: language
+                locale_adapter: system
+                translations: ~
+            domains:
+                - 'www.test-domain8.test'
