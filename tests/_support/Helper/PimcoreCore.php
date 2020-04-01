@@ -288,12 +288,17 @@ class PimcoreCore extends PimcoreCoreModule
     {
         $internalDomains = [
             '/test-domain1.test/',
+            '/test-domain1.test/',
+            '/test-domain1.test/',
             '/test-domain2.test/',
             '/test-domain3.test/',
             '/test-domain4.test/',
             '/test-domain5.test/',
             '/test-domain6.test/',
             '/test-domain7.test/',
+            '/test-domain7.test/',
+            '/test-domain8.test/',
+            '/www.test-domain8.test/',
         ];
 
         return array_unique($internalDomains);
