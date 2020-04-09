@@ -53,40 +53,46 @@ class GeoRedirector extends AbstractRedirector
             return;
         }
 
-        $userLanguageIso = $this->userHelper->guessLanguage();
+        $userLanguagesIso = $this->userHelper->getLanguagesAcceptedByUser();
         $userCountryIso = false;
 
-        $url = null;
-
-        $redirectorOptions = [
-            'geoLanguage' => $userLanguageIso,
-            'geoCountry'  => $userCountryIso,
-        ];
-
-        if ($userLanguageIso === false) {
+        if (count($userLanguagesIso) === 0) {
             $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
 
             return;
         }
 
-        if ($redirectorBag->getI18nMode() === 'country') {
-            $userCountryIso = $this->userHelper->guessCountry();
-            $redirectorOptions['geoCountry'] = $userCountryIso;
-            if ($userCountryIso === false) {
-                $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
 
-                return;
+        foreach($userLanguagesIso as $userLanguageIso) {
+            $url = null;
+
+            $redirectorOptions = [
+                'geoLanguage' => $userLanguageIso,
+                'geoCountry'  => $userCountryIso,
+            ];
+
+            if ($redirectorBag->getI18nMode() === 'country') {
+                $userCountryIso = $this->userHelper->guessCountry();
+                $redirectorOptions['geoCountry'] = $userCountryIso;
+                if ($userCountryIso === false) {
+                    $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
+
+                    return;
+                }
+            }
+
+            if ($redirectorBag->getI18nMode() === 'language') {
+                $url = $this->findUrlInZoneTree($userLanguageIso);
+            } elseif ($redirectorBag->getI18nMode() === 'country') {
+                $userCountryIso = $this->userHelper->guessCountry();
+                $url = $this->findUrlInZoneTree($userLanguageIso, $userCountryIso);
+            }
+
+            $valid = !empty($url);
+            if($valid) {
+                break;
             }
         }
-
-        if ($redirectorBag->getI18nMode() === 'language') {
-            $url = $this->findUrlInZoneTree($userLanguageIso);
-        } elseif ($redirectorBag->getI18nMode() === 'country') {
-            $userCountryIso = $this->userHelper->guessCountry();
-            $url = $this->findUrlInZoneTree($userLanguageIso, $userCountryIso);
-        }
-
-        $valid = !empty($url);
 
         $this->setDecision([
             'valid'             => $valid,
