@@ -57,7 +57,10 @@ class GeoRedirector extends AbstractRedirector
         $userCountryIso = false;
 
         if (count($userLanguagesIso) === 0) {
-            $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
+            $this->setDecision(['valid' => false, 'redirectorOptions' => [
+                'geoLanguage' => false,
+                'geoCountry'  => $userCountryIso,
+            ]]);
 
             return;
         }
