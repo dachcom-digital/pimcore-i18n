@@ -115,6 +115,15 @@ class HeadLinkListener implements EventSubscriberInterface
         foreach ($hrefLinks as $route) {
             $this->headLink->appendAlternate($this->generateHrefLink($route['url']), false, false, ['hreflang' => $route['hrefLang']]);
         }
+
+        foreach ($this->headLink->getContainer() as $i => $item) {
+            if (property_exists($item, 'rel') && $item->rel === 'alternate') {
+                if (property_exists($item, 'type') && property_exists($item, 'title')) {
+                    unset($item->type, $item->title);
+                    $this->headLink->getContainer()->offsetSet($i, $item);
+                }
+            }
+        }
     }
 
     /**

@@ -19,6 +19,7 @@ class Configuration implements ConfigurationInterface
                     ->defaultValue('language')
                     ->info('')
                 ->end()
+                ->enumNode('redirect_status_code')->defaultValue(302)->values([301,302])->end()
                 ->arrayNode('registry')
                     ->addDefaultsIfNotSet()
                     ->info('')

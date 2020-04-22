@@ -8,6 +8,8 @@ Just click the "update" button or execute the migration command to finish the bu
 
 #### Update from Version 3.2.0 to Version 3.2.1
 - **[ENHANCEMENT]**: Pimcore 6.6.0 ready
+- **[ENHANCEMENT]**: Remove empty attributes from alternate links (`link href="http://pimcore.test/de" rel="alternate" type="" title="" hreflang="de"` becomes `link href="http://pimcore.test/de" rel="alternate" hreflang="de"`)
+- **[ENHANCEMENT]**: Allow changing [redirect status code)[https://github.com/dachcom-digital/pimcore-i18n/blob/master/docs/51_RedirectorAdapter.md#define-redirect-status-code]
 - **[ENHANCEMENT]**: Localized error document when main domain of a site has www. subdomain [@BlackbitNeueMedien](https://github.com/dachcom-digital/pimcore-i18n/pull/56)
 
 #### Update from Version 3.1.x to Version 3.2.0
