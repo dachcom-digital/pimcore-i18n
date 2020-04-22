@@ -1,5 +1,4 @@
 services:
-
     # adapter: locale
     I18nBundle\Adapter\Locale\AbstractLocale:
         abstract: true

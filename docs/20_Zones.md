@@ -21,7 +21,7 @@ Basically there are the same options as in the default configuration, except tha
 | Name | Description |
 |------|-------------|
 | mode | Set mode (`language` or `country`) - `country` also includes language |
-| locale_adapter | Locale Adapter (`system`, by default) |
+| locale_adapter | Locale Adapter (`system` by default) |
 | default_locale | Define a default locale (like `de`, `en_US`) |
 | translations | [Static Route translations](28_StaticRoutes.md) |
 

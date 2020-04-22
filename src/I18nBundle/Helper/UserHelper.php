@@ -3,6 +3,8 @@
 namespace I18nBundle\Helper;
 
 use GeoIp2\Database\Reader;
+use Pimcore\Tool;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class UserHelper
@@ -30,21 +32,28 @@ class UserHelper
     }
 
     /**
-     * @return bool|string
+     * @return string[]
      */
-    public function guessLanguage()
+    public function getLanguagesAcceptedByUser()
     {
         $masterRequest = $this->requestStack->getMasterRequest();
 
-        $guessedLanguage = false;
-        if ($masterRequest->server->has('HTTP_ACCEPT_LANGUAGE')) {
-            $browserLanguage = substr($masterRequest->server->get('HTTP_ACCEPT_LANGUAGE'), 0, 2);
-            if (!empty($browserLanguage)) {
-                $guessedLanguage = $browserLanguage;
+        if(!$masterRequest instanceof Request) {
+            return [];
+        }
+
+        $guessedLanguages = [];
+        $acceptLanguages = $masterRequest->getLanguages();
+        if ($acceptLanguages) {
+            $pimcoreLanguages = Tool::getValidLanguages();
+            foreach ($acceptLanguages as $acceptLanguage) {
+                if (in_array($acceptLanguage, $pimcoreLanguages, true)) {
+                    $guessedLanguages[] = $acceptLanguage;
+                }
             }
         }
 
-        return $guessedLanguage;
+        return $guessedLanguages;
     }
 
     /**
