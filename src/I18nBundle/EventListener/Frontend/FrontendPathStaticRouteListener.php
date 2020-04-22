@@ -35,6 +35,8 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
 
     /**
      * @param GenericEvent $event
+     *
+     * @throws \Exception
      */
     public function onFrontendPathStaticRouteRequest(GenericEvent $event)
     {

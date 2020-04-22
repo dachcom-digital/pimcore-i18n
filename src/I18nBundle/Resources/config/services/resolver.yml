@@ -1,0 +1,9 @@
+services:
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    I18nBundle\Resolver\PimcoreDocumentResolverInterface: '@I18nBundle\Resolver\PimcoreDocumentResolver'
+    I18nBundle\Resolver\PimcoreDocumentResolver: ~

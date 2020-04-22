@@ -93,38 +93,53 @@ class StaticRoutesAlternateListener
         $route = $event->getCurrentStaticRoute();
         $requestAttributes = $event->getRequestAttributes();
         $routes = [];
-
-        if ($route->getModule() === 'News' &&
-            $route->getController() === 'entry' &&
-            $route->getAction() === 'detail'
-            ) {
-                $entryId = $requestAttributes->get('entry');
-                $news = DataObject\NewsEntry::getByLocalizedfields('detailUrl', $entryId, $requestAttributes->get('_locale'), ['limit' => 1]);
-
-                if ($news instanceof DataObject\NewsEntry) {
-                    foreach ($event->getI18nList() as $index => $i18nElement) {
-                        $locale = $i18nElement['locale'];
-                        $newsName = $news->getName($locale);
-
-                        if (empty($newsName)) {
-                            continue;
-                        }
-                        
-                        //the default static route params
-                        // do NOT forget the index value!!
-                        $routes[$index] = [
-                            'params' => [
-                                '_locale' => $locale,
-                                'entry'   => $news->getDetailurl($locale),
-                            ],
-                            //set the static route name (in this case it depends on the entry type.
-                            'name'   => $news->getEntryType() === 'news' ? 'news_detail' : 'blog_detail'
-                        ];
-                    }
-                }
-
-            $event->setRoutes($routes);
+    
+        if ($route->getName() !== 'my_news_route') {
+            return;
         }
+
+        $entryId = $requestAttributes->get('entry');
+        $news = DataObject\NewsEntry::getByLocalizedfields('detailUrl', $entryId, $requestAttributes->get('_locale'), ['limit' => 1]);
+
+        if (!$news instanceof DataObject\NewsEntry) {
+            return;
+        }
+
+        foreach ($event->getI18nList() as $index => $i18nElement) {
+
+            $locale = $i18nElement['locale'];
+            $newsName = $news->getName($locale);
+
+            if (empty($newsName)) {
+                continue;
+            }
+            
+            //  Strategy I. ##########################################
+            //  Default static route generation
+            //  ######################################################
+
+            $routes[$index] = [ // <= Do NOT forget the index value!
+                'params' => [
+                    '_locale' => $locale,
+                    'entry'   => $news->getDetailurl($locale),
+                ],
+                //set the static route name (in this case it depends on the entry type.
+                'name'   => $news->getEntryType() === 'news' ? 'news_detail' : 'blog_detail'
+            ];
+    
+            //  Strategy II. #########################################
+            //  Use link generator, only pass "object".
+            //  ######################################################
+
+            $routes[$index] = [ // <= Do NOT forget the index value!
+                    'params' => [
+                    '_locale' => $locale
+                ],
+                'object' => $news
+            ];
+        }
+    
+        $event->setRoutes($routes);
     }
 }
 ```

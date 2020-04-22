@@ -2,6 +2,7 @@
 
 namespace I18nBundle\Helper;
 
+use I18nBundle\Definitions;
 use I18nBundle\Tool\System;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Http\RequestHelper;
@@ -54,6 +55,22 @@ class RequestValidatorHelper
         if (System::isInCliMode()) {
             return false;
         }
+
+        return true;
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return bool
+     */
+    public function matchesI18nContext(Request $request)
+    {
+        if(!$request->attributes->has(Definitions::ATTRIBUTE_I18N_CONTEXT)) {
+            return false;
+        }
+
+        return $request->attributes->get(Definitions::ATTRIBUTE_I18N_CONTEXT) === true;
     }
 
     /**

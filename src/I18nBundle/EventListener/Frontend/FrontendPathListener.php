@@ -34,9 +34,9 @@ class FrontendPathListener implements EventSubscriberInterface
 
     /**
      * Valid Paths:
-     * /de/test
-     * /global-de/test
-     * /de-de/test.
+     * - /de/test
+     * - /global-de/test
+     * - /de-de/test
      *
      * @param GenericEvent $e
      */

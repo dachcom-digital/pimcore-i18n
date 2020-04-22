@@ -6,7 +6,6 @@ use I18nBundle\Definitions;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\ZoneManager;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
-use Pimcore\Http\Request\Resolver\DocumentResolver as DocumentResolverService;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Templating\Helper\HeadMeta;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -19,11 +18,6 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class HeadMetaListener implements EventSubscriberInterface
 {
     use PimcoreContextAwareTrait;
-
-    /**
-     * @var DocumentResolverService
-     */
-    protected $documentResolverService;
 
     /**
      * @var HeadMeta
@@ -41,18 +35,15 @@ class HeadMetaListener implements EventSubscriberInterface
     protected $contextManager;
 
     /**
-     * @param DocumentResolverService $documentResolverService
-     * @param HeadMeta                $headMeta
-     * @param ZoneManager             $zoneManager
-     * @param ContextManager          $contextManager
+     * @param HeadMeta       $headMeta
+     * @param ZoneManager    $zoneManager
+     * @param ContextManager $contextManager
      */
     public function __construct(
-        DocumentResolverService $documentResolverService,
         HeadMeta $headMeta,
         ZoneManager $zoneManager,
         ContextManager $contextManager
     ) {
-        $this->documentResolverService = $documentResolverService;
         $this->headMeta = $headMeta;
         $this->zoneManager = $zoneManager;
         $this->contextManager = $contextManager;
@@ -70,6 +61,8 @@ class HeadMetaListener implements EventSubscriberInterface
 
     /**
      * @param GetResponseEvent $event
+     *
+     * @throws \Exception
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
@@ -89,7 +82,6 @@ class HeadMetaListener implements EventSubscriberInterface
         }
 
         $currentCountryIso = $this->contextManager->getCountryContext()->getCurrentCountryIso();
-
         if (empty($currentCountryIso)) {
             return;
         }

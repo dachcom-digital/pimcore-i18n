@@ -7,7 +7,6 @@ use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use Pimcore\Cache;
-use Pimcore\Config;
 use Pimcore\Http\Exception\ResponseException;
 use Pimcore\Model\DataObject;
 use Pimcore\Http\Request\Resolver\SiteResolver;
@@ -57,9 +56,9 @@ class ResponseExceptionListener implements EventSubscriberInterface
     protected $documentService;
 
     /**
-     * @var bool
+     * @var array
      */
-    protected $renderErrorPage = true;
+    protected $pimcoreConfig;
 
     /**
      * @param ActionRenderer       $actionRenderer
@@ -68,7 +67,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
      * @param PathGeneratorManager $pathGeneratorManager
      * @param SiteResolver         $siteResolver
      * @param Document\Service     $documentService
-     * @param bool                 $renderErrorPage
+     * @param array                $pimcoreConfig
      */
     public function __construct(
         ActionRenderer $actionRenderer,
@@ -77,7 +76,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         PathGeneratorManager $pathGeneratorManager,
         SiteResolver $siteResolver,
         Document\Service $documentService,
-        $renderErrorPage = true
+        array $pimcoreConfig
     ) {
         $this->actionRenderer = $actionRenderer;
         $this->zoneManager = $zoneManager;
@@ -85,7 +84,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $this->pathGeneratorManager = $pathGeneratorManager;
         $this->siteResolver = $siteResolver;
         $this->documentService = $documentService;
-        $this->renderErrorPage = (bool) $renderErrorPage;
+        $this->pimcoreConfig = $pimcoreConfig;
     }
 
     /**
@@ -106,6 +105,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
         $exception = $event->getException();
+        $renderErrorPage = $this->pimcoreConfig['error_handling']['render_error_document'];
 
         // handle ResponseException (can be used from any context)
         if ($exception instanceof ResponseException) {
@@ -115,7 +115,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         }
 
         $request = $event->getRequest();
-        if ($this->renderErrorPage && $this->matchesPimcoreContext($request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
+        if ($renderErrorPage === true && $this->matchesPimcoreContext($request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
             $this->handleErrorPage($event);
         }
     }
@@ -138,7 +138,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $host = preg_replace('/^www./', '', $event->getRequest()->getHost());
 
         // 1. get default system error page ($defaultErrorPath)
-        $defaultErrorPath = Config::getSystemConfig()->documents->error_pages->default;
+        $defaultErrorPath = $this->pimcoreConfig['documents']['error_pages']['default'];
         $defaultErrorDocument = null;
         $localizedErrorDocument = null;
 

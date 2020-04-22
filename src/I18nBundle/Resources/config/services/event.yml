@@ -5,17 +5,22 @@ services:
         autoconfigure: true
         public: false
 
+    # event: boot i18n
+    I18nBundle\EventListener\I18nStartupListener:
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # event: redirect user to given locale
+    I18nBundle\EventListener\DetectorListener:
+        tags:
+            - { name: kernel.event_subscriber }
+
     # event: detect pimcore redirect
     I18nBundle\EventListener\PimcoreRedirectListener:
         tags:
             - { name: kernel.event_subscriber }
 
-    # event: i18n detector, register language / country. setup all managers. redirect user
-    I18nBundle\EventListener\DetectorListener:
-        tags:
-            - { name: kernel.event_subscriber }
-
-    # event: i18n detector, register language / country. setup all managers. redirect user
+    # event: log context switch
     I18nBundle\EventListener\ContextSwitchDetectorListener:
         tags:
             - { name: kernel.event_subscriber }
@@ -49,18 +54,19 @@ services:
 
     # event: adds i18n meta tags to HeadMeta view helper
     I18nBundle\EventListener\Frontend\HeadMetaListener:
-        class: I18nBundle\EventListener\Frontend\HeadMetaListener
         tags:
             - { name: kernel.event_subscriber }
 
     # event: adds i18n meta tags to HeadMeta view helper
     I18nBundle\EventListener\Frontend\HeadLinkListener:
+        arguments:
+            $pimcoreConfig: '%pimcore.config%'
         tags:
             - { name: kernel.event_subscriber }
 
     # override pimcore not found exception handling
     I18nBundle\EventListener\Frontend\ResponseExceptionListener:
         arguments:
-            $renderErrorPage: '%pimcore.response_exception_listener.render_error_document%'
+            $pimcoreConfig: '%pimcore.config%'
         tags:
             - { name: kernel.event_subscriber }
