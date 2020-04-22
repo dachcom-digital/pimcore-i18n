@@ -18,10 +18,19 @@ If enabled, visitor gets redirected based on IP and browser language
 If enabled, visitor gets redirected based on the `default_locale` setting defined in i18n settings (available in each zone)
 or by default locale defined in your pimcore system settings.
 
+## Define Redirect Status Code
+By default, a redirect will be dispatched with code `302`. If you want to change it, you need to update your config:
+
+```yaml
+# app/config/config.yml
+i18n:
+    redirect_status_code: 301
+```
+
 ## Disable a Redirector
 
 ```yaml
-# in app/config/config.yml
+# app/config/config.yml
 i18n:
     registry:
         redirector:
@@ -34,7 +43,7 @@ i18n:
 ### 1. Create a Service
 
 ```yaml
-# in app/config/services.yml
+# app/config/services.yml
 AppBundle\Services\I18nBundle\RedirectorAdapter\Website:
     parent: I18nBundle\Adapter\Redirector\AbstractRedirector
     public: false

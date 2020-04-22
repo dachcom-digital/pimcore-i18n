@@ -6,8 +6,8 @@ use I18nBundle\Adapter\Locale\LocaleInterface;
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Definitions;
 use I18nBundle\Registry\LocaleRegistry;
+use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use Pimcore\Db\Connection;
-use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Http\RequestHelper;
@@ -37,9 +37,9 @@ class ZoneManager
     protected $siteResolver;
 
     /**
-     * @var DocumentResolver
+     * @var PimcoreDocumentResolverInterface
      */
-    protected $documentResolver;
+    protected $pimcoreDocumentResolver;
 
     /**
      * @var Configuration
@@ -76,14 +76,14 @@ class ZoneManager
     protected $isInZone = false;
 
     /**
-     * @param string|null      $generalDomain
-     * @param Connection       $db
-     * @param RequestHelper    $requestHelper
-     * @param SiteResolver     $siteResolver
-     * @param Configuration    $configuration
-     * @param LocaleRegistry   $localeRegistry
-     * @param EditmodeResolver $editmodeResolver
-     * @param DocumentResolver $documentResolver
+     * @param string|null                      $generalDomain
+     * @param Connection                       $db
+     * @param RequestHelper                    $requestHelper
+     * @param SiteResolver                     $siteResolver
+     * @param Configuration                    $configuration
+     * @param LocaleRegistry                   $localeRegistry
+     * @param EditmodeResolver                 $editmodeResolver
+     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
      */
     public function __construct(
         $generalDomain,
@@ -93,7 +93,7 @@ class ZoneManager
         Configuration $configuration,
         LocaleRegistry $localeRegistry,
         EditmodeResolver $editmodeResolver,
-        DocumentResolver $documentResolver
+        PimcoreDocumentResolverInterface $pimcoreDocumentResolver
     ) {
         $this->db = $db;
         $this->generalDomain = $generalDomain;
@@ -102,7 +102,7 @@ class ZoneManager
         $this->configuration = $configuration;
         $this->localeRegistry = $localeRegistry;
         $this->editmodeResolver = $editmodeResolver;
-        $this->documentResolver = $documentResolver;
+        $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
     }
 
     /**
@@ -127,7 +127,7 @@ class ZoneManager
                 }
             } else {
                 // in backend we don't have any site request, we need to fetch it via document
-                $currentDocument = $this->documentResolver->getDocument();
+                $currentDocument = $this->pimcoreDocumentResolver->getDocument($this->requestHelper->getCurrentRequest());
                 $site = \Pimcore\Tool\Frontend::getSiteForDocument($currentDocument);
             }
 

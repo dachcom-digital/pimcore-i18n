@@ -2,14 +2,14 @@
 
 namespace I18nBundle\EventListener;
 
-use I18nBundle\Helper\RequestValidatorHelper;
 use Pimcore\Logger;
+use Pimcore\Model\Document;
+use I18nBundle\Helper\RequestValidatorHelper;
+use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use I18nBundle\I18nEvents;
 use I18nBundle\Helper\DocumentHelper;
 use I18nBundle\Event\ContextSwitchEvent;
 use I18nBundle\Manager\ZoneManager;
-use Pimcore\Model\Document;
-use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -20,29 +20,19 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class ContextSwitchDetectorListener implements EventSubscriberInterface
 {
     /**
-     * @var Document
+     * @var string|null
      */
-    private $document = null;
+    private $documentLocale;
 
     /**
-     * @var null
+     * @var string|null
      */
-    private $documentLocale = null;
+    private $documentLanguage;
 
     /**
-     * @var null
+     * @var string|null
      */
-    private $documentLanguage = null;
-
-    /**
-     * @var null
-     */
-    private $documentCountry = null;
-
-    /**
-     * @var Request
-     */
-    private $request;
+    private $documentCountry;
 
     /**
      * @var EventDispatcherInterface
@@ -50,9 +40,9 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     protected $eventDispatcher;
 
     /**
-     * @var DocumentResolver
+     * @var PimcoreDocumentResolverInterface
      */
-    protected $documentResolver;
+    protected $pimcoreDocumentResolver;
 
     /**
      * @var ZoneManager
@@ -75,23 +65,23 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     protected $pimcoreConfig;
 
     /**
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param DocumentResolver         $documentResolver
-     * @param ZoneManager              $zoneManager
-     * @param DocumentHelper           $documentHelper
-     * @param RequestValidatorHelper   $requestValidatorHelper
-     * @param array                    $pimcoreConfig
+     * @param EventDispatcherInterface         $eventDispatcher
+     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
+     * @param ZoneManager                      $zoneManager
+     * @param DocumentHelper                   $documentHelper
+     * @param RequestValidatorHelper           $requestValidatorHelper
+     * @param array                            $pimcoreConfig
      */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
-        DocumentResolver $documentResolver,
+        PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
         ZoneManager $zoneManager,
         DocumentHelper $documentHelper,
         RequestValidatorHelper $requestValidatorHelper,
-        $pimcoreConfig
+        array $pimcoreConfig
     ) {
         $this->eventDispatcher = $eventDispatcher;
-        $this->documentResolver = $documentResolver;
+        $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
         $this->zoneManager = $zoneManager;
         $this->documentHelper = $documentHelper;
         $this->requestValidatorHelper = $requestValidatorHelper;
@@ -105,14 +95,12 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     {
         return [
             KernelEvents::REQUEST => [
-                ['onKernelRequest', 1] // after i18n detector listener
+                ['onKernelRequest', 0] // after i18n detector listener
             ]
         ];
     }
 
     /**
-     * Apply this method after the pimcore context resolver.
-     *
      * @param GetResponseEvent $event
      *
      * @throws \Exception
@@ -134,21 +122,28 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $this->request = $event->getRequest();
-        $this->document = $this->documentResolver->getDocument($this->request);
-
-        if ($this->isValidRequest() === false) {
+        if ($this->requestValidatorHelper->matchesI18nContext($event->getRequest()) === false) {
             return;
         }
 
-        $this->setDocumentLocale();
+        $request = $event->getRequest();
+        $document = $this->pimcoreDocumentResolver->getDocument($request);
+
+        if (!$document instanceof Document) {
+            return;
+        }
+
+        if (!$this->requestValidatorHelper->isValidForRedirect($request, false)) {
+            return;
+        }
+
+        $this->setDocumentLocale($document);
 
         // check if zone, language or country has been changed,
         // trigger event for 3th party.
-        $this->detectContextSwitch();
+        $this->detectContextSwitch($request);
 
-        // update session
-        $this->updateSessionData();
+        $this->updateSessionData($request);
     }
 
     /**
@@ -156,11 +151,13 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
      * Since there is no way for simple cross-domain session ids,
      * the zone switch has no relevance.
      *
+     * @param Request $request
+     *
      * @throws \Exception
      */
-    private function detectContextSwitch()
+    private function detectContextSwitch(Request $request)
     {
-        $session = $this->getSessionData();
+        $session = $this->getSessionData($request);
         $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
 
         $localeHasSwitched = false;
@@ -207,7 +204,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
                         'switch zone: from %s to %s. triggered by: %s',
                         $session['lastZoneId'],
                         $currentZoneId,
-                        $this->request->getRequestUri()
+                        $request->getRequestUri()
                     )
                 );
             }
@@ -218,7 +215,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
                         'switch locale: from %s to %s. triggered by: %s',
                         $session['lastLocale'],
                         $this->documentLocale,
-                        $this->request->getRequestUri()
+                        $request->getRequestUri()
                     )
                 );
             }
@@ -229,7 +226,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
                         'switch language: from %s to %s. triggered by: %s',
                         $session['lastLanguage'],
                         $this->documentLanguage,
-                        $this->request->getRequestUri()
+                        $request->getRequestUri()
                     )
                 );
             }
@@ -240,7 +237,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
                         'switch country: from %s to %s. triggered by: %s',
                         $session['lastCountry'],
                         $this->documentCountry,
-                        $this->request->getRequestUri()
+                        $request->getRequestUri()
                     )
                 );
             }
@@ -250,12 +247,14 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     }
 
     /**
+     * @param Request $request
+     *
      * @return array
      */
-    protected function getSessionData()
+    protected function getSessionData(Request $request)
     {
         /** @var NamespacedAttributeBag $bag */
-        $bag = $this->request->getSession()->getBag('i18n_session');
+        $bag = $request->getSession()->getBag('i18n_session');
 
         $data = [
             'lastLocale'   => null,
@@ -283,14 +282,16 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     }
 
     /**
+     * @param Request $request
+     *
      * @throws \Exception
      */
-    protected function updateSessionData()
+    protected function updateSessionData(Request $request)
     {
         $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
 
         /** @var NamespacedAttributeBag $bag */
-        $bag = $this->request->getSession()->getBag('i18n_session');
+        $bag = $request->getSession()->getBag('i18n_session');
 
         if (!empty($this->documentLocale)) {
             $bag->set('lastLocale', $this->documentLocale);
@@ -308,25 +309,14 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     }
 
     /**
-     * @return bool
-     */
-    protected function isValidRequest()
-    {
-        if (empty($this->document)) {
-            return false;
-        }
-
-        return $this->requestValidatorHelper->isValidForRedirect($this->request, false);
-    }
-
-    /**
+     * @param Document $document
+     *
      * @throws \Exception
      */
-    protected function setDocumentLocale()
+    protected function setDocumentLocale(Document $document)
     {
         $i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
-
-        $documentLocaleData = $this->documentHelper->getDocumentLocaleData($this->document, $i18nType);
+        $documentLocaleData = $this->documentHelper->getDocumentLocaleData($document, $i18nType);
 
         $this->documentLocale = $documentLocaleData['documentLocale'];
         $this->documentLanguage = $documentLocaleData['documentLanguage'];

@@ -5,8 +5,8 @@ namespace I18nBundle\EventListener\Frontend;
 use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
-use Pimcore\Http\Request\Resolver\DocumentResolver as DocumentResolverService;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Templating\Helper\HeadLink;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -19,11 +19,6 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class HeadLinkListener implements EventSubscriberInterface
 {
     use PimcoreContextAwareTrait;
-
-    /**
-     * @var DocumentResolverService
-     */
-    protected $documentResolverService;
 
     /**
      * @var HeadLink
@@ -46,24 +41,37 @@ class HeadLinkListener implements EventSubscriberInterface
     protected $pathGeneratorManager;
 
     /**
-     * @param DocumentResolverService $documentResolverService
-     * @param HeadLink                $headLink
-     * @param ZoneManager             $zoneManager
-     * @param ContextManager          $contextManager
-     * @param PathGeneratorManager    $pathGeneratorManager
+     * @var PimcoreDocumentResolverInterface
+     */
+    protected $pimcoreDocumentResolver;
+
+    /**
+     * @var array
+     */
+    protected $pimcoreConfig;
+
+    /**
+     * @param HeadLink                         $headLink
+     * @param ZoneManager                      $zoneManager
+     * @param ContextManager                   $contextManager
+     * @param PathGeneratorManager             $pathGeneratorManager
+     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
+     * @param array                            $pimcoreConfig
      */
     public function __construct(
-        DocumentResolverService $documentResolverService,
         HeadLink $headLink,
         ZoneManager $zoneManager,
         ContextManager $contextManager,
-        PathGeneratorManager $pathGeneratorManager
+        PathGeneratorManager $pathGeneratorManager,
+        PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
+        array $pimcoreConfig
     ) {
-        $this->documentResolverService = $documentResolverService;
         $this->headLink = $headLink;
         $this->zoneManager = $zoneManager;
         $this->contextManager = $contextManager;
         $this->pathGeneratorManager = $pathGeneratorManager;
+        $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
+        $this->pimcoreConfig = $pimcoreConfig;
     }
 
     /**
@@ -78,12 +86,14 @@ class HeadLinkListener implements EventSubscriberInterface
 
     /**
      * @param GetResponseEvent $event
+     *
+     * @throws \Exception
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
         $request = $event->getRequest();
 
-        // just add meta data on master request
+        // just add metadata on master request
         if (!$event->isMasterRequest()) {
             return;
         }
@@ -92,10 +102,10 @@ class HeadLinkListener implements EventSubscriberInterface
             return;
         }
 
-        $document = $this->documentResolverService->getDocument($request);
+        $document = $this->pimcoreDocumentResolver->getDocument($request);
         $hrefLinks = $this->pathGeneratorManager->getPathGenerator()->getUrls($document);
 
-        //add x-default to main page!
+        // Add x-default to main page!
         $xDefaultUrl = $this->getXDefaultLink($hrefLinks);
 
         if (!is_null($xDefaultUrl)) {
@@ -104,6 +114,15 @@ class HeadLinkListener implements EventSubscriberInterface
 
         foreach ($hrefLinks as $route) {
             $this->headLink->appendAlternate($this->generateHrefLink($route['url']), false, false, ['hreflang' => $route['hrefLang']]);
+        }
+
+        foreach ($this->headLink->getContainer() as $i => $item) {
+            if (property_exists($item, 'rel') && $item->rel === 'alternate') {
+                if (property_exists($item, 'type') && property_exists($item, 'title')) {
+                    unset($item->type, $item->title);
+                    $this->headLink->getContainer()->offsetSet($i, $item);
+                }
+            }
         }
     }
 
@@ -115,6 +134,7 @@ class HeadLinkListener implements EventSubscriberInterface
      * @param array $hrefLinks
      *
      * @return string
+     * @throws \Exception
      */
     private function getXDefaultLink($hrefLinks = [])
     {
@@ -142,13 +162,14 @@ class HeadLinkListener implements EventSubscriberInterface
      * @param string $path
      *
      * @return string
+     * @throws \Exception
      */
     private function generateHrefLink($path)
     {
-        $config = \Pimcore\Config::getSystemConfig();
+        $allowTrailingSlash = $this->pimcoreConfig['documents']['allow_trailing_slash'];
 
         $endPath = rtrim($path, '/');
-        if ($config->documents->allowtrailingslash !== 'no') {
+        if ($allowTrailingSlash !== 'no') {
             $endPath = $endPath . '/';
         }
 

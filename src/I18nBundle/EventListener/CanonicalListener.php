@@ -2,10 +2,11 @@
 
 namespace I18nBundle\EventListener;
 
+use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
+use Pimcore\Model\Document;
 use Pimcore\Model\Document\Hardlink\Wrapper;
 use Pimcore\Model\Staticroute;
-use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
@@ -16,16 +17,16 @@ class CanonicalListener implements EventSubscriberInterface
     use PimcoreContextAwareTrait;
 
     /**
-     * @var DocumentResolver
+     * @var PimcoreDocumentResolverInterface
      */
-    protected $documentResolver;
+    protected $pimcoreDocumentResolver;
 
     /**
-     * @param DocumentResolver $documentResolver
+     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
      */
-    public function __construct(DocumentResolver $documentResolver)
+    public function __construct(PimcoreDocumentResolverInterface $pimcoreDocumentResolver)
     {
-        $this->documentResolver = $documentResolver;
+        $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
     }
 
     /**
@@ -52,18 +53,20 @@ class CanonicalListener implements EventSubscriberInterface
             return;
         }
 
-        $document = $this->documentResolver->getDocument($request);
-        if (!$document) {
+        $document = $this->pimcoreDocumentResolver->getDocument($request);
+        if (!$document instanceof Document) {
             return;
         }
 
-        if ($document instanceof Wrapper\WrapperInterface && !Staticroute::getCurrentRoute()) {
-            //only remove canonical link if hardlink source is the country wrapper:
-            /** @var Wrapper $wrapperDocument */
-            $wrapperDocument = $document;
-            if ($wrapperDocument->getHardLinkSource()->getPath() === '/') {
-                $event->getResponse()->headers->remove('Link');
-            }
+        if (!$document instanceof Wrapper\WrapperInterface && !Staticroute::getCurrentRoute()) {
+            return;
+        }
+
+        /** @var Wrapper $wrapperDocument */
+        $wrapperDocument = $document;
+        //only remove canonical link if hardlink source is the country wrapper
+        if ($wrapperDocument->getHardLinkSource()->getPath() === '/') {
+            $event->getResponse()->headers->remove('Link');
         }
     }
 }

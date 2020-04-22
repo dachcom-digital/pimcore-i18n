@@ -2,9 +2,10 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
+use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
+use Pimcore\Model\Document;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Model\Document\Hardlink;
@@ -17,23 +18,25 @@ class LinkPathListener implements EventSubscriberInterface
     use PimcoreContextAwareTrait;
 
     /**
-     * @var DocumentResolver
-     */
-    protected $documentResolver;
-
-    /**
      * @var PathFinder
      */
     protected $pathfinder;
 
     /**
-     * @param DocumentResolver $documentResolver
-     * @param PathFinder       $pathfinder
+     * @var PimcoreDocumentResolverInterface
      */
-    public function __construct(DocumentResolver $documentResolver, PathFinder $pathfinder)
-    {
-        $this->documentResolver = $documentResolver;
+    protected $pimcoreDocumentResolver;
+
+    /**
+     * @param PathFinder                       $pathfinder
+     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
+     */
+    public function __construct(
+        PathFinder $pathfinder,
+        PimcoreDocumentResolverInterface $pimcoreDocumentResolver
+    ) {
         $this->pathfinder = $pathfinder;
+        $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
     }
 
     /**
@@ -62,8 +65,8 @@ class LinkPathListener implements EventSubscriberInterface
             return;
         }
 
-        $document = $this->documentResolver->getDocument($request);
-        if (!$document) {
+        $document = $this->pimcoreDocumentResolver->getDocument($request);
+        if (!$document instanceof Document) {
             return;
         }
 
