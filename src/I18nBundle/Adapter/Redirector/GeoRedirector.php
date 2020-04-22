@@ -93,7 +93,7 @@ class GeoRedirector extends AbstractRedirector
         // nothing found.
         if (count($prioritisedListQuery) === 0) {
             $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
-            // return;
+            return;
         }
 
         usort($prioritisedListQuery, function ($a, $b) {
