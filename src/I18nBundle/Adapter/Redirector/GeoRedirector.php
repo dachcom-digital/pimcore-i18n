@@ -91,14 +91,13 @@ class GeoRedirector extends AbstractRedirector
                 $url = $this->findUrlInZoneTree($userLanguageIso, $userCountryIso);
             }
 
-            $valid = !empty($url);
-            if($valid) {
+            if(!empty($url)) {
                 break;
             }
         }
 
         $this->setDecision([
-            'valid'             => $valid,
+            'valid'             => !empty($url),
             'locale'            => is_string($this->guessedLocale) ? $this->guessedLocale : null,
             'country'           => is_string($this->guessedCountry) ? $this->guessedCountry : null,
             'language'          => is_string($this->guessedLanguage) ? $this->guessedLanguage : null,
