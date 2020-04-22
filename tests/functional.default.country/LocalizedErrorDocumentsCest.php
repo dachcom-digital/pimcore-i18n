@@ -16,7 +16,7 @@ class LocalizedErrorDocumentsCest
         $document1 = $I->haveAPageDocument('en', 'en');
         $document2 = $I->haveAPageDocument('de', 'de');
 
-        $I->amOnPageWithLocaleAndCountry('/this-page-does-not-exist', 'de-CH', 'switzerland');
+        $I->amOnPageWithLocaleAndCountry('/this-page-does-not-exist', 'de_CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/this-page-does-not-exist');
 
@@ -40,10 +40,10 @@ class LocalizedErrorDocumentsCest
         $document2 = $I->haveAPageDocument('de', 'de');
         $localizedErrorDocument2 = $I->haveASubPageDocument($document2,'error');
 
-        $I->amOnPageWithLocaleAndCountry('/en/this-page-does-not-exist', 'en-US', 'us');
+        $I->amOnPageWithLocaleAndCountry('/en/this-page-does-not-exist', 'en_US', 'us');
         $I->see($localizedErrorDocument1->getId(), '#page-id');
 
-        $I->amOnPageWithLocaleAndCountry('/de/diese-seite-existiert-nicht', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('/de/diese-seite-existiert-nicht', 'de_DE', 'germany');
         $I->see($localizedErrorDocument2->getId(), '#page-id');
 
     }

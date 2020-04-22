@@ -14,7 +14,7 @@ class CanonicalLinksCest
         $document1 = $I->haveAPageDocument('en', 'en');
         $document2 = $I->haveAHardLink($document1, 'en-us', 'en_US');
 
-        $I->amOnPageWithLocaleAndCountry('/en-us', 'en-US', 'us');
+        $I->amOnPageWithLocaleAndCountry('/en-us', 'en_US', 'us');
 
         $I->dontSeeCanonicalLinkInResponse();
     }
@@ -32,7 +32,7 @@ class CanonicalLinksCest
 
         $hardlink2 = $I->haveASubHardLink($hardlink1, $document3, 'sub-page-hardlink');
 
-        $I->amOnPageWithLocaleAndCountry('/en-us/sub-page-hardlink/sub-sub-page', 'en-US', 'us');
+        $I->amOnPageWithLocaleAndCountry('/en-us/sub-page-hardlink/sub-sub-page', 'en_US', 'us');
 
         $I->seeCanonicalLinkInResponse();
     }

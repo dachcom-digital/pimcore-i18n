@@ -16,7 +16,7 @@ class HrefLangCest
         $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
         $document2 = $I->haveAPageDocumentForSite($site1, 'de', 'de');
 
-        $I->amOnPageWithLocale('http://test-domain1.test/', 'de-CH');
+        $I->amOnPageWithLocale('http://test-domain1.test/', 'de_CH');
 
         $I->seeCurrentUrlEquals('/de');
 
@@ -40,7 +40,7 @@ class HrefLangCest
         $document2 = $I->haveAPageDocumentForSite($site2, 'de', 'de');
         $document3 = $I->haveAPageDocumentForSite($site3, 'fr', 'fr');
 
-        $I->amOnPageWithLocale('http://test-domain1.test/', 'de-CH');
+        $I->amOnPageWithLocale('http://test-domain1.test/', 'de_CH');
 
         $I->seeCurrentUrlEquals('/de');
 

@@ -37,19 +37,21 @@ class UserHelper
     public function getLanguagesAcceptedByUser()
     {
         $masterRequest = $this->requestStack->getMasterRequest();
-
-        if(!$masterRequest instanceof Request) {
+        if (!$masterRequest instanceof Request) {
             return [];
         }
 
         $guessedLanguages = [];
         $acceptLanguages = $masterRequest->getLanguages();
-        if ($acceptLanguages) {
-            $pimcoreLanguages = Tool::getValidLanguages();
-            foreach ($acceptLanguages as $acceptLanguage) {
-                if (in_array($acceptLanguage, $pimcoreLanguages, true)) {
-                    $guessedLanguages[] = $acceptLanguage;
-                }
+
+        if (!is_array($acceptLanguages)) {
+            return $guessedLanguages;
+        }
+
+        $pimcoreLanguages = Tool::getValidLanguages();
+        foreach ($acceptLanguages as $acceptLanguage) {
+            if (in_array($acceptLanguage, $pimcoreLanguages, true)) {
+                $guessedLanguages[] = $acceptLanguage;
             }
         }
 

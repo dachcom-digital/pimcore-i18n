@@ -15,7 +15,7 @@ class ZoneCest
 
         $document = $I->haveAPageDocumentForSite($site1, 'en', 'en');
 
-        $I->amOnPageWithLocale('http://test-domain1.test/', 'de-CH');
+        $I->amOnPageWithLocale('http://test-domain1.test/', 'de_CH');
 
         $I->seeCurrentUrlEquals('/en');
         $I->seeCurrentHostEquals('test-domain1.test');
@@ -32,7 +32,7 @@ class ZoneCest
 
         $document = $I->haveAPageDocumentForSite($site1, 'de', 'de');
 
-        $I->amOnPageWithLocale('http://test-domain1.test/', 'de-CH');
+        $I->amOnPageWithLocale('http://test-domain1.test/', 'de_CH');
 
         $I->seeCurrentUrlEquals('/de');
         $I->seeCurrentHostEquals('test-domain1.test');
@@ -50,7 +50,7 @@ class ZoneCest
         $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
         $document2 = $I->haveAPageDocumentForSite($site1, 'de', 'de');
 
-        $I->amOnPageWithLocale('http://test-domain1.test', 'de-CH');
+        $I->amOnPageWithLocale('http://test-domain1.test', 'de_CH');
 
         $I->seeCurrentUrlEquals('/de');
         $I->seeCurrentHostEquals('test-domain1.test');
@@ -69,7 +69,7 @@ class ZoneCest
         $document1 = $I->haveAPageDocumentForSite($site2, 'en', 'en');
         $document2 = $I->haveAPageDocumentForSite($site2, 'fr', 'fr');
 
-        $I->amOnPageWithLocale('http://test-domain1.test', 'de-CH');
+        $I->amOnPageWithLocale('http://test-domain1.test', 'de_CH');
 
         $I->seeCurrentUrlEquals('/');
         $I->seeCurrentHostEquals('test-domain1.test');
@@ -88,7 +88,7 @@ class ZoneCest
         $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
         $document2 = $I->haveAPageDocumentForSite($site1, 'fr', 'fr');
 
-        $I->amOnPageWithLocale('http://test-domain1.test', 'de-CH');
+        $I->amOnPageWithLocale('http://test-domain1.test', 'de_CH');
 
         $I->seeCurrentUrlEquals('/');
         $I->seeCurrentHostEquals('test-domain2.test');

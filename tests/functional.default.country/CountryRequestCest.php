@@ -13,7 +13,7 @@ class CountryRequestCest
     {
         $document = $I->haveAPageDocument('en', 'en');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
+        $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/en');
 
@@ -28,7 +28,7 @@ class CountryRequestCest
     {
         $document = $I->haveAPageDocument('de', 'de');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
+        $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/de');
 
@@ -44,7 +44,7 @@ class CountryRequestCest
         $document1 = $I->haveAPageDocument('en', 'en');
         $document2 = $I->haveAPageDocument('de', 'de');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
+        $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/de');
 
@@ -60,7 +60,7 @@ class CountryRequestCest
         $document1 = $I->haveAPageDocument('en', 'en');
         $document2 = $I->haveAPageDocument('en-us', 'en_US');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
+        $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/en');
 
@@ -75,7 +75,7 @@ class CountryRequestCest
     {
         $document = $I->haveAPageDocument('en-us', 'en_US');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'en-US', 'us');
+        $I->amOnPageWithLocaleAndCountry('/', 'en_US', 'us');
 
         $I->seeCurrentUrlEquals('/en-us');
 
@@ -91,7 +91,7 @@ class CountryRequestCest
         $document1 = $I->haveAPageDocument('en-us', 'en_US');
         $document2 = $I->haveAPageDocument('de-de', 'de_DE');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('/', 'de_DE', 'germany');
 
         $I->seeCurrentUrlEquals('/de-de');
 

@@ -95,20 +95,33 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
     /**
      *  Actor Function to see a page with given locale
      *
-     * @param string $url
-     * @param string $locale
+     * @param string       $url
+     * @param string|array $locale
      */
     public function amOnPageWithLocale($url, $locale)
     {
-        $this->pimcoreCore->_loadPage('GET', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => $locale]);
+        $parsedLocale = [];
+        if (is_string($locale)) {
+            $parsedLocale[] = $locale;
+            if (strpos($locale, '_') !== false) {
+                // add language ISO as fallback
+                $parsedLocale[] = substr($locale, 0, 2);
+            }
+        } else {
+            $parsedLocale = $locale;
+        }
+
+        $this->pimcoreCore->_loadPage('GET', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => join(',', $parsedLocale)]);
     }
 
     /**
      *  Actor Function to see a page with given locale and country
      *
-     * @param string $url
-     * @param string $locale
-     * @param string $country
+     * @param string       $url
+     * @param string|array $locale
+     * @param string       $country
+     *
+     * @throws \Exception
      */
     public function amOnPageWithLocaleAndCountry($url, $locale, $country)
     {
@@ -127,7 +140,18 @@ class PhpBrowser extends Module implements Lib\Interfaces\DependsOnModule
             throw new \Exception(sprintf('%s is not a valid test country', $country));
         }
 
-        $this->pimcoreCore->_loadPage('POST', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => $locale, 'HTTP_CLIENT_IP' => $countryIps[$country]]);
+        $parsedLocale = [];
+        if (is_string($locale)) {
+            $parsedLocale[] = $locale;
+            if (strpos($locale, '_') !== false) {
+                // add language ISO as fallback
+                $parsedLocale[] = substr($locale, 0, 2);
+            }
+        } else {
+            $parsedLocale = $locale;
+        }
+
+        $this->pimcoreCore->_loadPage('POST', $url, [], [], ['HTTP_ACCEPT_LANGUAGE' => join(',', $parsedLocale), 'HTTP_CLIENT_IP' => $countryIps[$country]]);
     }
 
     /**

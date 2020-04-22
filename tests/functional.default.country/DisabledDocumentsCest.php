@@ -17,7 +17,7 @@ class DisabledDocumentsCest
 
         $I->haveAUnPublishedDocument($document3);
 
-        $I->amOnPageWithLocale('/de', 'de-CH');
+        $I->amOnPageWithLocale('/de', 'de_CH');
 
         $I->seeCurrentUrlEquals('/de');
 
@@ -44,7 +44,7 @@ class DisabledDocumentsCest
 
         $I->haveAUnPublishedDocument($hardlink1);
 
-        $I->amOnPageWithLocale('/de-ch', 'de-CH');
+        $I->amOnPageWithLocale('/de-ch', 'de_CH');
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'CH']);
         $I->seeElement('html', ['lang' => 'de_CH']);
@@ -75,7 +75,7 @@ class DisabledDocumentsCest
 
         $I->haveAUnPublishedDocument($documentSub2);
 
-        $I->amOnPageWithLocale('/en/about-us', 'en-US');
+        $I->amOnPageWithLocale('/en/about-us', 'en_US');
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'international']);
         $I->seeElement('html', ['lang' => 'en']);

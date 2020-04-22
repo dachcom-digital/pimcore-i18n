@@ -14,7 +14,7 @@ class HardLinkWrappingCest
         $document1 = $I->haveAPageDocument('en', 'en');
         $document2 = $I->haveAHardLink($document1, 'en-us', 'en_US');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'en-US', 'us');
+        $I->amOnPageWithLocaleAndCountry('/', 'en_US', 'us');
 
         $I->seeCurrentUrlEquals('/en-us');
 

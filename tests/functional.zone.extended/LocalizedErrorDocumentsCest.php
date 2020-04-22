@@ -37,33 +37,33 @@ class LocalizedErrorDocumentsCest extends AbstractZone
         $localizedErrorDocument12 = $I->haveAPageDocumentForSite($setup['site7'], 'error');
 
         // zone 1 requests
-        $I->amOnPageWithLocaleAndCountry('http://test-domain1.test/en/this-page-does-not-exist', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain1.test/en/this-page-does-not-exist', 'de_DE', 'germany');
         $I->see($localizedErrorDocument1->getId(), '#page-id');
-        $I->amOnPageWithLocaleAndCountry('http://test-domain1.test/de/diese-seite-existiert-nicht', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain1.test/de/diese-seite-existiert-nicht', 'de_DE', 'germany');
         $I->see($localizedErrorDocument2->getId(), '#page-id');
-        $I->amOnPageWithLocaleAndCountry('http://test-domain2.test/it/questa-pagina-non-esiste', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain2.test/it/questa-pagina-non-esiste', 'de_DE', 'germany');
         $I->see($localizedErrorDocument3->getId(), '#page-id');
-        $I->amOnPageWithLocaleAndCountry('http://test-domain3.test/cette-page-nexiste-pas', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain3.test/cette-page-nexiste-pas', 'de_DE', 'germany');
         $I->see($localizedErrorDocument4->getId(), '#page-id');
 
         // zone 2 requests
-        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/en/this-page-does-not-exist', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/en/this-page-does-not-exist', 'de_DE', 'germany');
         $I->see($localizedErrorDocument5->getId(), '#page-id');
-        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/de/diese-seite-existiert-nicht', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/de/diese-seite-existiert-nicht', 'de_DE', 'germany');
         $I->see($localizedErrorDocument6->getId(), '#page-id');
-        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/en-us/this-page-does-not-exist', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/en-us/this-page-does-not-exist', 'de_DE', 'germany');
         $I->see($localizedErrorDocument7->getId(), '#page-id');
-        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/de-de/diese-seite-existiert-nicht', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/de-de/diese-seite-existiert-nicht', 'de_DE', 'germany');
         $I->see($localizedErrorDocument8->getId(), '#page-id');
-        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/de-ch/diese-seite-existiert-nicht', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/de-ch/diese-seite-existiert-nicht', 'de_DE', 'germany');
         $I->see($localizedErrorDocument9->getId(), '#page-id');
-        $I->amOnPageWithLocaleAndCountry('http://test-domain5.test/it/questa-pagina-non-esiste', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain5.test/it/questa-pagina-non-esiste', 'de_DE', 'germany');
         $I->see($localizedErrorDocument10->getId(), '#page-id');
-        $I->amOnPageWithLocaleAndCountry('http://test-domain6.test/cette-page-nexiste-pas', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain6.test/cette-page-nexiste-pas', 'de_DE', 'germany');
         $I->see($localizedErrorDocument11->getId(), '#page-id');
 
         // zone 3 requests
-        $I->amOnPageWithLocaleAndCountry('http://test-domain7.test/questa-pagina-non-esiste', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain7.test/questa-pagina-non-esiste', 'de_DE', 'germany');
         $I->see($localizedErrorDocument12->getId(), '#page-id');
 
     }

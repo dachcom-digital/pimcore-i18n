@@ -14,7 +14,7 @@ class HrefLangCest
         $document1 = $I->haveAPageDocument('en', 'en');
         $document2 = $I->haveAPageDocument('de', 'de');
 
-        $I->amOnPageWithLocale('/', 'de-CH');
+        $I->amOnPageWithLocale('/', 'd_CH');
 
         $I->seeCurrentUrlEquals('/en');
 
@@ -35,7 +35,7 @@ class HrefLangCest
         $document2 = $I->haveAPageDocument('de-de', 'de_DE');
         $document3 = $I->haveAPageDocument('de-ch', 'de_CH');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'de-CH', 'switzerland');
+        $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/de-ch');
 
@@ -57,7 +57,7 @@ class HrefLangCest
         $document2 = $I->haveAPageDocument('de', 'de');
         $document3 = $I->haveAPageDocument('en-us', 'en_US');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'en-US', 'us');
+        $I->amOnPageWithLocaleAndCountry('/', 'en_US', 'us');
 
         $I->seeCurrentUrlEquals('/en-us');
 
@@ -81,7 +81,7 @@ class HrefLangCest
         $document2 = $I->haveAPageDocument('de', 'de');
         $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
 
-        $I->amOnPageWithLocaleAndCountry('/', 'en-US', 'us');
+        $I->amOnPageWithLocaleAndCountry('/', 'en_US', 'us');
 
         $I->seeCurrentUrlEquals('/en-us');
 
@@ -111,7 +111,7 @@ class HrefLangCest
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
 
-        $I->amOnPageWithLocaleAndCountry('/en/about-us', 'en-US', 'us');
+        $I->amOnPageWithLocaleAndCountry('/en/about-us', 'en_US', 'us');
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'international']);
         $I->seeElement('html', ['lang' => 'en']);
@@ -140,7 +140,7 @@ class HrefLangCest
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
 
-        $I->amOnPageWithLocaleAndCountry('/en-us/about-us', 'en-US', 'us');
+        $I->amOnPageWithLocaleAndCountry('/en-us/about-us', 'en_US', 'us');
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'US']);
         $I->seeElement('html', ['lang' => 'en_US']);
@@ -170,7 +170,7 @@ class HrefLangCest
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub3);
 
-        $I->amOnPageWithLocaleAndCountry('/de-de/ueber-uns', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('/de-de/ueber-uns', 'de_DE', 'germany');
 
         $I->seeElement('meta', ['name' => 'country', 'content' => 'DE']);
         $I->seeElement('html', ['lang' => 'de_DE']);
@@ -204,7 +204,7 @@ class HrefLangCest
 
         $I->haveAUnPublishedDocument($documentSub3);
 
-        $I->amOnPageWithLocaleAndCountry('/de-de/ueber-uns', 'de-DE', 'germany');
+        $I->amOnPageWithLocaleAndCountry('/de-de/ueber-uns', 'de_DE', 'germany');
         $I->canSeePageNotFound();
     }
 }

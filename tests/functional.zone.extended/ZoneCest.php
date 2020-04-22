@@ -25,7 +25,7 @@ class ZoneCest extends AbstractZone
     public function zoneTwoTest(FunctionalTester $I)
     {
         $this->setupSites($I);
-        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/', 'de-CH', 'switzerland');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain4.test/', 'de_CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/de-ch');
         $I->seeCurrentHostEquals('test-domain4.test');
@@ -46,7 +46,7 @@ class ZoneCest extends AbstractZone
     public function zoneThreeTest(FunctionalTester $I)
     {
         $this->setupSites($I);
-        $I->amOnPageWithLocaleAndCountry('http://test-domain7.test/', 'de-CH', 'switzerland');
+        $I->amOnPageWithLocaleAndCountry('http://test-domain7.test/', 'de_CH', 'switzerland');
 
         $I->seeCurrentUrlEquals('/');
         $I->seeCurrentHostEquals('test-domain7.test');

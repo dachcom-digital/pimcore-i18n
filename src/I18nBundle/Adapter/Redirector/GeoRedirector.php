@@ -8,21 +8,6 @@ use I18nBundle\Manager\ZoneManager;
 class GeoRedirector extends AbstractRedirector
 {
     /**
-     * @var null|string
-     */
-    protected $guessedLocale;
-
-    /**
-     * @var null|string
-     */
-    protected $guessedLanguage;
-
-    /**
-     * @var null|string
-     */
-    protected $guessedCountry;
-
-    /**
      * @var ZoneManager
      */
     protected $zoneManager;
@@ -53,69 +38,90 @@ class GeoRedirector extends AbstractRedirector
             return;
         }
 
+        /**
+         * - Based on string source HTTP_ACCEPT_LANGUAGE ("de,en;q=0.9,de-DE;q=0.8;...")
+         * - Transformed by symfony to [de, en, de_DE, ...]
+         */
         $userLanguagesIso = $this->userHelper->getLanguagesAcceptedByUser();
-        $userCountryIso = false;
 
-        if (count($userLanguagesIso) === 0) {
-            $this->setDecision(['valid' => false, 'redirectorOptions' => [
-                'geoLanguage' => false,
-                'geoCountry'  => $userCountryIso,
-            ]]);
+        if (!is_array($userLanguagesIso) || count($userLanguagesIso) === 0) {
+            $this->setDecision([
+                'valid'             => false,
+                'redirectorOptions' => [
+                    'geoLanguage' => false,
+                    'geoCountry'  => false,
+                ]
+            ]);
 
             return;
         }
 
+        $userCountryIso = null;
+        if ($redirectorBag->getI18nMode() === 'country') {
+            $userCountryIso = $this->userHelper->guessCountry();
+        }
 
-        foreach($userLanguagesIso as $userLanguageIso) {
-            $url = null;
+        $redirectorOptions = [
+            'geoLanguage' => $userLanguagesIso,
+            'geoCountry'  => $userCountryIso !== null ? $userCountryIso : false,
+        ];
 
-            $redirectorOptions = [
-                'geoLanguage' => $userLanguageIso,
-                'geoCountry'  => $userCountryIso,
-            ];
+        $prioritisedListQuery = [];
+        $prioritisedList = [
+            ['ignoreCountry' => false, 'countryStrictMode' => true, 'languageStrictMode' => false],
+            ['ignoreCountry' => false, 'countryStrictMode' => false, 'languageStrictMode' => false],
+            ['ignoreCountry' => true, 'countryStrictMode' => false, 'languageStrictMode' => true]
+        ];
 
-            if ($redirectorBag->getI18nMode() === 'country') {
-                $userCountryIso = $this->userHelper->guessCountry();
-                $redirectorOptions['geoCountry'] = $userCountryIso;
-                if ($userCountryIso === false) {
-                    $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
+        foreach ($prioritisedList as $index => $list) {
+            foreach ($userLanguagesIso as $priority => $userLocale) {
 
-                    return;
+                $country = $list['ignoreCountry'] ? null : $userCountryIso;
+                $countryStrictMode = $list['countryStrictMode'];
+                $languageStrictMode = $list['languageStrictMode'];
+
+                if (null !== $zoneData = $this->findUrlInZoneTree($userLocale, $country, $countryStrictMode, $languageStrictMode)) {
+                    $prioritisedListQuery[] = [
+                        'priority' => $index === 0 ? -1 : $priority,
+                        'data'     => $zoneData
+                    ];
+                    break;
                 }
-            }
-
-            if ($redirectorBag->getI18nMode() === 'language') {
-                $url = $this->findUrlInZoneTree($userLanguageIso);
-            } elseif ($redirectorBag->getI18nMode() === 'country') {
-                $userCountryIso = $this->userHelper->guessCountry();
-                $url = $this->findUrlInZoneTree($userLanguageIso, $userCountryIso);
-            }
-
-            if(!empty($url)) {
-                break;
             }
         }
 
+        // nothing found.
+        if (count($prioritisedListQuery) === 0) {
+            $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
+            // return;
+        }
+
+        usort($prioritisedListQuery, function ($a, $b) {
+            return $a['priority'] - $b['priority'];
+        });
+
+        $zoneData = $prioritisedListQuery[0]['data'];
+
         $this->setDecision([
-            'valid'             => !empty($url),
-            'locale'            => is_string($this->guessedLocale) ? $this->guessedLocale : null,
-            'country'           => is_string($this->guessedCountry) ? $this->guessedCountry : null,
-            'language'          => is_string($this->guessedLanguage) ? $this->guessedLanguage : null,
-            'url'               => is_string($url) ? $url : null,
+            'valid'             => true,
+            'locale'            => is_string($zoneData['locale']) ? $zoneData['locale'] : null,
+            'country'           => is_string($zoneData['countryIso']) ? $zoneData['countryIso'] : null,
+            'language'          => is_string($zoneData['languageIso']) ? $zoneData['languageIso'] : null,
+            'url'               => is_string($zoneData['homeUrl']) ? $zoneData['homeUrl'] : null,
             'redirectorOptions' => $redirectorOptions
         ]);
+
     }
 
     /**
-     * Returns absolute Url to website with language context.
-     * Because this could be a different domain, absolute url is necessary.
+     * @param string      $locale
+     * @param string|null $countryIso
+     * @param bool        $countryStrictMode
+     * @param bool        $languageStrictMode
      *
-     * @param null $languageIso
-     * @param null $countryIso
-     *
-     * @return bool
+     * @return bool|mixed|null
      */
-    public function findUrlInZoneTree($languageIso, $countryIso = null)
+    public function findUrlInZoneTree($locale, $countryIso = null, bool $countryStrictMode = true, $languageStrictMode = false)
     {
         try {
             $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
@@ -127,44 +133,27 @@ class GeoRedirector extends AbstractRedirector
             return false;
         }
 
-        $indexId = false;
+        $locale = $languageStrictMode ? substr($locale, 0, 2) : $locale;
 
-        if (empty($countryIso)) { // search in language context
-            $indexId = array_search($languageIso, array_column($zoneDomains, 'languageIso'));
-        } else { // search in country context
-            // check if country and language match
-            $index = array_keys(array_filter(
-                $zoneDomains,
-                function ($v) use ($languageIso, $countryIso) {
-                    return $v['languageIso'] === $languageIso && $v['countryIso'] === $countryIso;
-                }
-            ));
-
-            //check if only language is available.
-            if (empty($index)) {
-                $index = array_keys(array_filter(
-                    $zoneDomains,
-                    function ($v) use ($languageIso) {
-                        return $v['languageIso'] === $languageIso;
-                    }
-                ));
-            }
-
-            if (isset($index[0])) {
-                $indexId = $index[0];
-            }
+        if ($countryIso === null) {
+            $indexId = array_search($locale, array_column($zoneDomains, 'locale'));
+            return $indexId !== false ? $zoneDomains[$indexId] : null;
         }
 
-        if ($indexId === false) {
-            return false;
+        if ($countryStrictMode === true) {
+
+            // first try to find language iso + guessed country
+            // we need to overrule users accepted region fragment by our guessed country
+            $language = strpos($locale, '_') !== false ? substr($locale, 0, 2) : $locale;
+
+            $strictLocale = sprintf('%s_%s', $language, $countryIso);
+            $indexId = array_search($strictLocale, array_column($zoneDomains, 'locale'));
+
+            return $indexId !== false ? $zoneDomains[$indexId] : null;
         }
 
-        $docData = $zoneDomains[$indexId];
+        $indexId = array_search($locale, array_column($zoneDomains, 'locale'));
 
-        $this->guessedLocale = $docData['locale'];
-        $this->guessedLanguage = $docData['languageIso'];
-        $this->guessedCountry = $docData['countryIso'];
-
-        return $docData['homeUrl'];
+        return $indexId !== false ? $zoneDomains[$indexId] : null;
     }
 }

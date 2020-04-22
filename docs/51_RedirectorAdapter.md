@@ -103,8 +103,8 @@ class Website extends AbstractRedirector
          *
          * returns an array:
          * Array (
-         *   [geoLanguage] => de
-         *   [geoCountry] =>
+         *   [geoLanguage] => [de, de_DE, ...]
+         *   [geoCountry]  => false
          * )
          *
          */
