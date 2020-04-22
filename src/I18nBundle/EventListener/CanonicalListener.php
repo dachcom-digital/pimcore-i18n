@@ -54,11 +54,11 @@ class CanonicalListener implements EventSubscriberInterface
         }
 
         $document = $this->pimcoreDocumentResolver->getDocument($request);
-        if (!$document instanceof Document) {
+        if (!$document instanceof Wrapper\WrapperInterface) {
             return;
         }
 
-        if (!$document instanceof Wrapper\WrapperInterface && !Staticroute::getCurrentRoute()) {
+        if (Staticroute::getCurrentRoute()) {
             return;
         }
 
