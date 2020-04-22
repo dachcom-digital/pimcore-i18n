@@ -4,7 +4,6 @@ namespace I18nBundle\EventListener;
 
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
-use Pimcore\Model\Document;
 use Pimcore\Model\Document\Hardlink\Wrapper;
 use Pimcore\Model\Staticroute;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
