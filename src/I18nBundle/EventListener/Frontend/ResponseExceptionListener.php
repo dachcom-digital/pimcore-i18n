@@ -261,10 +261,13 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $document = Document::getById(1);
         }
 
-        $locale = null;
+        $locale = $document->getProperty('language');
+
         if (!empty($nearestDocumentLocale)) {
             $locale = $nearestDocumentLocale;
-        } elseif (empty($document->getProperty('language'))) {
+        }
+
+        if (empty($locale)) {
             $locale = 'en';
         }
 
@@ -304,7 +307,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
 
     /**
      * @param Request $request
-     * @param         $statusCode
+     * @param int     $statusCode
      */
     protected function logToHttpErrorLog(Request $request, $statusCode)
     {
@@ -312,17 +315,17 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $exists = $this->db->fetchOne('SELECT `date` FROM http_error_log WHERE uri = ?', $uri);
 
         if ($exists !== false) {
-            $this->db->query('UPDATE http_error_log SET `count` = `count` + 1, `date` = ? WHERE uri = ?', [time(), $uri]);
+            $this->db->executeQuery('UPDATE http_error_log SET `count` = `count` + 1, `date` = ? WHERE uri = ?', [time(), $uri]);
             return;
         }
 
         $this->db->insert('http_error_log', [
             'uri'            => $uri,
             'code'           => (int) $statusCode,
-            'parametersGet'  => serialize($_GET),
-            'parametersPost' => serialize($_POST),
-            'cookies'        => serialize($_COOKIE),
-            'serverVars'     => serialize($_SERVER),
+            'parametersGet'  => serialize($request->query->all()),
+            'parametersPost' => serialize($request->request->all()),
+            'cookies'        => serialize($request->cookies->all()),
+            'serverVars'     => serialize($request->server->all()),
             'date'           => time(),
             'count'          => 1
         ]);
