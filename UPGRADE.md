@@ -6,6 +6,9 @@
 After every update you should check the pimcore extension manager. 
 Just click the "update" button or execute the migration command to finish the bundle update.
 
+#### Update from Version 3.2.1 to Version 3.2.2
+- **[ENHANCEMENT]**: Log http exception to `http_error_log` table [@59](https://github.com/dachcom-digital/pimcore-i18n/pull/59).
+
 #### Update from Version 3.2.0 to Version 3.2.1
 - **[ENHANCEMENT]**: Pimcore 6.6.0 ready
 - **[ENHANCEMENT]**: Remove empty attributes from alternate links (`link href="http://pimcore.test/de" rel="alternate" type="" title="" hreflang="de"` becomes `link href="http://pimcore.test/de" rel="alternate" hreflang="de"`)

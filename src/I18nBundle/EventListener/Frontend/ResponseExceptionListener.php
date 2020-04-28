@@ -7,6 +7,7 @@ use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use Pimcore\Cache;
+use Pimcore\Db\ConnectionInterface;
 use Pimcore\Http\Exception\ResponseException;
 use Pimcore\Model\DataObject;
 use Pimcore\Http\Request\Resolver\SiteResolver;
@@ -61,12 +62,18 @@ class ResponseExceptionListener implements EventSubscriberInterface
     protected $pimcoreConfig;
 
     /**
+     * @var ConnectionInterface
+     */
+    protected $db;
+
+    /**
      * @param ActionRenderer       $actionRenderer
      * @param ZoneManager          $zoneManager
      * @param ContextManager       $contextManager
      * @param PathGeneratorManager $pathGeneratorManager
      * @param SiteResolver         $siteResolver
      * @param Document\Service     $documentService
+     * @param ConnectionInterface  $db
      * @param array                $pimcoreConfig
      */
     public function __construct(
@@ -76,6 +83,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         PathGeneratorManager $pathGeneratorManager,
         SiteResolver $siteResolver,
         Document\Service $documentService,
+        ConnectionInterface $db,
         array $pimcoreConfig
     ) {
         $this->actionRenderer = $actionRenderer;
@@ -84,6 +92,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $this->pathGeneratorManager = $pathGeneratorManager;
         $this->siteResolver = $siteResolver;
         $this->documentService = $documentService;
+        $this->db = $db;
         $this->pimcoreConfig = $pimcoreConfig;
     }
 
@@ -127,22 +136,57 @@ class ResponseExceptionListener implements EventSubscriberInterface
      */
     protected function handleErrorPage(GetResponseForExceptionEvent $event)
     {
-        if (\Pimcore::inDebugMode() || PIMCORE_DEVMODE) {
+        if (\Pimcore::inDebugMode()) {
             return;
         }
 
         // re-init zones since we're in a kernelException.
         $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+
         $exception = $event->getException();
+        $document = $this->detectDocument($event, $zoneDomains);
+
+        $this->setRuntime($event->getRequest(), $document->getProperty('language'));
+        $this->contextManager->getContext()->setDocument($document);
+
+        try {
+            $response = $this->actionRenderer->render($document);
+        } catch (\Exception $e) {
+            // we are even not able to render the error page, so we send the client a unicorn
+            $response = 'Page not found (' . $e->getMessage() . ') 🦄';
+        }
+
+        $statusCode = 500;
+        $headers = [];
+
+        if ($exception instanceof HttpExceptionInterface) {
+            $statusCode = $exception->getStatusCode();
+            $headers = $exception->getHeaders();
+        }
+
+        $this->logToHttpErrorLog($event->getRequest(), $statusCode);
+
+        $event->setResponse(new Response($response, $statusCode, $headers));
+    }
+
+    /**
+     * @param GetResponseForExceptionEvent $event
+     * @param array                        $zoneDomains
+     *
+     * @return Document
+     */
+    protected function detectDocument(GetResponseForExceptionEvent $event, array $zoneDomains)
+    {
+        $defaultErrorDocument = null;
+        $localizedErrorDocument = null;
+        $nearestDocumentLocale = null;
+        $document = null;
 
         $host = preg_replace('/^www./', '', $event->getRequest()->getHost());
 
         // 1. get default system error page ($defaultErrorPath)
         $defaultErrorPath = $this->pimcoreConfig['documents']['error_pages']['default'];
-        $defaultErrorDocument = null;
-        $localizedErrorDocument = null;
 
-        $newDocumentLocale = null;
         if ($this->siteResolver->isSiteRequest($event->getRequest())) {
             $path = $this->siteResolver->getSitePath($event->getRequest());
             // 2. get site error page
@@ -158,13 +202,11 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $defaultErrorDocument = Document::getByPath($defaultErrorPath);
         }
 
-        $nearestDocumentLocale = null;
         $nearestDocument = $this->documentService->getNearestDocumentByPath($path, true, ['page', 'hardlink']);
 
         // 3. find localized error from current path
         if ($nearestDocument instanceof Document) {
             $nearestDocumentLocale = $nearestDocument->getProperty('language');
-            $newDocumentLocale = $nearestDocumentLocale;
 
             $validElements = array_keys(array_filter(
                 $zoneDomains,
@@ -211,7 +253,6 @@ class ResponseExceptionListener implements EventSubscriberInterface
             }
         }
 
-        $document = null;
         if ($localizedErrorDocument instanceof Document) {
             $document = $localizedErrorDocument;
         } elseif ($defaultErrorDocument instanceof Document) {
@@ -220,38 +261,26 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $document = Document::getById(1);
         }
 
-        if (empty($newDocumentLocale)) {
-            $newDocumentLocale = $document->getProperty('language');
+        $locale = $document->getProperty('language');
+
+        if (!empty($nearestDocumentLocale)) {
+            $locale = $nearestDocumentLocale;
         }
 
-        $this->setRuntime($event->getRequest(), $document, $newDocumentLocale);
-
-        $this->contextManager->getContext()->setDocument($document);
-
-        try {
-            $response = $this->actionRenderer->render($document);
-        } catch (\Exception $e) {
-            // we are even not able to render the error page, so we send the client a unicorn
-            $response = 'Page not found (' . $e->getMessage() . ') 🦄';
+        if (empty($locale)) {
+            $locale = 'en';
         }
 
-        $statusCode = 500;
-        $headers = [];
+        $document->setProperty('language', 'text', $locale);
 
-        if ($exception instanceof HttpExceptionInterface) {
-            $statusCode = $exception->getStatusCode();
-            $headers = $exception->getHeaders();
-        }
-
-        $event->setResponse(new Response($response, $statusCode, $headers));
+        return $document;
     }
 
     /**
-     * @param Request  $request
-     * @param Document $document
-     * @param string   $newDocumentLocale
+     * @param Request $request
+     * @param string  $locale
      */
-    private function setRuntime(Request $request, Document $document, $newDocumentLocale)
+    private function setRuntime(Request $request, string $locale)
     {
         // Pimcore does not initialize context in exception.
         Document::setHideUnpublished(true);
@@ -259,25 +288,46 @@ class ResponseExceptionListener implements EventSubscriberInterface
         DataObject\AbstractObject::setGetInheritedValues(true);
         DataObject\Localizedfield::setGetFallbackValues(true);
 
-        $saveLocale = is_null($newDocumentLocale) ? 'en' : $newDocumentLocale;
+        $request->attributes->set('_locale', $locale);
+        $request->setLocale($locale);
+        $request->setDefaultLocale($locale);
 
-        $request->setLocale($saveLocale);
-        $request->setDefaultLocale($saveLocale);
-        $request->attributes->set('_locale', $saveLocale);
-        $document->setProperty('language', 'string', $saveLocale);
-
-        //fix i18n language / country context.
-        Cache\Runtime::set('i18n.locale', $saveLocale);
-
-        $docLang = explode('_', $saveLocale);
-        Cache\Runtime::set('i18n.languageIso', strtolower($docLang[0]));
-
+        $docLang = explode('_', $locale);
         $countryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
 
         if (count($docLang) > 1) {
             $countryIso = $docLang[1];
         }
 
+        //fix i18n language / country context.
+        Cache\Runtime::set('i18n.locale', $locale);
+        Cache\Runtime::set('i18n.languageIso', strtolower($docLang[0]));
         Cache\Runtime::set('i18n.countryIso', $countryIso);
+    }
+
+    /**
+     * @param Request $request
+     * @param int     $statusCode
+     */
+    protected function logToHttpErrorLog(Request $request, $statusCode)
+    {
+        $uri = $request->getUri();
+        $exists = $this->db->fetchOne('SELECT `date` FROM http_error_log WHERE uri = ?', $uri);
+
+        if ($exists !== false) {
+            $this->db->executeQuery('UPDATE http_error_log SET `count` = `count` + 1, `date` = ? WHERE uri = ?', [time(), $uri]);
+            return;
+        }
+
+        $this->db->insert('http_error_log', [
+            'uri'            => $uri,
+            'code'           => (int) $statusCode,
+            'parametersGet'  => serialize($request->query->all()),
+            'parametersPost' => serialize($request->request->all()),
+            'cookies'        => serialize($request->cookies->all()),
+            'serverVars'     => serialize($request->server->all()),
+            'date'           => time(),
+            'count'          => 1
+        ]);
     }
 }
