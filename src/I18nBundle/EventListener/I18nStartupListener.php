@@ -102,10 +102,10 @@ class I18nStartupListener implements EventSubscriberInterface
     {
         return [
             KernelEvents::EXCEPTION => [
-                ['onKernelRequestLocale', 17],      // before symfony LocaleListener
                 ['onKernelException', 20]           // before responseExceptionListener
             ],
             KernelEvents::REQUEST   => [
+                ['onKernelRequestLocale', 17],      // before symfony LocaleListener
                 ['onKernelRequest', 2]              // after pimcore context resolver
             ]
         ];
