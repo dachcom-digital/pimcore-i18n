@@ -266,7 +266,7 @@ class I18nStartupListener implements EventSubscriberInterface
 
         if ($document instanceof Document) {
             if ($document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-                /** @var Document\Hardlink\Wrapper $wrapperDocument */
+                /** @var Document\Hardlink\Wrapper\WrapperInterface $wrapperDocument */
                 $wrapperDocument = $document;
                 $document = $wrapperDocument->getHardLinkSource();
             }

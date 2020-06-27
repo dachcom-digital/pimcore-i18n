@@ -169,7 +169,7 @@ class Document extends AbstractPathGenerator
             //if no translation has been found, add document itself:
             if (empty($translations) && $currentDocument->hasProperty('language')) {
                 if ($currentDocument instanceof PimcoreDocument\Hardlink\Wrapper\WrapperInterface) {
-                    /** @var PimcoreDocument\Hardlink\Wrapper $wrapperDocument */
+                    /** @var PimcoreDocument\Hardlink\Wrapper\WrapperInterface $wrapperDocument */
                     $wrapperDocument = $currentDocument;
                     $locale = $wrapperDocument->getHardLinkSource()->getSourceDocument()->getProperty('language');
                 } else {
