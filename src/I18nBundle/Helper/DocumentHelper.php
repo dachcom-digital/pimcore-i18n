@@ -62,7 +62,7 @@ class DocumentHelper
         $documentCountry = null;
 
         if ($document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            /** @var Document\Hardlink\Wrapper $wrapperDocument */
+            /** @var Document\Hardlink\Wrapper\WrapperInterface $wrapperDocument */
             $wrapperDocument = $document;
             $documentLocale = $wrapperDocument->getHardLinkSource()->getProperty('language');
         } else {
