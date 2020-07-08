@@ -55,6 +55,12 @@ class UserHelper
             }
         }
 
+        foreach ($acceptLanguages as $acceptLanguage) {
+            if (in_array(substr($acceptLanguage, 0, 2), $pimcoreLanguages, true)) {
+                $guessedLanguages[] = $acceptLanguage;
+            }
+        }
+
         return $guessedLanguages;
     }
 
