@@ -61,7 +61,7 @@ class UserHelper
             }
         }
 
-        return $guessedLanguages;
+        return array_unique($guessedLanguages);
     }
 
     /**
