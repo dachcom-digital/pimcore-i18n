@@ -6,6 +6,12 @@
 After every update you should check the pimcore extension manager. 
 Just click the "update" button or execute the migration command to finish the bundle update.
 
+#### Update from Version 3.2.3 to Version 3.2.4
+- **[BUGFIX]**: Don't add documents to i18n tree, if not available in other context [@66](https://github.com/dachcom-digital/pimcore-i18n/pull/66).
+
+#### Update from Version 3.2.2 to Version 3.2.3
+- **[BUGFIX]**: Fix wrong request listener [#dd2102](https://github.com/dachcom-digital/pimcore-i18n/commit/dd2102)
+
 #### Update from Version 3.2.1 to Version 3.2.2
 - **[ENHANCEMENT]**: Log http exception to `http_error_log` table [@59](https://github.com/dachcom-digital/pimcore-i18n/pull/59).
 
