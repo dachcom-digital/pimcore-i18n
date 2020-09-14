@@ -49,16 +49,16 @@ class UserHelper
         }
 
         $pimcoreLanguages = Tool::getValidLanguages();
-        foreach ($acceptLanguages as $acceptLanguage) {
-            if (in_array($acceptLanguage, $pimcoreLanguages, true)) {
-                $guessedLanguages[] = $acceptLanguage;
-            }
-        }
 
         foreach ($acceptLanguages as $acceptLanguage) {
-            if (in_array(substr($acceptLanguage, 0, 2), $pimcoreLanguages, true)) {
-                $guessedLanguages[] = $acceptLanguage;
-            }
+            $guessedLanguages = array_merge(
+                $guessedLanguages,
+                in_array($acceptLanguage, $pimcoreLanguages, true)
+                    ? [$acceptLanguage]
+                    : array_filter($pimcoreLanguages, function (string $pimcoreLanguage) use ($acceptLanguage) {
+                    return substr($acceptLanguage, 0, 2) === substr($pimcoreLanguage, 0, 2);
+                })
+            );
         }
 
         return array_unique($guessedLanguages);
