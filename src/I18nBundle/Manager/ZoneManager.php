@@ -488,7 +488,7 @@ class ZoneManager
             'countryIso'       => $docCountryIso,
             'languageIso'      => $docRealLanguageIso,
             'hrefLang'         => $hrefLang,
-            'localeUrlMapping' => null,
+            'localeUrlMapping' => (!empty($docLocale)) ? $docLocale : null,
             'url'              => $domainUrl,
             'homeUrl'          => $domainUrl,
             'domainUrl'        => $domainUrl,
