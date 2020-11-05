@@ -115,4 +115,4 @@ jobs:
             -   name: Tests
                 run: |
                     bin/console cache:warmup --env=test
-                    vendor/bin/codecept run -c ${{ env.GITHUB_WORKSPACE }} --env github
+                    vendor/bin/codecept run -c ${{ env.GITHUB_WORKSPACE }}
