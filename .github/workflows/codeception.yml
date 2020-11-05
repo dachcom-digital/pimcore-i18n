@@ -36,8 +36,10 @@ jobs:
             matrix:
                 php: [7.4]
                 symfony: [^4.4]
-                pimcore: [^6.8]
+                pimcore: [^6.6, ^6.8]
                 include:
+                    -   pimcore: ^6.6
+                        template_tag: v2.6.0
                     -   pimcore: ^6.8
                         template_tag: v2.8.0
 
@@ -114,5 +116,12 @@ jobs:
 
             -   name: Tests
                 run: |
+                    echo "127.0.0.1 test-domain1.test" | sudo tee -a /etc/hosts
+                    echo "127.0.0.1 test-domain2.test" | sudo tee -a /etc/hosts
+                    echo "127.0.0.1 test-domain3.test" | sudo tee -a /etc/hosts
+                    echo "127.0.0.1 test-domain4.test" | sudo tee -a /etc/hosts
+                    echo "127.0.0.1 test-domain5.test" | sudo tee -a /etc/hosts
+                    echo "127.0.0.1 test-domain6.test" | sudo tee -a /etc/hosts
+                    echo "127.0.0.1 test-domain7.test" | sudo tee -a /etc/hosts
                     bin/console cache:warmup --env=test
                     vendor/bin/codecept run -c ${{ env.GITHUB_WORKSPACE }}
