@@ -1,4 +1,4 @@
-name: PHP Stan
+name: Codeception
 on:
     push:
         branches: [ 'master' ]
@@ -6,18 +6,23 @@ on:
         branches: [ 'master' ]
 
 jobs:
-    stan:
+    codeception:
         runs-on: ubuntu-latest
         env:
+            DACHCOM_BUNDLE_TEST_DIR: "${{ env.GITHUB_WORKSPACE }}/tests"
+            DACHCOM_BUNDLE_NAME: "I18nBundle"
+            DACHCOM_BUNDLE_CLASS: "I18nBundle\\I18nBundle"
+            DACHCOM_BUNDLE_INSTALLER_CLASS: "I18nBundle\\Tool\\Install"
+
             PIMCORE_ENVIRONMENT: "test"
             PIMCORE_TEST_DB_DSN: "mysql://root:root@localhost/dachcom_bundle_test"
             PIMCORE_TEST_URL: "http://localhost"
+
             SYMFONY_DEPRECATIONS_HELPER: "weak"
             PIMCORE_PHP_ERROR_REPORTING: 32767
 
             MYSQL_ROOT_PASSWORD: root
             MYSQL_DATABASE: dachcom_bundle_test
-
         services:
             mysql:
                 image: mysql:5.7
@@ -55,6 +60,13 @@ jobs:
                 run: |
                     chmod +x tests/_etc/scripts/install
                     ./tests/_etc/scripts/install
+
+            -   name: Load GeoLite2
+                run: |
+                    sudo apt-get update
+                    sudo apt-get install -y wget
+                    wget -c https://raw.githubusercontent.com/wp-statistics/GeoLite2-City/master/GeoLite2-City.mmdb.gz -O GeoLite2-City.mmdb.gz
+                    gunzip GeoLite2-City.mmdb.gz -c > var/config/GeoLite2-City.mmdb
 
             -   name: Install PHP
                 uses: shivammathur/setup-php@v2
@@ -100,7 +112,7 @@ jobs:
                     composer req pimcore/pimcore:${{ matrix.pimcore }} symfony/symfony:${{ matrix.symfony }} --no-interaction --ignore-platform-reqs --no-scripts
                     composer install --no-progress --prefer-dist --optimize-autoloader --ignore-platform-reqs
 
-            -   name: Php Stan
+            -   name: Tests
                 run: |
                     bin/console cache:warmup --env=test
-                    vendor/bin/phpstan analyse -c phpstan.neon -a tests/_phpstan-bootstrap.php src -l 2
+                    vendor/bin/codecept run -c ${{ env.GITHUB_WORKSPACE }} --env github

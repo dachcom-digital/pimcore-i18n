@@ -1,12 +1,5 @@
 #!/bin/bash
 
-export DACHCOM_BUNDLE_HOME=$GITHUB_WORKSPACE
-export DACHCOM_BUNDLE_NAME="I18nBundle"
-export DACHCOM_BUNDLE_REPO_NAME="i18n"
-
-export DACHCOM_BUNDLE_CLASS='I18nBundle\I18nBundle'
-export DACHCOM_BUNDLE_INSTALLER_CLASS='I18nBundle\Tool\Install'
-
 declare -A DACHCOM_INSTALL_CONFIG_FILES=(
  # system files
  ["./tests/_etc/config/bundle/extensions.php.template"]="./var/config/extensions.php"
