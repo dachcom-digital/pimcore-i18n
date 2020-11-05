@@ -100,6 +100,7 @@ jobs:
                     composer install --no-progress --prefer-dist --optimize-autoloader --ignore-platform-reqs
 
             -   name: Easy Coding Standard Check
+                continue-on-error: true
                 run: |
                     bin/console cache:warmup --env=test
                     vendor/bin/ecs check src --config easy-coding-standard.yml
