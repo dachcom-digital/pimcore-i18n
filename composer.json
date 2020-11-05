@@ -18,6 +18,11 @@
             "I18nBundle\\": "src/I18nBundle"
         }
     },
+    "autoload-dev": {
+        "classmap": [
+            "app/AppKernel.php"
+        ]
+    },
     "extra": {
         "pimcore": {
             "bundles": [
