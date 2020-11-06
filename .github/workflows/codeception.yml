@@ -124,4 +124,4 @@ jobs:
                     echo "127.0.0.1 test-domain6.test" | sudo tee -a /etc/hosts
                     echo "127.0.0.1 test-domain7.test" | sudo tee -a /etc/hosts
                     bin/console cache:warmup --env=test
-                    vendor/bin/codecept run -c ${{ env.GITHUB_WORKSPACE }}
+                    vendor/bin/codecept run -c ${{ env.GITHUB_WORKSPACE }} --env github
