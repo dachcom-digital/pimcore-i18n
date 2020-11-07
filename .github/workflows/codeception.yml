@@ -36,15 +36,32 @@ jobs:
             matrix:
                 php: [7.4]
                 symfony: [^4.4]
-                pimcore: [^6.6, ^6.8]
+                pimcore: [^6.0, ^6.1, ^6.2, ^6.3, ^6.5, ^6.6, ^6.7, ^6.8]
                 include:
+                    -   pimcore: ^6.0
+                        template_tag: v2.0.0
+                    -   pimcore: ^6.1
+                        template_tag: v2.1.0
+                    -   pimcore: ^6.2
+                        template_tag: v2.2.0
+                    -   pimcore: ^6.3
+                        template_tag: v2.3.0
+                    -   pimcore: ^6.5
+                        template_tag: v2.5.0
                     -   pimcore: ^6.6
                         template_tag: v2.6.0
+                    -   pimcore: ^6.7
+                        template_tag: v2.7.0
                     -   pimcore: ^6.8
+                        symfony: [^3.4, ^4.4]
                         template_tag: v2.8.0
-
         steps:
             -   uses: actions/checkout@v2
+
+            -   name: Adjust Error Reporting Level
+                if: ${{ matrix.pimcore == '^6.5' }}
+                run: |
+                    echo "::set-env name=PIMCORE_PHP_ERROR_REPORTING::30711"
 
             -   name: Generate Application Structure
                 run: |
