@@ -56,6 +56,7 @@ jobs:
                         template_tag: v2.8.0
                     -   pimcore: ^6.8
                         symfony: ^3.4
+                        php: 7.4
                         template_tag: v2.8.0
         steps:
             -   uses: actions/checkout@v2
