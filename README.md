@@ -2,7 +2,7 @@
 
 [![Software License](https://img.shields.io/badge/license-GPLv3-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Latest Release](https://img.shields.io/packagist/v/dachcom-digital/i18n.svg?style=flat-square)](https://packagist.org/packages/dachcom-digital/i18n)
-[![Travis](https://img.shields.io/travis/com/dachcom-digital/pimcore-i18n/master.svg?style=flat-square)](https://travis-ci.com/dachcom-digital/pimcore-i18n)
+[![Tests](https://img.shields.io/github/workflow/status/dachcom-digital/pimcore-i18n/Codeception/badge.svg?style=flat-square)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3A%22Codeception%22)
 [![PhpStan](https://img.shields.io/badge/PHPStan-level%202-brightgreen.svg?style=flat-square)](#)
 
 ![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
@@ -15,7 +15,7 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 
 | Release | Supported Pimcore Versions        | Supported Symfony Versions | Release Date | Maintained     | Branch     |
 |---------|-----------------------------------|----------------------------|--------------|----------------|------------|
-| **3.x** | `6.0` - `6.3`, `6.5` - `6.6`      | `3.4`, `^4.0`              | 18.07.2019   | Feature Branch | dev-master |
+| **3.x** | `6.0` - `6.3`, `6.5` - `6.8`      | `3.4`, `^4.0`              | 18.07.2019   | Feature Branch | dev-master |
 | **2.4** | `5.4`, `5.5`, `5.6`, `5.7`, `5.8` | `3.4`                      | 24.05.2019   | Bugfix only    | 2.4        |
 
 ### Installation  

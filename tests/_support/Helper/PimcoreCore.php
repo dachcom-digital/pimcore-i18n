@@ -217,8 +217,8 @@ class PimcoreCore extends PimcoreCoreModule
             unlink($cacheDir . '/' . $class . '.php');
         }
 
+        $bundlePath = getenv('DACHCOM_BUNDLE_TEST_DIR');
         $bundleName = getenv('DACHCOM_BUNDLE_NAME');
-        $bundleClass = getenv('DACHCOM_BUNDLE_HOME');
 
         if ($configuration === null) {
             $configuration = self::DEFAULT_CONFIG_FILE;
@@ -230,7 +230,7 @@ class PimcoreCore extends PimcoreCoreModule
         $runtimeConfigDir = codecept_data_dir() . 'config';
         $runtimeConfigDirConfig = $runtimeConfigDir . '/config.yml';
 
-        $resource = $bundleClass . '/_etc/config/bundle/symfony/' . $configuration;
+        $resource = sprintf('%s/%s/%s', $bundlePath, '_etc/config/bundle/symfony', $configuration);
 
         $fileSystem->dumpFile($runtimeConfigDirConfig, file_get_contents($resource));
     }
