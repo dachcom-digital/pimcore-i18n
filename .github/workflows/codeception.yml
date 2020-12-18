@@ -64,7 +64,7 @@ jobs:
             -   name: Adjust Error Reporting Level
                 if: ${{ matrix.pimcore == '^6.5' }}
                 run: |
-                    echo "::set-env name=PIMCORE_PHP_ERROR_REPORTING::30711"
+                    echo "PIMCORE_PHP_ERROR_REPORTING=30711" >> $GITHUB_ENV
 
             -   name: Generate Application Structure
                 run: |
