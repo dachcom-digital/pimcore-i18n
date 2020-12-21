@@ -34,25 +34,39 @@ jobs:
                 options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         strategy:
             matrix:
-                php: [7.4]
-                symfony: [^4.4]
                 pimcore: [~6.0.0, ~6.1.0, ~6.2.0, ~6.3.0, ~6.5.0, ~6.6.0, ~6.7.0, ~6.8.0]
                 include:
                     -   pimcore: ~6.0.0
+                        symfony: ~4.3.0
+                        php: 7.3
                         template_tag: v2.0.0
                     -   pimcore: ~6.1.0
+                        symfony: ~4.3.0
+                        php: 7.3
                         template_tag: v2.1.0
                     -   pimcore: ~6.2.0
+                        symfony: ~4.3.0
+                        php: 7.3
                         template_tag: v2.2.0
                     -   pimcore: ~6.3.0
+                        symfony: ^4.4
+                        php: 7.3
                         template_tag: v2.3.0
                     -   pimcore: ~6.5.0
+                        symfony: ^4.4
+                        php: 7.3
                         template_tag: v2.5.0
                     -   pimcore: ~6.6.0
+                        symfony: ^4.4
+                        php: 7.4
                         template_tag: v2.6.0
                     -   pimcore: ~6.7.0
+                        symfony: ^4.4
+                        php: 7.4
                         template_tag: v2.7.0
                     -   pimcore: ~6.8.0
+                        symfony: ^4.4
+                        php: 7.4
                         template_tag: v2.8.0
                     -   pimcore: ~6.8.0
                         symfony: ^3.4
