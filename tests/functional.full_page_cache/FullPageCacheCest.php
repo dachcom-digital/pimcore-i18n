@@ -19,7 +19,6 @@ class FullPageCacheCest
 
         $I->dontSeePimcoreOutputCacheDisabledHeader();
         $I->seePimcoreOutputCacheDate();
-        $I->seeEmptyI18nSessionBag();
+        $I->seeEmptySessionBag('i18n_session');
     }
-
 }

@@ -14,7 +14,6 @@ class LanguageRequestCest
         $document = $I->haveAPageDocument('en', [], 'en');
 
         $I->amOnPageWithLocale('/', 'de_CH');
-
         $I->seeCurrentUrlEquals('/en');
     }
 
@@ -26,7 +25,6 @@ class LanguageRequestCest
         $document = $I->haveAPageDocument('de', [], 'de');
 
         $I->amOnPageWithLocale('/', 'de_CH');
-
         $I->seeCurrentUrlEquals('/de');
     }
 
