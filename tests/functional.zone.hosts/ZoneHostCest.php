@@ -11,12 +11,12 @@ class ZoneHostCest
      */
     public function testZoneWithAdditionalDomains(FunctionalTester $I)
     {
-        $site1 = $I->haveASite('test-domain8.test', null, true, ['test-domain8.test']);
+        $site1 = $I->haveASite('test-domain8.test', [], null, true, ['test-domain8.test']);
 
-        $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
-        $document2 = $I->haveASubPageDocument($document1, 'error', 'en');
-        $document3 = $I->haveAPageDocumentForSite($site1, 'de', 'de');
-        $document4 = $I->haveASubPageDocument($document3, 'error', 'de');
+        $document1 = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
+        $document2 = $I->haveASubPageDocument($document1, 'error', [], 'en');
+        $document3 = $I->haveAPageDocumentForSite($site1, 'de', [], 'de');
+        $document4 = $I->haveASubPageDocument($document3, 'error', [], 'de');
 
         $I->amOnPageWithLocale('http://www.test-domain8.test/en/this-is-not-real', 'en');
         $I->seeCurrentUrlEquals('/en/this-is-not-real');

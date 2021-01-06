@@ -13,8 +13,8 @@ class HrefLangCest
     {
         $site1 = $I->haveASite('test-domain1.test');
 
-        $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
-        $document2 = $I->haveAPageDocumentForSite($site1, 'de', 'de');
+        $document1 = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
+        $document2 = $I->haveAPageDocumentForSite($site1, 'de', [], 'de');
 
         $I->amOnPageWithLocale('http://test-domain1.test/', 'de_CH');
 
@@ -36,9 +36,9 @@ class HrefLangCest
         $site2 = $I->haveASite('test-domain2.test');
         $site3 = $I->haveASite('test-domain3.test');
 
-        $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
-        $document2 = $I->haveAPageDocumentForSite($site2, 'de', 'de');
-        $document3 = $I->haveAPageDocumentForSite($site3, 'fr', 'fr');
+        $document1 = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
+        $document2 = $I->haveAPageDocumentForSite($site2, 'de', [], 'de');
+        $document3 = $I->haveAPageDocumentForSite($site3, 'fr', [], 'fr');
 
         $I->amOnPageWithLocale('http://test-domain1.test/', 'de_CH');
 

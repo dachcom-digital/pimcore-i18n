@@ -11,8 +11,8 @@ class HardLinkWrappingCest
      */
     public function testRedirectAHardLinkWrapper(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAHardLink($document1, 'en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
 
         $I->amOnPageWithLocaleAndCountry('/', 'en_US', 'us');
 

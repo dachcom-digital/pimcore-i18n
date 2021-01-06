@@ -11,10 +11,10 @@ class LocalizedErrorDocumentsCest
      */
     public function testDefaultErrorPage(FunctionalTester $I)
     {
-        $defaultErrorDocument = $I->haveAPageDocument('error', 'en');
+        $defaultErrorDocument = $I->haveAPageDocument('error', [], 'en');
 
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAPageDocument('de', 'de');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
 
         $I->amOnPageWithLocaleAndCountry('/this-page-does-not-exist', 'de_CH', 'switzerland');
 
@@ -31,14 +31,14 @@ class LocalizedErrorDocumentsCest
     {
         // we need to unpublish the default page here
         // since the default error page is placed on root level (defined in system.php)
-        $defaultErrorDocument = $I->haveAPageDocument('error', 'en');
+        $defaultErrorDocument = $I->haveAPageDocument('error', [], 'en');
         $I->haveAUnPublishedDocument($defaultErrorDocument);
 
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $localizedErrorDocument1 = $I->haveASubPageDocument($document1,'error');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $localizedErrorDocument1 = $I->haveASubPageDocument($document1, 'error');
 
-        $document2 = $I->haveAPageDocument('de', 'de');
-        $localizedErrorDocument2 = $I->haveASubPageDocument($document2,'error');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
+        $localizedErrorDocument2 = $I->haveASubPageDocument($document2, 'error');
 
         $I->amOnPageWithLocaleAndCountry('/en/this-page-does-not-exist', 'en_US', 'us');
         $I->see($localizedErrorDocument1->getId(), '#page-id');

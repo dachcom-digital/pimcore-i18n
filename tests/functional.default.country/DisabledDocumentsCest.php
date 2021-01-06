@@ -11,9 +11,9 @@ class DisabledDocumentsCest
      */
     public function testDisabledRootDocument(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAPageDocument('de', 'de');
-        $document3 = $I->haveAPageDocument('it', 'it');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
+        $document3 = $I->haveAPageDocument('it', [], 'it');
 
         $I->haveAUnPublishedDocument($document3);
 
@@ -36,11 +36,11 @@ class DisabledDocumentsCest
      */
     public function testDisabledRootHardLink(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAPageDocument('de', 'de');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
 
-        $hardlink1 = $I->haveAHardLink($document2, 'de-de', 'de_DE');
-        $hardlink2 = $I->haveAHardLink($document2, 'de-ch', 'de_CH');
+        $hardlink1 = $I->haveAHardLink($document2, 'de-de', [], 'de_DE');
+        $hardlink2 = $I->haveAHardLink($document2, 'de-ch', [], 'de_CH');
 
         $I->haveAUnPublishedDocument($hardlink1);
 
@@ -62,13 +62,13 @@ class DisabledDocumentsCest
      */
     public function testDisabledSubDocument(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAPageDocument('de', 'de');
-        $document3 = $I->haveAPageDocument('it', 'it');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
+        $document3 = $I->haveAPageDocument('it', [], 'it');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'en');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'de');
-        $documentSub3 = $I->haveASubPageDocument($document3, 'riguardo-a-noi', 'it');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', [], 'en');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', [], 'de');
+        $documentSub3 = $I->haveASubPageDocument($document3, 'riguardo-a-noi', [], 'it');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub3);

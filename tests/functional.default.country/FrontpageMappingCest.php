@@ -11,8 +11,8 @@ class FrontpageMappingCest
      */
     public function testFrontPageMappingWithRedirecting(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAHardLink($document1, 'en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
         $document3 = $I->haveAFrontPageMappedDocument($document2);
 
         $I->amOnPageWithLocaleAndCountry('/', 'en_US', 'us');
@@ -27,8 +27,8 @@ class FrontpageMappingCest
      */
     public function testFrontPageMappingWithoutRedirecting(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAHardLink($document1, 'en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
         $document3 = $I->haveAFrontPageMappedDocument($document2);
 
         $I->amOnPage('/en-us');
