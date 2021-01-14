@@ -21,5 +21,4 @@ class DefaultController extends FrontendController
     {
 
     }
-
 }

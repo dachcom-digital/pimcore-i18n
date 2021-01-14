@@ -13,8 +13,8 @@ class PimcoreRedirectCest
     {
         $site1 = $I->haveASite('test-domain1.test');
 
-        $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
-        $document2 = $I->haveAPageDocumentForSite($site1, 'de', 'de');
+        $document1 = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
+        $document2 = $I->haveAPageDocumentForSite($site1, 'de', [], 'de');
 
         $redirect = [
             'type'       => 'path',
@@ -39,8 +39,8 @@ class PimcoreRedirectCest
     {
         $site1 = $I->haveASite('test-domain1.test');
 
-        $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
-        $document2 = $I->haveAPageDocumentForSite($site1, 'de', 'de');
+        $document1 = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
+        $document2 = $I->haveAPageDocumentForSite($site1, 'de', [], 'de');
 
         $redirect = [
             'type'       => 'entire_uri',

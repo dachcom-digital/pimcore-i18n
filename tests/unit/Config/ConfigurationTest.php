@@ -2,13 +2,14 @@
 
 namespace DachcomBundle\Test\unit\Config;
 
-use DachcomBundle\Test\Test\DachcomBundleTestCase;
+use Codeception\Exception\ModuleException;
+use Dachcom\Codeception\Test\BundleTestCase;
 use I18nBundle\Configuration\Configuration;
 
-class ConfigurationTest extends DachcomBundleTestCase
+class ConfigurationTest extends BundleTestCase
 {
     /**
-     * @throws \Codeception\Exception\ModuleException
+     * @throws ModuleException
      */
     public function testConfigArrayGetter()
     {

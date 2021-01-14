@@ -11,8 +11,8 @@ class HrefLangCest
      */
     public function testHrefLangTagWithLanguages(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAPageDocument('de', 'de');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
 
         $I->amOnPageWithLocale('/', 'd_CH');
 
@@ -31,9 +31,9 @@ class HrefLangCest
      */
     public function testHrefLangTagWithCountriesWithoutXDefault(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('de', 'de');
-        $document2 = $I->haveAPageDocument('de-de', 'de_DE');
-        $document3 = $I->haveAPageDocument('de-ch', 'de_CH');
+        $document1 = $I->haveAPageDocument('de', [], 'de');
+        $document2 = $I->haveAPageDocument('de-de', [], 'de_DE');
+        $document3 = $I->haveAPageDocument('de-ch', [], 'de_CH');
 
         $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
@@ -53,9 +53,9 @@ class HrefLangCest
      */
     public function testHrefLangTagWithCountriesWithXDefault(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAPageDocument('de', 'de');
-        $document3 = $I->haveAPageDocument('en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
+        $document3 = $I->haveAPageDocument('en-us', [], 'en_US');
 
         $I->amOnPageWithLocaleAndCountry('/', 'en_US', 'us');
 
@@ -75,11 +75,11 @@ class HrefLangCest
      */
     public function testHrefLangTagWithCountriesAndHardlinks(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $hardlink1 = $I->haveAHardLink($document1, 'en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $hardlink1 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
 
-        $document2 = $I->haveAPageDocument('de', 'de');
-        $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
+        $hardlink2 = $I->haveAHardLink($document1, 'de-de', [], 'de_DE');
 
         $I->amOnPageWithLocaleAndCountry('/', 'en_US', 'us');
 
@@ -100,14 +100,14 @@ class HrefLangCest
      */
     public function testHrefLangTagWithCountriesAndHardlinksAndDynamicSubDocuments(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $hardlink1 = $I->haveAHardLink($document1, 'en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $hardlink1 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
 
-        $document2 = $I->haveAPageDocument('de', 'de');
-        $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
+        $hardlink2 = $I->haveAHardLink($document1, 'de-de', [], 'de_DE');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'en');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'de');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', [], 'en');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', [], 'de');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
 
@@ -128,15 +128,15 @@ class HrefLangCest
      */
     public function testHrefLangTagWithCountriesAndHardlinksAndCustomDocumentsWithoutConnection(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $hardlink1 = $I->haveAHardLink($document1, 'en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $hardlink1 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
 
-        $document2 = $I->haveAPageDocument('de', 'de');
-        $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
+        $hardlink2 = $I->haveAHardLink($document1, 'de-de', [], 'de_DE');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'en');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'de');
-        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns', 'de_DE');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', [], 'en');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', [], 'de');
+        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns', [], 'de_DE');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
 
@@ -157,15 +157,15 @@ class HrefLangCest
      */
     public function testHrefLangTagWithCountriesAndHardlinksAndCustomDocumentsWithConnection(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $hardlink1 = $I->haveAHardLink($document1, 'en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $hardlink1 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
 
-        $document2 = $I->haveAPageDocument('de', 'de');
-        $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
+        $hardlink2 = $I->haveAHardLink($document1, 'de-de', [], 'de_DE');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'en');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'de');
-        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns', 'de_DE');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', [], 'en');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', [], 'de');
+        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns', [], 'de_DE');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub3);
@@ -189,15 +189,15 @@ class HrefLangCest
      */
     public function testHrefLangTagWithCountriesAndHardlinksAndCustomDocumentsWithConnectionButDisabled(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $hardlink1 = $I->haveAHardLink($document1, 'en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $hardlink1 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
 
-        $document2 = $I->haveAPageDocument('de', 'de');
-        $hardlink2 = $I->haveAHardLink($document1, 'de-de', 'de_DE');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
+        $hardlink2 = $I->haveAHardLink($document1, 'de-de', [], 'de_DE');
 
-        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', 'de');
-        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', 'en');
-        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns', 'de_DE');
+        $documentSub1 = $I->haveASubPageDocument($document1, 'about-us', [], 'de');
+        $documentSub2 = $I->haveASubPageDocument($document2, 'ueber-uns', [], 'en');
+        $documentSub3 = $I->haveASubPageDocument($hardlink2, 'ueber-uns', [], 'de_DE');
 
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub2);
         $I->haveTwoConnectedDocuments($documentSub1, $documentSub3);

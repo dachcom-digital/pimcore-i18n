@@ -6,12 +6,12 @@ use DachcomBundle\Test\FunctionalTester;
 
 class CountryRequestCest
 {
-     /**
+    /**
      * @param FunctionalTester $I
      */
     public function testRedirectFromDocumentRootWithoutMatchingLanguage(FunctionalTester $I)
     {
-        $document = $I->haveAPageDocument('en', 'en');
+        $document = $I->haveAPageDocument('en', [], 'en');
 
         $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
@@ -26,7 +26,7 @@ class CountryRequestCest
      */
     public function testRedirectFromDocumentSingleWithMatchingLanguage(FunctionalTester $I)
     {
-        $document = $I->haveAPageDocument('de', 'de');
+        $document = $I->haveAPageDocument('de', [], 'de');
 
         $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
@@ -41,8 +41,8 @@ class CountryRequestCest
      */
     public function testRedirectFromDocumentRootWithMultipleLanguages(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAPageDocument('de', 'de');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAPageDocument('de', [], 'de');
 
         $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
@@ -57,8 +57,8 @@ class CountryRequestCest
      */
     public function testRedirectFromDocumentRootWithoutMatchingLanguageAndCountry(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en', 'en');
-        $document2 = $I->haveAPageDocument('en-us', 'en_US');
+        $document1 = $I->haveAPageDocument('en', [], 'en');
+        $document2 = $I->haveAPageDocument('en-us', [], 'en_US');
 
         $I->amOnPageWithLocaleAndCountry('/', 'de_CH', 'switzerland');
 
@@ -73,7 +73,7 @@ class CountryRequestCest
      */
     public function testRedirectFromDocumentSingleWithMatchingLanguageAndCountry(FunctionalTester $I)
     {
-        $document = $I->haveAPageDocument('en-us', 'en_US');
+        $document = $I->haveAPageDocument('en-us', [], 'en_US');
 
         $I->amOnPageWithLocaleAndCountry('/', 'en_US', 'us');
 
@@ -88,8 +88,8 @@ class CountryRequestCest
      */
     public function testRedirectFromDocumentRootWithMultipleLanguagesAndCountries(FunctionalTester $I)
     {
-        $document1 = $I->haveAPageDocument('en-us', 'en_US');
-        $document2 = $I->haveAPageDocument('de-de', 'de_DE');
+        $document1 = $I->haveAPageDocument('en-us', [], 'en_US');
+        $document2 = $I->haveAPageDocument('de-de', [], 'de_DE');
 
         $I->amOnPageWithLocaleAndCountry('/', 'de_DE', 'germany');
 

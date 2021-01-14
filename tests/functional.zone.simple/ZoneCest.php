@@ -13,7 +13,7 @@ class ZoneCest
     {
         $site1 = $I->haveASite('test-domain1.test');
 
-        $document = $I->haveAPageDocumentForSite($site1, 'en', 'en');
+        $document = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
 
         $I->amOnPageWithLocale('http://test-domain1.test/', 'de_CH');
 
@@ -30,7 +30,7 @@ class ZoneCest
     {
         $site1 = $I->haveASite('test-domain1.test');
 
-        $document = $I->haveAPageDocumentForSite($site1, 'de', 'de');
+        $document = $I->haveAPageDocumentForSite($site1, 'de', [], 'de');
 
         $I->amOnPageWithLocale('http://test-domain1.test/', 'de_CH');
 
@@ -47,8 +47,8 @@ class ZoneCest
     {
         $site1 = $I->haveASite('test-domain1.test');
 
-        $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
-        $document2 = $I->haveAPageDocumentForSite($site1, 'de', 'de');
+        $document1 = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
+        $document2 = $I->haveAPageDocumentForSite($site1, 'de', [], 'de');
 
         $I->amOnPageWithLocale('http://test-domain1.test', 'de_CH');
 
@@ -63,11 +63,11 @@ class ZoneCest
      */
     public function testZoneNonRedirectsWithLocalizedRootSite(FunctionalTester $I)
     {
-        $site1 = $I->haveASite('test-domain1.test', 'de');
+        $site1 = $I->haveASite('test-domain1.test', [], 'de');
         $site2 = $I->haveASite('test-domain2.test');
 
-        $document1 = $I->haveAPageDocumentForSite($site2, 'en', 'en');
-        $document2 = $I->haveAPageDocumentForSite($site2, 'fr', 'fr');
+        $document1 = $I->haveAPageDocumentForSite($site2, 'en', [], 'en');
+        $document2 = $I->haveAPageDocumentForSite($site2, 'fr', [], 'fr');
 
         $I->amOnPageWithLocale('http://test-domain1.test', 'de_CH');
 
@@ -83,10 +83,10 @@ class ZoneCest
     public function testZoneRedirectsWithLocalizedRootSite(FunctionalTester $I)
     {
         $site1 = $I->haveASite('test-domain1.test');
-        $site2 = $I->haveASite('test-domain2.test', 'de');
+        $site2 = $I->haveASite('test-domain2.test', [], 'de');
 
-        $document1 = $I->haveAPageDocumentForSite($site1, 'en', 'en');
-        $document2 = $I->haveAPageDocumentForSite($site1, 'fr', 'fr');
+        $document1 = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
+        $document2 = $I->haveAPageDocumentForSite($site1, 'fr', [], 'fr');
 
         $I->amOnPageWithLocale('http://test-domain1.test', 'de_CH');
 

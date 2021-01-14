@@ -15,7 +15,7 @@ class LocalizedErrorDocumentsCest extends AbstractZone
 
         // we need to unpublish the default page here
         // since the default error page is placed on root level (defined in system.php)
-        $defaultErrorDocument = $I->haveAPageDocument('error', 'en');
+        $defaultErrorDocument = $I->haveAPageDocument('error', [], 'en');
         $I->haveAUnPublishedDocument($defaultErrorDocument);
 
         // zone 1

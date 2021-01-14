@@ -12,14 +12,13 @@ class FullPageCacheCest
     public function testFullPageCacheEnabled(FunctionalTester $I)
     {
         $site1 = $I->haveASite('test-domain1.test');
-        $I->haveAPageDocumentForSite($site1, 'en', 'en');
-        $I->haveAPageDocumentForSite($site1, 'de', 'de');
+        $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
+        $I->haveAPageDocumentForSite($site1, 'de', [], 'de');
 
         $I->amOnPageWithLocale('http://test-domain1.test/de', 'de');
 
         $I->dontSeePimcoreOutputCacheDisabledHeader();
         $I->seePimcoreOutputCacheDate();
-        $I->seeEmptyI18nSessionBag();
+        $I->seeEmptySessionBag('i18n_session');
     }
-
 }
