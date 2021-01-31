@@ -49,7 +49,6 @@ Does actually the same as the update command and preferred in CI-Workflow:
 - Geo redirects (read more about the redirector adapter [here](docs/51_RedirectorAdapter.md))
 - Thanks to the hardlink element you can easily create copies of webpages with additional country information without adding and maintaining duplicate content
 - Manage [href-lang](docs/25_HrefLang.md) tags
-- [Handle](docs/90_InternalLinkRewriter.md) internal link redirects based on hardlink context
 - Domain mapping (`domain.com`) and/or language slug (`/en`) strategies
 - [front page mapping](docs/30_FrontPageMapping.md) for hardlink trees
 
@@ -73,7 +72,6 @@ Does actually the same as the update command and preferred in CI-Workflow:
 - [Code Examples](docs/60_CodeExamples.md): See some examples.
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
 - [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in hardlinks.
-- [Internal Links](docs/90_InternalLinkRewriter.md): Rewrite Internal links.
 - [Navigation Caching](docs/110_NavigationCaching.md): Cache your navigation right!
 
 ## Why is there no Version 1?

@@ -6,6 +6,12 @@
 After every update you should check the pimcore extension manager. 
 Just click the "update" button or execute the migration command to finish the bundle update.
 
+#### Update from Version 3.2.5 to Version 3.2.6
+- **[BUGFIX]**: Remove Hardlink Context Listener [@75](https://github.com/dachcom-digital/pimcore-i18n/pull/75).
+
+#### Update from Version 3.2.4 to Version 3.2.5
+- **[BUGFIX]**: Improve redirects when country code is not set in user languages [@pascalmoser](https://github.com/dachcom-digital/pimcore-i18n/pull/68).
+
 #### Update from Version 3.2.3 to Version 3.2.4
 - **[BUGFIX]**: Don't add documents to i18n tree, if not available in other context [@66](https://github.com/dachcom-digital/pimcore-i18n/pull/66).
 - **[BUGFIX]**: Use root language if Accept-Language locale does not exist as pimcore language [@BlackbitNeueMedien](https://github.com/dachcom-digital/pimcore-i18n/pull/63).
