@@ -32,18 +32,8 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
-    # event: check frontend path document
-    I18nBundle\EventListener\Frontend\FrontendPathListener:
-        tags:
-            - { name: kernel.event_subscriber }
-
     # event: check frontend path static route
     I18nBundle\EventListener\Frontend\FrontendPathStaticRouteListener:
-        tags:
-            - { name: kernel.event_subscriber }
-
-    # event: check link paths (correct link path when redirection in hardlink context)
-    I18nBundle\EventListener\Frontend\LinkPathListener:
         tags:
             - { name: kernel.event_subscriber }
 
