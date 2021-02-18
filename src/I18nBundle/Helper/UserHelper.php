@@ -80,6 +80,9 @@ class UserHelper
                 if ($masterRequest->server->has('HTTP_CLIENT_IP') &&
                     !empty($masterRequest->server->get('HTTP_CLIENT_IP'))) {
                     $ip = $masterRequest->server->get('HTTP_CLIENT_IP');
+                } elseif ($masterRequest->server->has('HTTP_TRUE_CLIENT_IP') &&
+                    !empty($masterRequest->server->get('HTTP_TRUE_CLIENT_IP'))) {
+                    $ip = $masterRequest->server->get('HTTP_TRUE_CLIENT_IP');
                 } elseif ($masterRequest->server->has('HTTP_X_FORWARDED_FOR') &&
                     !empty($masterRequest->server->get('HTTP_X_FORWARDED_FOR'))) {
                     $ip = $masterRequest->server->get('HTTP_X_FORWARDED_FOR');
@@ -101,3 +104,4 @@ class UserHelper
         return $userCountry;
     }
 }
+
