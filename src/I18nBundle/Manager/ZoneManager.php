@@ -108,6 +108,19 @@ class ZoneManager
     /**
      * @throws \Exception
      */
+    public function reinitializeZones()
+    {
+        $this->isInZone = false;
+        $this->currentZone = null;
+        $this->currentZoneDomains = null;
+
+        $this->initZones();
+    }
+
+
+    /**
+     * @throws \Exception
+     */
     public function initZones()
     {
         if (!empty($this->currentZone)) {

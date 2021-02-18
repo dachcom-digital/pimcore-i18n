@@ -6,6 +6,9 @@
 After every update you should check the pimcore extension manager. 
 Just click the "update" button or execute the migration command to finish the bundle update.
 
+#### Update from Version 3.2.6 to Version 3.2.7
+- **[ENHANCEMENT]**: Allow to reinitialize Zones at any time (`$this->zoneManager->reinitializeZones()`)
+
 #### Update from Version 3.2.5 to Version 3.2.6
 - **[BUGFIX]**: Remove Hardlink Context Listener [@75](https://github.com/dachcom-digital/pimcore-i18n/pull/75).
 
