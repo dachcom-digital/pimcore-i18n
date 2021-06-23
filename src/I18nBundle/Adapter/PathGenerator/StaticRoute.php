@@ -142,7 +142,7 @@ class StaticRoute extends AbstractPathGenerator
             }
 
             // use domainUrl element since $link already comes with the locale part!
-            $url = strpos($link, 'http' !== false) ? $link : System::joinPath([$routeInfo['domainUrl'], $link]);
+            $url = strpos($link, 'http') !== false ? $link : System::joinPath([$routeInfo['domainUrl'], $link]);
 
             $finalStoreData = [
                 'languageIso'      => $routeInfo['languageIso'],
