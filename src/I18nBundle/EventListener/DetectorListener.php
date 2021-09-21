@@ -123,6 +123,10 @@ class DetectorListener implements EventSubscriberInterface
         $request = $event->getRequest();
         $document = $this->pimcoreDocumentResolver->getDocument($request);
 
+        if ($this->requestValidatorHelper->isFrontendRequestByAdmin($request)) {
+            return;
+        }
+
         if (System::isInBackend($request)) {
             return;
         }
