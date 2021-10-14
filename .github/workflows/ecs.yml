@@ -91,8 +91,6 @@ jobs:
 
             -   name: Setup MySql
                 run: |
-                    mysql -uroot -h127.0.0.1 -proot -e "SET GLOBAL innodb_file_format=Barracuda;"
-                    mysql -uroot -h127.0.0.1 -proot -e "SET GLOBAL innodb_large_prefix=1;"
                     mysql -uroot -h127.0.0.1 -proot -e "CREATE DATABASE dachcom_bundle_test CHARSET=utf8mb4;"
 
             -   name: Get Composer Cache Directory
