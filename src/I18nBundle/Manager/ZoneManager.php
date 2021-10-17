@@ -208,7 +208,7 @@ class ZoneManager
             ));
         }
 
-        /** @var LocaleInterface $localeAdapter */
+        /** @var LocaleInterface|null $localeAdapter */
         $localeAdapter = $this->localeRegistry->has($config['locale_adapter'])
             ? $this->localeRegistry->get($config['locale_adapter'])
             : null;

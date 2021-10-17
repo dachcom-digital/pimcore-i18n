@@ -25,7 +25,7 @@ class I18nExtension extends Extension
         $container->setParameter('i18n.registry_availability', $config['registry']);
 
         // set geo db path (including legacy path)
-        if ($container->hasParameter('pimcore.geoip.db_file') && !is_null($container->getParameter('pimcore.geoip.db_file'))) {
+        if ($container->hasParameter('pimcore.geoip.db_file') && !empty($container->getParameter('pimcore.geoip.db_file'))) {
             $geoIpDbFile = $container->getParameter('pimcore.geoip.db_file');
         } else {
             $geoIpDbFile = realpath(PIMCORE_CONFIGURATION_DIRECTORY . '/GeoLite2-City.mmdb');

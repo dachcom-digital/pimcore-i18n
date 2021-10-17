@@ -136,8 +136,6 @@ class DetectorListener implements EventSubscriberInterface
 
     public function onKernelResponse(ResponseEvent $event): void
     {
-        return;
-
         if ($event->isMainRequest() === false) {
             return;
         }
@@ -183,7 +181,7 @@ class DetectorListener implements EventSubscriberInterface
         $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
         $validUri = $this->getRedirectUrl(strtok($event->getRequest()->getUri(), '?'));
 
-        $cookie = null; //$this->cookieHelper->get($event->getRequest());
+        $cookie = $this->cookieHelper->get($event->getRequest());
 
         //same domain, do nothing.
         if ($cookie !== null && $validUri === $cookie['url']) {
