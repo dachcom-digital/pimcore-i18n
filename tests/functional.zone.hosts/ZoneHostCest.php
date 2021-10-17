@@ -11,6 +11,8 @@ class ZoneHostCest
      */
     public function testZoneWithAdditionalDomains(FunctionalTester $I)
     {
+        $I->haveAKernelWithoutDebugMode();
+
         $site1 = $I->haveASite('test-domain8.test', [], null, true, ['test-domain8.test']);
 
         $document1 = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
