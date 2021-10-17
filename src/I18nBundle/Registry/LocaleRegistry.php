@@ -4,25 +4,15 @@ namespace I18nBundle\Registry;
 
 class LocaleRegistry
 {
-    /**
-     * @var array
-     */
-    protected $adapter;
+    protected array $adapter = [];
+    private string $interface;
 
-    /**
-     * @var string
-     */
-    private $interface;
-
-    /**
-     * @param string $interface
-     */
-    public function __construct($interface)
+    public function __construct(string $interface)
     {
         $this->interface = $interface;
     }
 
-    public function register($service, $alias)
+    public function register(mixed $service, string $alias): void
     {
         if (!in_array($this->interface, class_implements($service), true)) {
             throw new \InvalidArgumentException(
@@ -33,15 +23,15 @@ class LocaleRegistry
         $this->adapter[$alias] = $service;
     }
 
-    public function has($alias)
+    public function has(string $alias): bool
     {
         return isset($this->adapter[$alias]);
     }
 
-    public function get($alias)
+    public function get(string $alias)
     {
         if (!$this->has($alias)) {
-            throw new \Exception('"' . $alias . '" Locale Identifier does not exist');
+            throw new \Exception('"' . $alias . '" locale identifier does not exist');
         }
 
         return $this->adapter[$alias];

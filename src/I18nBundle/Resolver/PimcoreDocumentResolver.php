@@ -10,42 +10,13 @@ use Symfony\Component\HttpFoundation\Request;
 
 class PimcoreDocumentResolver implements PimcoreDocumentResolverInterface
 {
-    /**
-     * @var SiteResolver
-     */
-    protected $siteResolver;
+    protected SiteResolver $siteResolver;
+    protected RequestValidatorHelper $requestHelper;
+    protected DocumentResolver $documentResolver;
+    protected Document\Service $documentService;
+    protected ?Document $nearestDocument = null;
+    protected array $nearestDocumentTypes;
 
-    /**
-     * @var RequestValidatorHelper
-     */
-    protected $requestHelper;
-
-    /**
-     * @var DocumentResolver
-     */
-    protected $documentResolver;
-
-    /**
-     * @var Document\Service
-     */
-    protected $documentService;
-
-    /**
-     * @var array
-     */
-    protected $nearestDocumentTypes;
-
-    /**
-     * @var Document
-     */
-    protected $nearestDocument;
-
-    /**
-     * @param SiteResolver           $siteResolver
-     * @param RequestValidatorHelper $requestHelper
-     * @param DocumentResolver       $documentResolver
-     * @param Document\Service       $documentService
-     */
     public function __construct(
         SiteResolver $siteResolver,
         RequestValidatorHelper $requestHelper,
@@ -59,10 +30,7 @@ class PimcoreDocumentResolver implements PimcoreDocumentResolverInterface
         $this->nearestDocumentTypes = ['page', 'snippet', 'hardlink', 'link', 'folder'];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getDocument(Request $request)
+    public function getDocument(Request $request): ?Document
     {
         $document = $this->documentResolver->getDocument($request);
 
@@ -77,18 +45,12 @@ class PimcoreDocumentResolver implements PimcoreDocumentResolverInterface
         return $this->findFallback($request);
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return Document|null
-     */
-    protected function findFallback(Request $request)
+    protected function findFallback(Request $request): ?Document
     {
         if (!$this->requestHelper->matchesDefaultPimcoreContext($request)) {
             return null;
         }
 
-        $path = null;
         if ($this->siteResolver->isSiteRequest($request)) {
             $path = $this->siteResolver->getSitePath($request);
         } else {

@@ -7,20 +7,9 @@ use I18nBundle\Manager\ZoneManager;
 
 abstract class AbstractPathGenerator implements PathGeneratorInterface
 {
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
+    protected ZoneManager $zoneManager;
+    protected DocumentHelper $documentHelper;
 
-    /**
-     * @var DocumentHelper
-     */
-    protected $documentHelper;
-
-    /**
-     * @param ZoneManager    $zoneManager
-     * @param DocumentHelper $documentHelper
-     */
     public function __construct(ZoneManager $zoneManager, DocumentHelper $documentHelper)
     {
         $this->zoneManager = $zoneManager;

@@ -9,10 +9,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class LocaleAdapterPass implements CompilerPassInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         foreach ($container->findTaggedServiceIds('i18n.adapter.locale', true) as $id => $tags) {
             $definition = $container->getDefinition(LocaleRegistry::class);

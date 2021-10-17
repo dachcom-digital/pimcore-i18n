@@ -10,30 +10,16 @@ use Twig\TwigFunction;
 
 class I18nExtension extends AbstractExtension
 {
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
+    protected ZoneManager $zoneManager;
+    protected ContextManager $contextManager;
 
-    /**
-     * @var ContextManager
-     */
-    protected $contextManager;
-
-    /**
-     * @param ZoneManager    $zoneManager
-     * @param ContextManager $contextManager
-     */
     public function __construct(ZoneManager $zoneManager, ContextManager $contextManager)
     {
         $this->zoneManager = $zoneManager;
         $this->contextManager = $contextManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getFunctions()
+    public function getFunctions(): array
     {
         return [
             new TwigFunction('i18n_context', [$this, 'getI18Context']),
@@ -41,15 +27,7 @@ class I18nExtension extends AbstractExtension
         ];
     }
 
-    /**
-     * @param string $method
-     * @param array  $options
-     *
-     * @return mixed
-     *
-     * @throws \Exception
-     */
-    public function getI18Context($method = '', $options = [])
+    public function getI18Context(string $method = '', array $options = []): mixed
     {
         try {
             $context = $this->contextManager->getContext();
@@ -60,14 +38,7 @@ class I18nExtension extends AbstractExtension
         return call_user_func_array([$context, $method], $options);
     }
 
-    /**
-     * @param string $slot
-     *
-     * @return mixed
-     *
-     * @throws \Exception
-     */
-    public function getI18nZoneInfo($slot = '')
+    public function getI18nZoneInfo(string $slot = ''): mixed
     {
         return $this->zoneManager->getCurrentZoneInfo($slot);
     }

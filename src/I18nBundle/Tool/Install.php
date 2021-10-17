@@ -2,121 +2,23 @@
 
 namespace I18nBundle\Tool;
 
-use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Migrations\AbortMigrationException;
-use Doctrine\DBAL\Migrations\MigrationException;
-use Doctrine\DBAL\Migrations\Version;
-use I18nBundle\Configuration\Configuration;
+use Pimcore\Extension\Bundle\Installer\Exception\InstallationException;
+use Pimcore\Extension\Bundle\Installer\SettingsStoreAwareInstaller;
 use Pimcore\Model\Property;
 use Pimcore\Model\Translation;
 use Pimcore\Tool\Admin;
-use Symfony\Component\Filesystem\Filesystem;
-use Pimcore\Extension\Bundle\Installer\MigrationInstaller;
-use Pimcore\Migrations\Migration\InstallMigration;
 
-class Install extends MigrationInstaller
+class Install extends SettingsStoreAwareInstaller
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function getMigrationVersion(): string
-    {
-        return '00000001';
-    }
-
-    /**
-     * @throws AbortMigrationException
-     * @throws MigrationException
-     */
-    protected function beforeInstallMigration()
-    {
-        $markVersionsAsMigrated = true;
-
-        // legacy:
-        //   we switched from config to migration
-        //   if config.yml exists, this instance needs to migrate
-        //   so every migration needs to run.
-        // fresh:
-        //   skip all versions since they are not required anymore
-        //   (fresh installation does not require any version migrations)
-        $fileSystem = new Filesystem();
-        if ($fileSystem->exists(Configuration::SYSTEM_CONFIG_DIR_PATH . '/config.yml')) {
-            $markVersionsAsMigrated = false;
-        }
-
-        if ($markVersionsAsMigrated === true) {
-            $migrationConfiguration = $this->migrationManager->getBundleConfiguration($this->bundle);
-            $this->migrationManager->markVersionAsMigrated($migrationConfiguration->getVersion($migrationConfiguration->getLatestVersion()));
-        }
-
-        $this->initializeFreshSetup();
-    }
-
-    /**
-     * @param Schema  $schema
-     * @param Version $version
-     */
-    public function migrateInstall(Schema $schema, Version $version)
-    {
-        /** @var InstallMigration $migration */
-        $migration = $version->getMigration();
-        if ($migration->isDryRun()) {
-            $this->outputWriter->write('<fg=cyan>DRY-RUN:</> Skipping installation');
-
-            return;
-        }
-    }
-
-    /**
-     * @param Schema  $schema
-     * @param Version $version
-     */
-    public function migrateUninstall(Schema $schema, Version $version)
-    {
-        /** @var InstallMigration $migration */
-        $migration = $version->getMigration();
-        if ($migration->isDryRun()) {
-            $this->outputWriter->write('<fg=cyan>DRY-RUN:</> Skipping uninstallation');
-
-            return;
-        }
-
-        // currently nothing to do.
-    }
-
-    /**
-     * @param string|null $version
-     *
-     * @throws AbortMigrationException
-     */
-    protected function beforeUpdateMigration(string $version = null)
-    {
-        $this->installTranslations();
-    }
-
-    /**
-     * @throws AbortMigrationException
-     */
-    public function initializeFreshSetup()
+    public function install(): void
     {
         $this->installTranslations();
         $this->installProperties();
+
+        parent::install();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function needsReloadAfterInstall()
-    {
-        return false;
-    }
-
-    /**
-     * @return bool
-     *
-     * @throws AbortMigrationException
-     */
-    private function installProperties()
+    private function installProperties(): void
     {
         $properties = [
             'front_page_map' => [
@@ -148,35 +50,24 @@ class Install extends MigrationInstaller
             try {
                 $property->getDao()->save();
             } catch (\Exception $e) {
-                throw new AbortMigrationException(sprintf('Failed to save document proprety "%s". Error was: "%s"', $propertyConfig['name'], $e->getMessage()));
+                throw new InstallationException(sprintf('Failed to save document property "%s". Error was: "%s"', $propertyConfig['name'], $e->getMessage()));
             }
         }
 
-        return true;
     }
 
-    /**
-     * @return bool
-     *
-     * @throws AbortMigrationException
-     */
-    private function installTranslations()
+    private function installTranslations(): void
     {
         $csvAdmin = $this->getInstallSourcesPath() . '/translations/admin.csv';
 
         try {
-            Translation\Admin::importTranslationsFromFile($csvAdmin, true, Admin::getLanguages());
+            Translation::importTranslationsFromFile($csvAdmin, 'admin', true, Admin::getLanguages());
         } catch (\Exception $e) {
-            throw new AbortMigrationException(sprintf('Failed to install admin translations. error was: "%s"', $e->getMessage()));
+            throw new InstallationException(sprintf('Failed to install admin translations. error was: "%s"', $e->getMessage()));
         }
-
-        return true;
     }
 
-    /**
-     * @return string
-     */
-    protected function getInstallSourcesPath()
+    protected function getInstallSourcesPath(): string
     {
         return __DIR__ . '/../Resources/install';
     }

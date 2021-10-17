@@ -2,8 +2,8 @@
 
 [![Software License](https://img.shields.io/badge/license-GPLv3-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Latest Release](https://img.shields.io/packagist/v/dachcom-digital/i18n.svg?style=flat-square)](https://packagist.org/packages/dachcom-digital/i18n)
-[![Tests](https://img.shields.io/github/workflow/status/dachcom-digital/pimcore-i18n/Codeception?style=flat-square&logo=github&label=codeception)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3A%22Codeception%22)
-[![PhpStan](https://img.shields.io/github/workflow/status/dachcom-digital/pimcore-i18n/PHP%20Stan?style=flat-square&logo=github&label=phpstan%20level%202)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3A%22PHP%20Stan%22)
+[![Tests](https://img.shields.io/github/workflow/status/dachcom-digital/pimcore-i18n/Codeception/master?style=flat-square&logo=github&label=codeception)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3ACodeception+branch%3Amaster)
+[![PhpStan](https://img.shields.io/github/workflow/status/dachcom-digital/pimcore-i18n/PHP%20Stan/master?style=flat-square&logo=github&label=phpstan%20level%204)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3A"PHP+Stan"+branch%3Amaster)
 
 ![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
 
@@ -15,35 +15,23 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 
 | Release | Supported Pimcore Versions        | Supported Symfony Versions | Release Date | Maintained     | Branch     |
 |---------|-----------------------------------|----------------------------|--------------|----------------|------------|
-| **3.x** | `6.0` - `6.3`, `6.5` - `6.8`      | `3.4`, `^4.4`              | 18.07.2019   | Feature Branch | dev-master |
-| **2.4** | `5.4`, `5.5`, `5.6`, `5.7`, `5.8` | `3.4`                      | 24.05.2019   | Bugfix only    | 2.4        |
+| **4.x** | `10.1`                            | `5.3`                      | --           | Feature Branch | master     |
+| **3.x** | `6.0` - `6.3`, `6.5` - `6.9`      | `3.4`, `^4.4`              | 18.07.2019   | Unsupported    | 3.x        |
+| **2.4** | `5.4`, `5.5`, `5.6`, `5.7`, `5.8` | `3.4`                      | 24.05.2019   | Unsupported    | 2.4        |
 
 ### Installation  
 
 ```json
 "require" : {
-    "dachcom-digital/i18n" : "~3.2.0"
+    "dachcom-digital/i18n" : "~4.0.0"
 }
 ```
 
-### Installation via Extension Manager
-After you have installed the I18n Bundle via composer, open pimcore backend and go to `Tools` => `Extension`:
-- Click the green `+` Button in `Enable / Disable` row
-- Click the green `+` Button in `Install/Uninstall` row
+- Execute: `$ bin/console pimcore:bundle:enable I18nBundle`
+- Execute: `$ bin/console pimcore:bundle:install I18nBundle`
 
 ## Upgrading
-
-### Upgrading via Extension Manager
-After you have updated the I18n Bundle via composer, open pimcore backend and go to `Tools` => `Extension`:
-- Click the green `+` Button in `Update` row
-
-### Upgrading via CommandLine
-After you have updated the I18n Bundle via composer:
-- Execute: `$ bin/console pimcore:bundle:update I18nBundle`
-
-### Migrate via CommandLine
-Does actually the same as the update command and preferred in CI-Workflow:
-- Execute: `$ bin/console pimcore:migrations:migrate -b I18nBundle`
+- Execute: `$ bin/console doctrine:migrations:migrate --prefix 'I18nBundle\Migrations'`
 
 ## Features
 - Geo redirects (read more about the redirector adapter [here](docs/51_RedirectorAdapter.md))
@@ -73,9 +61,6 @@ Does actually the same as the update command and preferred in CI-Workflow:
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
 - [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in hardlinks.
 - [Navigation Caching](docs/110_NavigationCaching.md): Cache your navigation right!
-
-## Why is there no Version 1?
-There is already an i18n plugin for pimcore4 which is not public. With Pimcore5 we decided to move this project to a public github repository. You're welcome. :)
 
 ## Copyright and License
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  

@@ -12,9 +12,9 @@ class StaticRouteKeyTranslationCest
     public function testLocalizedStaticRoute(FunctionalTester $I)
     {
         $srParams = [
-            'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/	',
-            'reverse'   => '/{%_locale}/@testKey/%testProperty',
-            'action'    => 'default',
+            'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
+            'reverse'   => '/{%%_locale}/@testKey/%%testProperty',
+            'action'    => 'defaultAction',
             'variables' => '_locale,entry',
         ];
 
@@ -33,9 +33,9 @@ class StaticRouteKeyTranslationCest
     public function testLocalizedStaticRouteWithNotAvailableLocale(FunctionalTester $I)
     {
         $srParams = [
-            'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/	',
-            'reverse'   => '/{%_locale}/@testKey/%testProperty',
-            'action'    => 'default',
+            'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
+            'reverse'   => '/{%%_locale}/@testKey/%%testProperty',
+            'action'    => 'defaultAction',
             'variables' => '_locale,entry',
         ];
 

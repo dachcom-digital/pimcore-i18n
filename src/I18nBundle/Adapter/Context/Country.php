@@ -4,39 +4,23 @@ namespace I18nBundle\Adapter\Context;
 
 use Pimcore\Cache;
 use Pimcore\Model\Translation;
+use Symfony\Component\Intl\Countries;
 use Symfony\Component\Intl\Intl;
 use I18nBundle\Definitions;
+use Symfony\Component\Intl\Languages;
 
 class Country extends AbstractContext
 {
-    /**
-     * Helper: Get current Country Iso.
-     *
-     * Get valid Country Iso
-     *
-     * @return bool|string
-     */
-    public function getCurrentCountryIso()
+    public function getCurrentCountryIso(): ?string
     {
         if (Cache\Runtime::isRegistered('i18n.countryIso')) {
-            $isoCode = Cache\Runtime::get('i18n.countryIso');
-
-            return $isoCode;
+            return Cache\Runtime::get('i18n.countryIso');
         }
 
-        return false;
+        return null;
     }
 
-    /**
-     * Helper: Get current Country Info.
-     *
-     * @param string $field
-     *
-     * @return mixed|null
-     *
-     * @throws \Exception
-     */
-    public function getCurrentCountryInfo($field = 'name')
+    public function getCurrentCountryInfo(string $field = 'name'): mixed
     {
         $countryData = null;
 
@@ -48,22 +32,13 @@ class Country extends AbstractContext
         return $countryData;
     }
 
-    /**
-     * Helper: Get Language Name By Iso Code.
-     *
-     * @param string $languageIso
-     * @param string $locale
-     * @param string $region
-     *
-     * @return string|null
-     */
-    public function getLanguageNameByIsoCode($languageIso, $locale = null, $region = null)
+    public function getLanguageNameByIsoCode(?string $languageIso, ?string $locale = null, ?string $region = null): ?string
     {
-        if ($languageIso === false) {
+        if (empty($languageIso)) {
             return null;
         }
 
-        $languageName = Intl::getLanguageBundle()->getLanguageName($languageIso, $region, $locale);
+        $languageName = Languages::getName($languageIso, $locale);
 
         if (!empty($languageName)) {
             return $languageName;
@@ -72,25 +47,17 @@ class Country extends AbstractContext
         return null;
     }
 
-    /**
-     * Helper: Get Country Name by Iso Code.
-     *
-     * @param string $countryIso
-     * @param string $locale
-     *
-     * @return string|null
-     */
-    public function getCountryNameByIsoCode($countryIso, $locale = null)
+    public function getCountryNameByIsoCode(?string $countryIso, ?string $locale = null): ?string
     {
-        if ($countryIso === false) {
+        if (empty($countryIso)) {
             return null;
         }
 
         if ($countryIso === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
-            return Translation\Website::getByKeyLocalized('International', true, true);
+            return Translation::getByKeyLocalized('International', 'messages', true, true);
         }
 
-        $countryName = Intl::getRegionBundle()->getCountryName($countryIso, $locale);
+        $countryName = Countries::getName($countryIso, $locale);
 
         if (!empty($countryName)) {
             return $countryName;
@@ -99,38 +66,25 @@ class Country extends AbstractContext
         return null;
     }
 
-    /**
-     * Helper: get current country and locale.
-     *
-     * @param bool $returnAsString
-     *
-     * @return string|array
-     */
-    public function getCurrentCountryAndLanguage($returnAsString = true)
+    public function getCurrentCountryAndLanguage(bool $returnAsString = true): string|array
     {
         $currentCountryIso = $this->getCurrentCountryIso();
 
         if ($currentCountryIso === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
-            $countryName = Translation\Website::getByKeyLocalized('International', true, true);
+            $countryName = Translation::getByKeyLocalized('International', 'messages', true, true);
         } else {
-            $countryName = Intl::getRegionBundle()->getCountryName($currentCountryIso, $this->getCurrentLanguageIso());
+            $countryName = Countries::getName($currentCountryIso, $this->getCurrentLanguageIso());
         }
 
         if ($returnAsString === true) {
             return $countryName . ' (' . $this->getCurrentLanguageIso() . ')';
-        } else {
-            return ['countryName' => $countryName, 'locale' => $this->getCurrentLanguageIso()];
         }
+
+        return ['countryName' => $countryName, 'locale' => $this->getCurrentLanguageIso()];
+
     }
 
-    /**
-     * Helper: Get all active countries with all language related sites.
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    public function getActiveCountries()
+    public function getActiveCountries() :array
     {
         $activeLocales = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLocales();
 
@@ -142,7 +96,7 @@ class Country extends AbstractContext
             // we need the country iso code only
             $extendedCountryData['isoCode'] = null;
 
-            if (strpos($localeData['locale'], '_') === false) {
+            if (!str_contains($localeData['locale'], '_')) {
                 continue;
             }
 
@@ -173,8 +127,8 @@ class Country extends AbstractContext
                     continue;
                 }
 
-                $countryTitleNative = Intl::getRegionBundle()->getCountryName($countryIso, $countryIso);
-                $countryTitle = Intl::getRegionBundle()->getCountryName($countryIso, $this->getCurrentLanguageIso());
+                $countryTitleNative = Countries::getName($countryIso, $countryIso);
+                $countryTitle = Countries::getName($countryIso, $this->getCurrentLanguageIso());
 
                 $countryData[] = [
                     'country'            => $country,
@@ -187,8 +141,8 @@ class Country extends AbstractContext
 
         $countryData[] = [
             'country'            => $this->zoneManager->getCurrentZoneLocaleAdapter()->getGlobalInfo(),
-            'countryTitleNative' => Translation\Website::getByKeyLocalized('International', true, true, $this->getCurrentLocale()),
-            'countryTitle'       => Translation\Website::getByKeyLocalized('International', true, true, $this->getCurrentLocale()),
+            'countryTitleNative' => Translation::getByKeyLocalized('International', 'messages', true, true, $this->getCurrentLocale()),
+            'countryTitle'       => Translation::getByKeyLocalized('International', 'messages', true, true, $this->getCurrentLocale()),
             'languages'          => $this->getActiveLanguagesForCountry(Definitions::INTERNATIONAL_COUNTRY_NAMESPACE),
         ];
 
@@ -198,14 +152,8 @@ class Country extends AbstractContext
     /**
      * Get languages for Country.
      * Only checks if root document in given country iso is accessible.
-     *
-     * @param null $countryIso
-     *
-     * @return array
-     *
-     * @throws \Exception
      */
-    private function getActiveLanguagesForCountry($countryIso = null)
+    private function getActiveLanguagesForCountry(?string $countryIso = null): array
     {
         $languages = [];
 
@@ -229,6 +177,7 @@ class Country extends AbstractContext
                         break;
                     }
                 }
+
                 $languages[] = $languageData;
             }
         }

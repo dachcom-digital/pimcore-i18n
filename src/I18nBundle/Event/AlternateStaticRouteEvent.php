@@ -3,27 +3,20 @@
 namespace I18nBundle\Event;
 
 use Pimcore\Model\Document;
-use Symfony\Component\EventDispatcher\Event;
+use Pimcore\Model\Staticroute;
+use Symfony\Contracts\EventDispatcher\Event;
+use Symfony\Component\HttpFoundation;
 
 class AlternateStaticRouteEvent extends Event
 {
-    protected $i18nList = [];
+    protected array $i18nList = [];
+    protected Document $currentDocument;
+    protected ?string $currentLanguage;
+    protected ?string $currentCountry;
+    protected ?Staticroute $currentStaticRoute;
+    protected HttpFoundation\ParameterBag $requestAttributes;
+    protected array $routes = [];
 
-    protected $currentDocument = null;
-
-    protected $currentLanguage = null;
-
-    protected $currentCountry = null;
-
-    protected $currentStaticRoute = null;
-
-    protected $requestAttributes = null;
-
-    protected $routes = [];
-
-    /**
-     * @param array $params
-     */
     public function __construct(array $params)
     {
         $this->i18nList = $params['i18nList'];
@@ -34,66 +27,42 @@ class AlternateStaticRouteEvent extends Event
         $this->requestAttributes = $params['requestAttributes'];
     }
 
-    /**
-     * @param array $routes
-     */
-    public function setRoutes(array $routes)
+    public function setRoutes(array $routes): void
     {
         $this->routes = $routes;
     }
 
-    /**
-     * @return array
-     */
-    public function getRoutes()
+    public function getRoutes(): array
     {
         return $this->routes;
     }
 
-    /**
-     * @return array
-     */
-    public function getI18nList()
+    public function getI18nList(): array
     {
         return $this->i18nList;
     }
 
-    /**
-     * @return Document
-     */
-    public function getCurrentDocument()
+    public function getCurrentDocument(): Document
     {
         return $this->currentDocument;
     }
 
-    /**
-     * @return string
-     */
-    public function getCurrentLanguage()
+    public function getCurrentLanguage(): ?string
     {
         return $this->currentLanguage;
     }
 
-    /**
-     * @return string
-     */
-    public function getCurrentCountry()
+    public function getCurrentCountry(): ?string
     {
         return $this->currentCountry;
     }
 
-    /**
-     * @return \Pimcore\Model\Staticroute $route
-     */
-    public function getCurrentStaticRoute()
+    public function getCurrentStaticRoute(): ?Staticroute
     {
         return $this->currentStaticRoute;
     }
 
-    /**
-     * @return \Symfony\Component\HttpFoundation\ParameterBag
-     */
-    public function getRequestAttributes()
+    public function getRequestAttributes(): HttpFoundation\ParameterBag
     {
         return $this->requestAttributes;
     }

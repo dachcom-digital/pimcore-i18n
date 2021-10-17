@@ -13,6 +13,8 @@ class LocalizedErrorDocumentsCest extends AbstractZone
     {
         $setup = $this->setupSites($I);
 
+        $I->haveAKernelWithoutDebugMode();
+
         // we need to unpublish the default page here
         // since the default error page is placed on root level (defined in system.php)
         $defaultErrorDocument = $I->haveAPageDocument('error', [], 'en');

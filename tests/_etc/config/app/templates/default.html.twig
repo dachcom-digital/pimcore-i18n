@@ -9,7 +9,12 @@
 <body>
     <div id="site">
         <div class="navigation">
-            {% set menu = pimcore_build_nav(document, document, null, app.request.locale) %}
+            {% set menu = pimcore_build_nav({
+                active: document,
+                root: document,
+                cache: app.request.locale
+            }) %}
+
             {{ pimcore_render_nav(menu, 'menu', 'renderMenu', {
                 maxDepth: 10,
                 ulClass: 'nav navbar-nav'
@@ -17,7 +22,7 @@
         </div>
         <div class="content">
             {% if document is defined %}
-                <span id="page-id">{{ document.getId() }}</span>
+                <span id="page-id">{{ document.id }}</span>
             {% endif %}
         </div>
         {% block content %}

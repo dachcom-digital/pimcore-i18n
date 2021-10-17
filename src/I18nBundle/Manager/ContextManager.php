@@ -2,7 +2,6 @@
 
 namespace I18nBundle\Manager;
 
-use I18nBundle\Adapter\Context\AbstractContext;
 use I18nBundle\Adapter\Context\ContextInterface;
 use I18nBundle\Adapter\Context\Country;
 use I18nBundle\Adapter\Context\Language;
@@ -12,30 +11,15 @@ use Pimcore\Model\Document;
 
 class ContextManager
 {
-    /**
-     * @var ContextRegistry
-     */
-    protected $contextRegistry;
-
-    /**
-     * Stores the current Context info.
-     *
-     * @var AbstractContext
-     */
-    protected $currentContext;
+    protected ContextRegistry $contextRegistry;
+    protected ContextInterface $currentContext;
 
     public function __construct(ContextRegistry $contextRegistry)
     {
         $this->contextRegistry = $contextRegistry;
     }
 
-    /**
-     * @param string   $contextIdentifier
-     * @param Document $document
-     *
-     * @throws \Exception
-     */
-    public function initContext($contextIdentifier, $document = null)
+    public function initContext(string $contextIdentifier, ?Document $document = null): void
     {
         $contextId = $contextIdentifier;
 
@@ -59,12 +43,7 @@ class ContextManager
         }
     }
 
-    /**
-     * @return ContextInterface
-     *
-     * @throws ContextNotDefinedException
-     */
-    public function getContext()
+    public function getContext() :ContextInterface
     {
         if (empty($this->currentContext)) {
             throw new ContextNotDefinedException();
@@ -74,25 +53,21 @@ class ContextManager
     }
 
     /**
-     * This is just an alias and a annotation helper.
-     *
-     * @return Language|ContextInterface
+     * This is just an alias and an annotation helper.
      *
      * @throws \Exception
      */
-    public function getLanguageContext()
+    public function getLanguageContext(): Language|ContextInterface
     {
         return $this->getContext();
     }
 
     /**
-     * This is just an alias and a annotation helper.
-     *
-     * @return Country|ContextInterface
+     * This is just an alias and an annotation helper.
      *
      * @throws \Exception
      */
-    public function getCountryContext()
+    public function getCountryContext(): Country|ContextInterface
     {
         return $this->getContext();
     }

@@ -6,45 +6,21 @@ use I18nBundle\Manager\ZoneManager;
 
 class FallbackRedirector extends AbstractRedirector
 {
-    /**
-     * @var null|string
-     */
-    protected $guessedLocale;
+    protected ?string $guessedLocale = null;
+    protected ?string $guessedLanguage = null;
+    protected ?string $guessedCountry = null;
+    protected ZoneManager $zoneManager;
 
-    /**
-     * @var null|string
-     */
-    protected $guessedLanguage;
-
-    /**
-     * @var null|string
-     */
-    protected $guessedCountry;
-
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @param ZoneManager $zoneManager
-     */
     public function __construct(ZoneManager $zoneManager)
     {
         $this->zoneManager = $zoneManager;
     }
 
-    /**
-     * @param RedirectorBag $redirectorBag
-     */
-    public function makeDecision(RedirectorBag $redirectorBag)
+    public function makeDecision(RedirectorBag $redirectorBag): void
     {
         if ($this->lastRedirectorWasSuccessful($redirectorBag) === true) {
             return;
         }
-
-        $userCountryIso = null;
-        $url = null;
 
         $url = $this->findUrlInZoneTree($redirectorBag->getDefaultLocale());
         $valid = !empty($url);
@@ -58,27 +34,22 @@ class FallbackRedirector extends AbstractRedirector
         ]);
     }
 
-    /**
-     * @param string|null $fallBackLocale
-     *
-     * @return bool|string
-     */
-    public function findUrlInZoneTree($fallBackLocale = null)
+    protected function findUrlInZoneTree(?string $fallBackLocale): ?string
     {
         try {
             $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
         } catch (\Exception $e) {
-            return false;
+            return null;
         }
 
         if (!is_array($zoneDomains)) {
-            return false;
+            return null;
         }
 
-        $indexId = array_search($fallBackLocale, array_column($zoneDomains, 'locale'));
+        $indexId = array_search($fallBackLocale, array_column($zoneDomains, 'locale'), true);
 
         if ($indexId === false) {
-            return false;
+            return null;
         }
 
         $docData = $zoneDomains[$indexId];

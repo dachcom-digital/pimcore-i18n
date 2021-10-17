@@ -11,7 +11,7 @@ class XliffExportCest
      */
     public function testXliffExport(FunctionalTester $I)
     {
-        $document = $I->haveAPageDocument('en', ['action' => 'languageSelector'], 'en');
+        $document = $I->haveAPageDocument('en', ['action' => 'languageSelectorAction'], 'en');
 
         $I->haveAUser('dachcom_test');
         $I->amLoggedInAs('dachcom_test');

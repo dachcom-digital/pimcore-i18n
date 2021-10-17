@@ -13,8 +13,9 @@ use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Registry\RedirectorRegistry;
 use I18nBundle\Tool\System;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Pimcore\Config;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -23,56 +24,15 @@ use Pimcore\Cache;
 
 class DetectorListener implements EventSubscriberInterface
 {
-    /**
-     * @var Configuration
-     */
-    protected $configuration;
+    protected Configuration $configuration;
+    protected CookieHelper $cookieHelper;
+    protected RedirectorRegistry $redirectorRegistry;
+    protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
+    protected ZoneManager $zoneManager;
+    protected ContextManager $contextManager;
+    protected DocumentHelper $documentHelper;
+    protected RequestValidatorHelper $requestValidatorHelper;
 
-    /**
-     * @var CookieHelper
-     */
-    protected $cookieHelper;
-
-    /**
-     * @var RedirectorRegistry
-     */
-    protected $redirectorRegistry;
-
-    /**
-     * @var PimcoreDocumentResolverInterface
-     */
-    protected $pimcoreDocumentResolver;
-
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @var ContextManager
-     */
-    protected $contextManager;
-
-    /**
-     * @var DocumentHelper
-     */
-    protected $documentHelper;
-
-    /**
-     * @var RequestValidatorHelper
-     */
-    protected $requestValidatorHelper;
-
-    /**
-     * @param Configuration                    $configuration
-     * @param CookieHelper                     $cookieHelper
-     * @param RedirectorRegistry               $redirectorRegistry
-     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
-     * @param ZoneManager                      $zoneManager
-     * @param ContextManager                   $contextManager
-     * @param DocumentHelper                   $documentHelper
-     * @param RequestValidatorHelper           $requestValidatorHelper
-     */
     public function __construct(
         Configuration $configuration,
         CookieHelper $cookieHelper,
@@ -93,10 +53,7 @@ class DetectorListener implements EventSubscriberInterface
         $this->requestValidatorHelper = $requestValidatorHelper;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::REQUEST  => [
@@ -106,16 +63,9 @@ class DetectorListener implements EventSubscriberInterface
         ];
     }
 
-    /**
-     * Apply this method after the pimcore context resolver.
-     *
-     * @param GetResponseEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
-        if ($event->isMasterRequest() === false) {
+        if ($event->isMainRequest() === false) {
             return;
         }
 
@@ -184,14 +134,11 @@ class DetectorListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * @param FilterResponseEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onKernelResponse(FilterResponseEvent $event)
+    public function onKernelResponse(ResponseEvent $event): void
     {
-        if ($event->isMasterRequest() === false) {
+        return;
+
+        if ($event->isMainRequest() === false) {
             return;
         }
 
@@ -236,15 +183,15 @@ class DetectorListener implements EventSubscriberInterface
         $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
         $validUri = $this->getRedirectUrl(strtok($event->getRequest()->getUri(), '?'));
 
-        $cookie = $this->cookieHelper->get($event->getRequest());
+        $cookie = null; //$this->cookieHelper->get($event->getRequest());
 
         //same domain, do nothing.
-        if ($cookie !== false && $validUri === $cookie['url']) {
+        if ($cookie !== null && $validUri === $cookie['url']) {
             return;
         }
 
         //check if url is valid
-        $indexId = array_search($validUri, array_column($zoneDomains, 'url'));
+        $indexId = array_search($validUri, array_column($zoneDomains, 'url'), true);
         if ($indexId !== false) {
             $cookieData = [
                 'url'      => $validUri,
@@ -257,21 +204,14 @@ class DetectorListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * @param string $path
-     *
-     * @return string
-     *
-     * @throws \Exception
-     */
-    protected function getRedirectUrl($path)
+    protected function getRedirectUrl(string $path): string
     {
-        $config = \Pimcore\Config::getSystemConfig();
+        $config = Config::getSystemConfiguration('documents');
 
         $endPath = rtrim($path, '/');
 
-        if ($config->documents->allowtrailingslash !== 'no') {
-            $endPath = $endPath . '/';
+        if ($config['allow_trailing_slash'] !== 'no') {
+            $endPath .= '/';
         }
 
         return $endPath;

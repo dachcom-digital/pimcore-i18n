@@ -10,20 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 class RequestValidatorHelper
 {
-    /**
-     * @var RequestHelper
-     */
-    protected $requestHelper;
+    protected RequestHelper $requestHelper;
+    protected PimcoreContextResolver $pimcoreContextResolver;
 
-    /**
-     * @var PimcoreContextResolver
-     */
-    protected $pimcoreContextResolver;
-
-    /**
-     * @param RequestHelper          $requestHelper
-     * @param PimcoreContextResolver $contextResolver
-     */
     public function __construct(
         RequestHelper $requestHelper,
         PimcoreContextResolver $contextResolver
@@ -32,13 +21,7 @@ class RequestValidatorHelper
         $this->pimcoreContextResolver = $contextResolver;
     }
 
-    /**
-     * @param Request $request
-     * @param bool    $allowFrontendRequestByAdmin
-     *
-     * @return bool
-     */
-    public function isValidForRedirect(Request $request, $allowFrontendRequestByAdmin = true)
+    public function isValidForRedirect(Request $request, bool $allowFrontendRequestByAdmin = true): bool
     {
         if ($this->pimcoreContextResolver->matchesPimcoreContext($request, PimcoreContextResolver::CONTEXT_ADMIN)) {
             return false;
@@ -59,12 +42,7 @@ class RequestValidatorHelper
         return true;
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return bool
-     */
-    public function matchesI18nContext(Request $request)
+    public function matchesI18nContext(Request $request): bool
     {
         if(!$request->attributes->has(Definitions::ATTRIBUTE_I18N_CONTEXT)) {
             return false;
@@ -73,22 +51,12 @@ class RequestValidatorHelper
         return $request->attributes->get(Definitions::ATTRIBUTE_I18N_CONTEXT) === true;
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return bool
-     */
-    public function matchesDefaultPimcoreContext(Request $request)
+    public function matchesDefaultPimcoreContext(Request $request): bool
     {
         return $this->pimcoreContextResolver->matchesPimcoreContext($request, PimcoreContextResolver::CONTEXT_DEFAULT);
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return bool
-     */
-    public function isFrontendRequestByAdmin(Request $request)
+    public function isFrontendRequestByAdmin(Request $request): bool
     {
         return $this->requestHelper->isFrontendRequestByAdmin($request);
     }

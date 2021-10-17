@@ -8,41 +8,16 @@ use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use Pimcore\Model\Document;
 use Pimcore\Cache;
-use Symfony\Component\Intl\Intl;
+use Symfony\Component\Intl\Languages;
 
 abstract class AbstractContext implements ContextInterface
 {
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
+    protected ZoneManager $zoneManager;
+    protected PathGeneratorManager $pathGeneratorManager;
+    protected DocumentHelper $documentHelper;
+    protected UserHelper $userHelper;
+    protected Document $document;
 
-    /**
-     * @var PathGeneratorManager
-     */
-    protected $pathGeneratorManager;
-
-    /**
-     * @var DocumentHelper
-     */
-    protected $documentHelper;
-
-    /**
-     * @var UserHelper
-     */
-    protected $userHelper;
-
-    /**
-     * @var Document
-     */
-    protected $document;
-
-    /**
-     * @param ZoneManager          $zoneManager
-     * @param PathGeneratorManager $pathGeneratorManager
-     * @param DocumentHelper       $documentHelper
-     * @param UserHelper           $userHelper
-     */
     public function __construct(
         ZoneManager $zoneManager,
         PathGeneratorManager $pathGeneratorManager,
@@ -55,20 +30,15 @@ abstract class AbstractContext implements ContextInterface
         $this->userHelper = $userHelper;
     }
 
-    /**
-     * @param Document $document
-     */
-    public function setDocument(Document $document)
+    public function setDocument(Document $document): void
     {
         $this->document = $document;
     }
 
     /**
-     * @return Document
-     *
      * @throws \Exception
      */
-    public function getDocument()
+    public function getDocument(): Document
     {
         if (!$this->document instanceof Document) {
             throw new \Exception('AbstractContext has no valid document');
@@ -77,91 +47,53 @@ abstract class AbstractContext implements ContextInterface
         return $this->document;
     }
 
-    /**
-     * Helper: Get current Locale.
-     *
-     * @return string
-     */
-    public function getCurrentLocale()
+    public function getCurrentLocale(): ?string
     {
         if (!Cache\Runtime::isRegistered('i18n.locale')) {
-            return false;
+            return null;
         }
 
         try {
             $locale = Cache\Runtime::get('i18n.locale');
         } catch (\Exception $e) {
-            return false;
+            return null;
         }
 
         return $locale;
     }
 
-    /**
-     * Helper: Get current Language Iso.
-     *
-     * @return string
-     */
-    public function getCurrentLanguageIso()
+    public function getCurrentLanguageIso(): ?string
     {
         if (!Cache\Runtime::isRegistered('i18n.languageIso')) {
-            return false;
+            return null;
         }
 
         try {
             $isoCode = Cache\Runtime::get('i18n.languageIso');
         } catch (\Exception $e) {
-            return false;
+            return null;
         }
 
         return $isoCode;
     }
 
-    /**
-     * Helper: Get current Country Iso.
-     *
-     * Get valid Country Iso
-     *
-     * @return bool|string
-     */
-    public function getCurrentCountryIso()
+    public function getCurrentCountryIso(): ?string
     {
-        return false;
+        return null;
     }
 
-    /**
-     * Helper: Get all linked pages from current document.
-     *
-     * @param bool $onlyShowRootLanguages
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    public function getLinkedLanguages($onlyShowRootLanguages = false)
+    public function getLinkedLanguages(bool $onlyShowRootLanguages = false): array
     {
-        $currentDocument = $this->getDocument();
-        $urls = $this->pathGeneratorManager->getPathGenerator()->getUrls($currentDocument, $onlyShowRootLanguages);
-
-        return $urls;
+        return $this->pathGeneratorManager->getPathGenerator()->getUrls($this->getDocument(), $onlyShowRootLanguages);
     }
 
-    /**
-     * Helper: Get Language Name By Iso Code.
-     *
-     * @param string $languageIso
-     * @param string $locale
-     * @param string $region      ignored in abstract context. only available in country context.
-     *
-     * @return string|null
-     */
-    public function getLanguageNameByIsoCode($languageIso, $locale = null, $region = null)
+    public function getLanguageNameByIsoCode(?string $languageIso, ?string $locale = null, ?string $region = null): ?string
     {
-        if ($languageIso === false) {
+        if (empty($languageIso)) {
             return null;
         }
 
-        $languageName = Intl::getLanguageBundle()->getLanguageName($languageIso, null, $locale);
+        $languageName = Languages::getName($languageIso, $locale);
 
         if (!empty($languageName)) {
             return $languageName;
@@ -170,16 +102,7 @@ abstract class AbstractContext implements ContextInterface
         return null;
     }
 
-    /**
-     * Helper: Get Information about current Context.
-     *
-     * @param null $slot
-     *
-     * @return mixed
-     *
-     * @throws \Exception
-     */
-    public function getCurrentContextInfo($slot = null)
+    public function getCurrentContextInfo(string $slot = null): mixed
     {
         $tree = $this->zoneManager->getCurrentZoneDomains(true);
 
@@ -191,7 +114,7 @@ abstract class AbstractContext implements ContextInterface
             throw new \Exception('I18n: locale for current request not found.');
         }
 
-        $treeIndex = array_search($locale, array_column($tree, 'locale'));
+        $treeIndex = array_search($locale, array_column($tree, 'locale'), true);
         if ($treeIndex === false) {
             throw new \Exception(sprintf('I18n: no valid zone for locale "%s" found.', $locale));
         }
@@ -199,20 +122,14 @@ abstract class AbstractContext implements ContextInterface
         return $tree[$treeIndex][$slot];
     }
 
-    /**
-     * @param string $locale
-     * @param string $href
-     *
-     * @return array
-     */
-    protected function mapLanguageInfo($locale, $href)
+    protected function mapLanguageInfo(string $locale, string $href): array
     {
         $iso = explode('_', $locale);
 
         return [
             'iso'         => $iso[0],
-            'titleNative' => Intl::getLanguageBundle()->getLanguageName($locale, null, $iso[0]),
-            'title'       => Intl::getLanguageBundle()->getLanguageName($locale, null, $this->getCurrentLanguageIso()),
+            'titleNative' => Languages::getName($locale, $iso[0]),
+            'title'       => Languages::getName($locale, $this->getCurrentLanguageIso()),
             'href'        => $href
         ];
     }

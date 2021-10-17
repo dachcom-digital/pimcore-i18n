@@ -7,20 +7,9 @@ use I18nBundle\Manager\ZoneManager;
 
 class GeoRedirector extends AbstractRedirector
 {
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
+    protected ZoneManager $zoneManager;
+    protected UserHelper $userHelper;
 
-    /**
-     * @var UserHelper
-     */
-    protected $userHelper;
-
-    /**
-     * @param ZoneManager $zoneManager
-     * @param UserHelper  $userHelper
-     */
     public function __construct(
         ZoneManager $zoneManager,
         UserHelper $userHelper
@@ -29,10 +18,7 @@ class GeoRedirector extends AbstractRedirector
         $this->userHelper = $userHelper;
     }
 
-    /**
-     * @param RedirectorBag $redirectorBag
-     */
-    public function makeDecision(RedirectorBag $redirectorBag)
+    public function makeDecision(RedirectorBag $redirectorBag): void
     {
         if ($this->lastRedirectorWasSuccessful($redirectorBag) === true) {
             return;
@@ -96,7 +82,7 @@ class GeoRedirector extends AbstractRedirector
             return;
         }
 
-        usort($prioritisedListQuery, function ($a, $b) {
+        usort($prioritisedListQuery, static function ($a, $b) {
             return $a['priority'] - $b['priority'];
         });
 
@@ -113,46 +99,37 @@ class GeoRedirector extends AbstractRedirector
 
     }
 
-    /**
-     * @param string      $locale
-     * @param string|null $countryIso
-     * @param bool        $countryStrictMode
-     * @param bool        $languageStrictMode
-     *
-     * @return bool|mixed|null
-     */
-    public function findUrlInZoneTree($locale, $countryIso = null, bool $countryStrictMode = true, $languageStrictMode = false)
+    protected function findUrlInZoneTree(string $locale, ?string $countryIso = null, bool $countryStrictMode = true, bool $languageStrictMode = false): ?array
     {
         try {
             $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
         } catch (\Exception $e) {
-            return false;
+            return null;
         }
 
         if (!is_array($zoneDomains)) {
-            return false;
+            return null;
         }
 
         $locale = $languageStrictMode ? substr($locale, 0, 2) : $locale;
 
         if ($countryIso === null) {
-            $indexId = array_search($locale, array_column($zoneDomains, 'locale'));
+            $indexId = array_search($locale, array_column($zoneDomains, 'locale'), true);
             return $indexId !== false ? $zoneDomains[$indexId] : null;
         }
 
         if ($countryStrictMode === true) {
-
             // first try to find language iso + guessed country
             // we need to overrule users accepted region fragment by our guessed country
-            $language = strpos($locale, '_') !== false ? substr($locale, 0, 2) : $locale;
+            $language = str_contains($locale, '_') ? substr($locale, 0, 2) : $locale;
 
             $strictLocale = sprintf('%s_%s', $language, $countryIso);
-            $indexId = array_search($strictLocale, array_column($zoneDomains, 'locale'));
+            $indexId = array_search($strictLocale, array_column($zoneDomains, 'locale'), true);
 
             return $indexId !== false ? $zoneDomains[$indexId] : null;
         }
 
-        $indexId = array_search($locale, array_column($zoneDomains, 'locale'));
+        $indexId = array_search($locale, array_column($zoneDomains, 'locale'), true);
 
         return $indexId !== false ? $zoneDomains[$indexId] : null;
     }

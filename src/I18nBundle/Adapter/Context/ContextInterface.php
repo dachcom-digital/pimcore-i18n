@@ -8,17 +8,17 @@ interface ContextInterface
 {
     public function setDocument(Document $document);
 
-    public function getDocument();
+    public function getDocument(): Document;
 
-    public function getCurrentLocale();
+    public function getCurrentLocale(): ?string;
 
-    public function getCurrentLanguageIso();
+    public function getCurrentLanguageIso(): ?string;
 
-    public function getCurrentCountryIso();
+    public function getCurrentCountryIso(): ?string;
 
-    public function getLinkedLanguages($onlyShowRootLanguages = true);
+    public function getLinkedLanguages(bool $onlyShowRootLanguages = true): array;
 
-    public function getLanguageNameByIsoCode($languageIso, $locale = null, $region = null);
+    public function getLanguageNameByIsoCode(string $languageIso, ?string $locale = null, ?string $region = null): ?string;
 
-    public function getCurrentContextInfo($slot = null);
+    public function getCurrentContextInfo(string $slot = null): mixed;
 }

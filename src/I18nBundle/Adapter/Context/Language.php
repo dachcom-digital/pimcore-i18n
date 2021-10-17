@@ -6,16 +6,8 @@ use Pimcore\Cache;
 
 class Language extends AbstractContext
 {
-    /**
-     * Helper: Get current Language Info.
-     *
-     * @param string $field
-     *
-     * @return string
-     */
-    public function getCurrentLanguageInfo($field = 'name')
+    public function getCurrentLanguageInfo(string $field = 'name'): ?string
     {
-        $languageData = null;
         if (!Cache\Runtime::isRegistered('i18n.locale')) {
             return null;
         }
@@ -30,14 +22,7 @@ class Language extends AbstractContext
         return $languageData;
     }
 
-    /**
-     * Helper: Get all active languages.
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    public function getActiveLanguages()
+    public function getActiveLanguages() :array
     {
         $languages = [];
         $tree = $this->zoneManager->getCurrentZoneDomains(true);

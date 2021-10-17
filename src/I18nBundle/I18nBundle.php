@@ -15,12 +15,9 @@ class I18nBundle extends AbstractPimcoreBundle
 {
     use PackageVersionTrait;
 
-    const PACKAGE_NAME = 'dachcom-digital/i18n';
+    public const PACKAGE_NAME = 'dachcom-digital/i18n';
 
-    /**
-     * {@inheritdoc}
-     */
-    public function build(ContainerBuilder $container)
+    public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new RedirectorAdapterPass());
         $container->addCompilerPass(new LocaleAdapterPass());
@@ -28,17 +25,11 @@ class I18nBundle extends AbstractPimcoreBundle
         $container->addCompilerPass(new ContextAdapterPass());
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getInstaller()
+    public function getInstaller(): Install
     {
         return $this->container->get(Install::class);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getComposerPackageName(): string
     {
         return self::PACKAGE_NAME;

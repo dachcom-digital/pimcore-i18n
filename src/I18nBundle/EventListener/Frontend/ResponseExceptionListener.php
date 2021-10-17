@@ -18,7 +18,7 @@ use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
@@ -26,56 +26,15 @@ class ResponseExceptionListener implements EventSubscriberInterface
 {
     use PimcoreContextAwareTrait;
 
-    /**
-     * @var ActionRenderer
-     */
-    protected $actionRenderer;
+    protected ActionRenderer $actionRenderer;
+    protected ZoneManager $zoneManager;
+    protected ContextManager $contextManager;
+    protected PathGeneratorManager $pathGeneratorManager;
+    protected SiteResolver $siteResolver;
+    protected Document\Service $documentService;
+    protected array $pimcoreConfig;
+    protected ConnectionInterface $db;
 
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @var ContextManager
-     */
-    protected $contextManager;
-
-    /**
-     * @var PathGeneratorManager
-     */
-    protected $pathGeneratorManager;
-
-    /**
-     * @var SiteResolver
-     */
-    protected $siteResolver;
-
-    /**
-     * @var Document\Service
-     */
-    protected $documentService;
-
-    /**
-     * @var array
-     */
-    protected $pimcoreConfig;
-
-    /**
-     * @var ConnectionInterface
-     */
-    protected $db;
-
-    /**
-     * @param ActionRenderer       $actionRenderer
-     * @param ZoneManager          $zoneManager
-     * @param ContextManager       $contextManager
-     * @param PathGeneratorManager $pathGeneratorManager
-     * @param SiteResolver         $siteResolver
-     * @param Document\Service     $documentService
-     * @param ConnectionInterface  $db
-     * @param array                $pimcoreConfig
-     */
     public function __construct(
         ActionRenderer $actionRenderer,
         ZoneManager $zoneManager,
@@ -96,24 +55,16 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $this->pimcoreConfig = $pimcoreConfig;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::EXCEPTION => ['onKernelException', 10]
         ];
     }
 
-    /**
-     * @param GetResponseForExceptionEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onKernelException(GetResponseForExceptionEvent $event)
+    public function onKernelException(ExceptionEvent $event): void
     {
-        $exception = $event->getException();
+        $exception = $event->getThrowable();
         $renderErrorPage = $this->pimcoreConfig['error_handling']['render_error_document'];
 
         // handle ResponseException (can be used from any context)
@@ -129,12 +80,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * @param GetResponseForExceptionEvent $event
-     *
-     * @throws \Exception
-     */
-    protected function handleErrorPage(GetResponseForExceptionEvent $event)
+    protected function handleErrorPage(ExceptionEvent $event): void
     {
         if (\Pimcore::inDebugMode()) {
             return;
@@ -143,7 +89,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         // re-init zones since we're in a kernelException.
         $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
 
-        $exception = $event->getException();
+        $exception = $event->getThrowable();
         $document = $this->detectDocument($event, $zoneDomains);
 
         $this->setRuntime($event->getRequest(), $document->getProperty('language'));
@@ -169,13 +115,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $event->setResponse(new Response($response, $statusCode, $headers));
     }
 
-    /**
-     * @param GetResponseForExceptionEvent $event
-     * @param array                        $zoneDomains
-     *
-     * @return Document
-     */
-    protected function detectDocument(GetResponseForExceptionEvent $event, array $zoneDomains)
+    protected function detectDocument(ExceptionEvent $event, array $zoneDomains): Document
     {
         $defaultErrorDocument = null;
         $localizedErrorDocument = null;
@@ -276,11 +216,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         return $document;
     }
 
-    /**
-     * @param Request $request
-     * @param string  $locale
-     */
-    private function setRuntime(Request $request, string $locale)
+    private function setRuntime(Request $request, string $locale): void
     {
         // Pimcore does not initialize context in exception.
         Document::setHideUnpublished(true);
@@ -305,11 +241,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         Cache\Runtime::set('i18n.countryIso', $countryIso);
     }
 
-    /**
-     * @param Request $request
-     * @param int     $statusCode
-     */
-    protected function logToHttpErrorLog(Request $request, $statusCode)
+    protected function logToHttpErrorLog(Request $request, int $statusCode): void
     {
         $uri = $request->getUri();
         $exists = $this->db->fetchOne('SELECT `date` FROM http_error_log WHERE uri = ?', $uri);

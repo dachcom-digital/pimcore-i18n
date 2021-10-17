@@ -6,23 +6,14 @@ use I18nBundle\Helper\CookieHelper;
 
 class CookieRedirector extends AbstractRedirector
 {
-    /**
-     * @var CookieHelper
-     */
-    protected $cookieHelper;
+    protected CookieHelper $cookieHelper;
 
-    /**
-     * @param CookieHelper $cookieHelper
-     */
     public function __construct(CookieHelper $cookieHelper)
     {
         $this->cookieHelper = $cookieHelper;
     }
 
-    /**
-     * @param RedirectorBag $redirectorBag
-     */
-    public function makeDecision(RedirectorBag $redirectorBag)
+    public function makeDecision(RedirectorBag $redirectorBag): void
     {
         if ($this->lastRedirectorWasSuccessful($redirectorBag) === true) {
             return;
@@ -38,14 +29,12 @@ class CookieRedirector extends AbstractRedirector
         $redirectCookie = $this->cookieHelper->get($request);
 
         //if no cookie available the validation fails.
-        if ($redirectCookie !== false) {
-            if (is_array($redirectCookie) && !empty($redirectCookie['url'])) {
-                $valid = true;
-                $url = $redirectCookie['url'];
-                $locale = $redirectCookie['locale'];
-                $country = $redirectCookie['country'];
-                $language = $redirectCookie['language'];
-            }
+        if (is_array($redirectCookie) && !empty($redirectCookie['url'])) {
+            $valid = true;
+            $url = $redirectCookie['url'];
+            $locale = $redirectCookie['locale'];
+            $country = $redirectCookie['country'];
+            $language = $redirectCookie['language'];
         }
 
         $this->setDecision([

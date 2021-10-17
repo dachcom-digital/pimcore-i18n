@@ -11,6 +11,8 @@ class LocalizedErrorDocumentsCest
      */
     public function testDefaultErrorPage(FunctionalTester $I)
     {
+        $I->haveAKernelWithoutDebugMode();
+
         $defaultErrorDocument = $I->haveAPageDocument('error', [], 'en');
 
         $document1 = $I->haveAPageDocument('en', [], 'en');
@@ -29,6 +31,8 @@ class LocalizedErrorDocumentsCest
      */
     public function testLocalizedCountryErrorPage(FunctionalTester $I)
     {
+        $I->haveAKernelWithoutDebugMode();
+
         // we need to unpublish the default page here
         // since the default error page is placed on root level (defined in system.php)
         $defaultErrorDocument = $I->haveAPageDocument('error', [], 'en');

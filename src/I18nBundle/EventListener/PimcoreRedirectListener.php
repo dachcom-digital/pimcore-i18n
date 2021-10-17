@@ -15,8 +15,10 @@ use I18nBundle\Registry\RedirectorRegistry;
 use Pimcore\Model\Site;
 use Pimcore\Routing\RedirectHandler;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -26,56 +28,15 @@ use Pimcore\Model\Document;
 
 class PimcoreRedirectListener implements EventSubscriberInterface
 {
-    /**
-     * @var RedirectorRegistry
-     */
-    protected $redirectorRegistry;
+    protected RedirectorRegistry $redirectorRegistry;
+    protected ZoneManager $zoneManager;
+    protected ContextManager $contextManager;
+    protected PathGeneratorManager $pathGeneratorManager;
+    protected RedirectHandler $redirectHandler;
+    protected SiteResolver $siteResolver;
+    protected DocumentHelper $documentHelper;
+    protected RequestValidatorHelper $requestValidatorHelper;
 
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @var ContextManager
-     */
-    protected $contextManager;
-
-    /**
-     * @var PathGeneratorManager
-     */
-    protected $pathGeneratorManager;
-
-    /**
-     * @var RedirectHandler
-     */
-    protected $redirectHandler;
-
-    /**
-     * @var SiteResolver
-     */
-    protected $siteResolver;
-
-    /**
-     * @var DocumentHelper
-     */
-    protected $documentHelper;
-
-    /**
-     * @var RequestValidatorHelper
-     */
-    protected $requestValidatorHelper;
-
-    /**
-     * @param RedirectorRegistry     $redirectorRegistry
-     * @param ZoneManager            $zoneManager
-     * @param ContextManager         $contextManager
-     * @param PathGeneratorManager   $pathGeneratorManager
-     * @param RedirectHandler        $redirectHandler
-     * @param SiteResolver           $siteResolver
-     * @param DocumentHelper         $documentHelper
-     * @param RequestValidatorHelper $requestValidatorHelper
-     */
     public function __construct(
         RedirectorRegistry $redirectorRegistry,
         ZoneManager $zoneManager,
@@ -96,10 +57,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         $this->requestValidatorHelper = $requestValidatorHelper;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::EXCEPTION => [['onKernelRedirectException', 65]],     // before pimcore frontend routing listener (redirect check)
@@ -107,14 +65,9 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         ];
     }
 
-    /**
-     * @param GetResponseForExceptionEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onKernelRedirectException(GetResponseForExceptionEvent $event)
+    public function onKernelRedirectException(ExceptionEvent $event): void
     {
-        if (!$event->getException() instanceof NotFoundHttpException) {
+        if (!$event->getThrowable() instanceof NotFoundHttpException) {
             return;
         }
 
@@ -124,14 +77,9 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * @param GetResponseEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onKernelRedirectRequest(GetResponseEvent $event)
+    public function onKernelRedirectRequest(RequestEvent $event): void
     {
-        if ($event->isMasterRequest() === false) {
+        if ($event->isMainRequest() === false) {
             return;
         }
 
@@ -148,15 +96,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * @param Request $request
-     * @param bool    $override
-     *
-     * @return Response|null
-     *
-     * @throws \Exception
-     */
-    protected function checkI18nPimcoreRedirects(Request $request, $override = false)
+    protected function checkI18nPimcoreRedirects(Request $request, bool $override = false): ?Response
     {
         $response = $this->redirectHandler->checkForRedirect($request, $override);
         if (!$response instanceof RedirectResponse) {
@@ -248,7 +188,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         }
 
         if (isset($oldTargetUrlParts['query']) && !empty($oldTargetUrlParts['query'])) {
-            $newTargetUrl .= strpos($newTargetUrl, '?') === false ? '?' : '&';
+            $newTargetUrl .= !str_contains($newTargetUrl, '?') ? '?' : '&';
             $newTargetUrl .= $oldTargetUrlParts['query'];
         }
 
@@ -257,12 +197,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         return $response;
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return string
-     */
-    protected function resolveSite(Request $request)
+    protected function resolveSite(Request $request): string
     {
         $path = urldecode($request->getPathInfo());
 

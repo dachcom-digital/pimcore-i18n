@@ -7,20 +7,10 @@ use Pimcore\Model\Document as PimcoreDocument;
 
 class Document extends AbstractPathGenerator
 {
-    /**
-     * @var array
-     */
-    protected $cachedUrls = [];
+    protected array $cachedUrls = [];
 
-    /**
-     * @param PimcoreDocument $currentDocument
-     * @param bool            $onlyShowRootLanguages
-     *
-     * @return array
-     */
-    public function getUrls(PimcoreDocument $currentDocument = null, $onlyShowRootLanguages = false)
+    public function getUrls(PimcoreDocument $currentDocument, bool $onlyShowRootLanguages = false): array
     {
-        $urls = null;
         if (isset($this->cachedUrls[$currentDocument->getId()])) {
             return $this->cachedUrls[$currentDocument->getId()];
         }
@@ -42,13 +32,7 @@ class Document extends AbstractPathGenerator
         return $urls;
     }
 
-    /**
-     * @param PimcoreDocument $currentDocument
-     * @param bool            $onlyShowRootLanguages
-     *
-     * @return array
-     */
-    private function documentUrlsFromLanguage(PimcoreDocument $currentDocument, $onlyShowRootLanguages = false)
+    private function documentUrlsFromLanguage(PimcoreDocument $currentDocument, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
 
@@ -58,7 +42,7 @@ class Document extends AbstractPathGenerator
             return [];
         }
 
-        $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'));
+        $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'), true);
 
         // case 1: no deep linking requested. only return root pages!
         // case 2: current document is a root page ($rootDocumentId) - only return root pages!
@@ -129,13 +113,7 @@ class Document extends AbstractPathGenerator
         return $routes;
     }
 
-    /**
-     * @param PimcoreDocument $currentDocument
-     * @param bool            $onlyShowRootLanguages
-     *
-     * @return array
-     */
-    private function documentUrlsFromCountry(PimcoreDocument $currentDocument, $onlyShowRootLanguages = false)
+    private function documentUrlsFromCountry(PimcoreDocument $currentDocument, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
 
@@ -145,7 +123,7 @@ class Document extends AbstractPathGenerator
             return [];
         }
 
-        $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'));
+        $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'), true);
 
         if ($onlyShowRootLanguages === true || $rootDocumentId !== false) {
 
@@ -242,7 +220,7 @@ class Document extends AbstractPathGenerator
 
         foreach ($hardLinksToCheck as $hardLinkWrapper) {
 
-            $sameLanguageContext = array_search($hardLinkWrapper['languageIso'], array_column($routes, 'languageIso'));
+            $sameLanguageContext = array_search($hardLinkWrapper['languageIso'], array_column($routes, 'languageIso'), true);
             if ($sameLanguageContext === false || !isset($routes[$sameLanguageContext])) {
                 continue;
             }
@@ -270,15 +248,10 @@ class Document extends AbstractPathGenerator
         return $routes;
     }
 
-    /**
-     * @param PimcoreDocument $document
-     *
-     * @return bool
-     */
-    private function hasPrettyUrl(PimcoreDocument $document)
+    private function hasPrettyUrl(PimcoreDocument $document): bool
     {
         if ($document instanceof PimcoreDocument\Page) {
-            return !empty($document->getPrettyUrl()) && strlen($document->getPrettyUrl()) > 0;
+            return !empty($document->getPrettyUrl()) && $document->getPrettyUrl() !== '';
         }
 
         return false;

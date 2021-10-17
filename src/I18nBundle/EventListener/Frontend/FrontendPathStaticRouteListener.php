@@ -10,35 +10,21 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 
 class FrontendPathStaticRouteListener implements EventSubscriberInterface
 {
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
+    protected ZoneManager $zoneManager;
 
-    /**
-     * @param ZoneManager $zoneManager
-     */
     public function __construct(ZoneManager $zoneManager)
     {
         $this->zoneManager = $zoneManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             FrontendEvents::STATICROUTE_PATH => ['onFrontendPathStaticRouteRequest']
         ];
     }
 
-    /**
-     * @param GenericEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onFrontendPathStaticRouteRequest(GenericEvent $event)
+    public function onFrontendPathStaticRouteRequest(GenericEvent $event): void
     {
         $frontEndPath = $event->getArgument('frontendPath');
         $params = $event->getArgument('params');
@@ -49,7 +35,7 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
 
         $locale = $params['_locale'];
         $urlMapping = $this->zoneManager->getCurrentZoneInfo('locale_url_mapping');
-        $validLocaleIso = array_search($params['_locale'], $urlMapping);
+        $validLocaleIso = array_search($params['_locale'], $urlMapping, true);
         if ($validLocaleIso !== false) {
             $locale = $validLocaleIso;
         }
@@ -77,14 +63,9 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
     }
 
     /**
-     * @param string $key
-     * @param string $locale
-     *
-     * @return string
-     *
      * @throws \Exception
      */
-    private function translateKey($key, $locale)
+    private function translateKey(string $key, string $locale): string
     {
         $translationConfig = $this->zoneManager->getCurrentZoneInfo('translations');
         $throw = false;

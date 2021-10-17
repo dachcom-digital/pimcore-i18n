@@ -11,25 +11,10 @@ use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 
 class I18nDataCollector extends DataCollector
 {
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
+    protected ZoneManager $zoneManager;
+    protected RequestHelper $requestHelper;
+    protected bool $isFrontend = true;
 
-    /**
-     * @var RequestHelper
-     */
-    private $requestHelper;
-
-    /**
-     * @var ZoneManager
-     */
-    protected $isFrontend = true;
-
-    /**
-     * @param ZoneManager   $zoneManager
-     * @param RequestHelper $requestHelper
-     */
     public function __construct(ZoneManager $zoneManager, RequestHelper $requestHelper)
     {
         $this->zoneManager = $zoneManager;
@@ -40,10 +25,7 @@ class I18nDataCollector extends DataCollector
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function collect(Request $request, Response $response, \Exception $exception = null)
+    public function collect(Request $request, Response $response, \Throwable $exception = null): void
     {
         //only track current valid routes.
         if ($response->getStatusCode() !== 200) {
@@ -80,58 +62,37 @@ class I18nDataCollector extends DataCollector
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isFrontend()
+    public function isFrontend(): bool
     {
         return $this->data['isFrontend'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
+    public function getName(): string
     {
         return 'i18n.data_collector';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function reset()
+    public function reset(): void
     {
         $this->data = [];
     }
 
-    /**
-     * @return string|null
-     */
-    public function getI18nMode()
+    public function getI18nMode(): ?string
     {
         return $this->data['i18nMode'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function getLanguage()
+    public function getLanguage(): ?string
     {
         return $this->data['currentLanguage'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function getCountry()
+    public function getCountry(): ?string
     {
         return $this->data['currentCountry'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function getZoneId()
+    public function getZoneId(): ?string
     {
         return $this->data['zoneId'];
     }

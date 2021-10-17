@@ -4,20 +4,10 @@ namespace I18nBundle\Adapter\Locale;
 
 abstract class AbstractLocale implements LocaleInterface
 {
-    /**
-     * @var array|null
-     */
-    protected $currentZoneConfig = null;
+    protected ?array $currentZoneConfig = null;
+    protected ?int $currentZoneId = null;
 
-    /**
-     * @var int|null
-     */
-    protected $currentZoneId = null;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setCurrentZoneConfig($zoneId, $zoneConfig)
+    public function setCurrentZoneConfig(?int $zoneId, ?array $zoneConfig): void
     {
         $this->currentZoneId = $zoneId;
         $this->currentZoneConfig = $zoneConfig;

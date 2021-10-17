@@ -5,41 +5,20 @@ namespace I18nBundle\Manager;
 use I18nBundle\Adapter\PathGenerator\PathGeneratorInterface;
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Registry\PathGeneratorRegistry;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class PathGeneratorManager
 {
-    /**
-     * @var RequestStack
-     */
-    protected $configuration;
+    protected Configuration $configuration;
+    protected PathGeneratorRegistry $pathGeneratorRegistry;
+    protected PathGeneratorInterface $currentPathGenerator;
 
-    /**
-     * @var PathGeneratorRegistry
-     */
-    protected $pathGeneratorRegistry;
-
-    /**
-     * @var PathGeneratorInterface
-     */
-    protected $currentPathGenerator;
-
-    /**
-     * @param Configuration         $configuration
-     * @param PathGeneratorRegistry $pathGeneratorRegistry
-     */
     public function __construct(Configuration $configuration, PathGeneratorRegistry $pathGeneratorRegistry)
     {
         $this->configuration = $configuration;
         $this->pathGeneratorRegistry = $pathGeneratorRegistry;
     }
 
-    /**
-     * @param string $contextIdentifier
-     *
-     * @throws \Exception
-     */
-    public function initPathGenerator($contextIdentifier)
+    public function initPathGenerator(?string $contextIdentifier): void
     {
         if ($contextIdentifier === 'staticroute') {
             $contextId = 'static_route';
@@ -59,11 +38,9 @@ class PathGeneratorManager
     }
 
     /**
-     * @return PathGeneratorInterface
-     *
      * @throws \Exception
      */
-    public function getPathGenerator()
+    public function getPathGenerator(): PathGeneratorInterface
     {
         if (empty($this->currentPathGenerator)) {
             throw new \Exception('path generator is not configured');

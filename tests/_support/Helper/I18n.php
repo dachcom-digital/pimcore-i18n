@@ -11,37 +11,24 @@ use Pimcore\Model\Document\Page;
 
 class I18n extends Module implements DependsOnModule
 {
-    /**
-     * @var PimcoreBackend
-     */
-    protected $pimcoreBackend;
+    protected PimcoreBackend $pimcoreBackend;
 
-    /**
-     * @return array|mixed
-     */
-    public function _depends()
+    public function _depends(): array
     {
         return [
-            'Dachcom\Codeception\Helper\PimcoreBackend' => 'Members needs the PimcoreBackend module to work.'
+            PimcoreBackend::class => 'I18n needs the PimcoreBackend module to work.'
         ];
     }
 
-    /**
-     * @param PimcoreBackend $connection
-     */
-    public function _inject(PimcoreBackend $connection)
+    public function _inject(PimcoreBackend $connection): void
     {
         $this->pimcoreBackend = $connection;
     }
 
     /**
      * Actor Function to create a FrontPage mapped Document
-     *
-     * @param Hardlink $hardlinkDocument
-     *
-     * @return Page
      */
-    public function haveAFrontPageMappedDocument(Hardlink $hardlinkDocument)
+    public function haveAFrontPageMappedDocument(Hardlink $hardlinkDocument): Page
     {
         $document = $this->pimcoreBackend->generatePageDocument('frontpage-mapped-' . $hardlinkDocument->getKey());
         $document->setParentId($hardlinkDocument->getId());

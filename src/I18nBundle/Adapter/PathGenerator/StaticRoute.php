@@ -16,46 +16,21 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class StaticRoute extends AbstractPathGenerator
 {
-    /**
-     * @var array
-     */
-    protected $cachedUrls = [];
+    protected array $cachedUrls = [];
+    protected RequestStack $requestStack;
+    protected UrlGeneratorInterface $urlGenerator;
 
-    /**
-     * @var RequestStack
-     */
-    protected $requestStack;
-
-    /**
-     * @var UrlGeneratorInterface
-     */
-    protected $urlGenerator;
-
-    /**
-     * @param RequestStack $requestStack
-     */
-    public function setRequest(RequestStack $requestStack)
+    public function setRequest(RequestStack $requestStack): void
     {
         $this->requestStack = $requestStack;
     }
 
-    /**
-     * @param UrlGeneratorInterface $urlGenerator
-     */
-    public function setUrlGenerator(UrlGeneratorInterface $urlGenerator)
+    public function setUrlGenerator(UrlGeneratorInterface $urlGenerator): void
     {
         $this->urlGenerator = $urlGenerator;
     }
 
-    /**
-     * @param PimcoreDocument|null $currentDocument
-     * @param bool                 $onlyShowRootLanguages
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    public function getUrls(PimcoreDocument $currentDocument = null, $onlyShowRootLanguages = false)
+    public function getUrls(PimcoreDocument $currentDocument, bool $onlyShowRootLanguages = false): array
     {
         if (isset($this->cachedUrls[$currentDocument->getId()])) {
             return $this->cachedUrls[$currentDocument->getId()];
@@ -68,7 +43,7 @@ class StaticRoute extends AbstractPathGenerator
             throw new \Exception('PathGenerator StaticRoute needs a valid UrlGeneratorInterface to work.');
         }
 
-        if (!$this->requestStack->getMasterRequest() instanceof Request) {
+        if (!$this->requestStack->getMainRequest() instanceof Request) {
             throw new \Exception('PathGenerator StaticRoute needs a valid Request to work.');
         }
 
@@ -79,7 +54,7 @@ class StaticRoute extends AbstractPathGenerator
             $currentCountry = strtolower(Definitions::INTERNATIONAL_COUNTRY_NAMESPACE);
         }
 
-        if (strpos($currentLanguage, '_') !== false) {
+        if (str_contains($currentLanguage, '_')) {
             $parts = explode('_', $currentLanguage);
             if (isset($parts[1]) && !empty($parts[1])) {
                 $currentCountry = strtolower($parts[1]);
@@ -118,10 +93,7 @@ class StaticRoute extends AbstractPathGenerator
             'requestAttributes'  => $this->requestStack->getMasterRequest()->attributes
         ]);
 
-        \Pimcore::getEventDispatcher()->dispatch(
-            I18nEvents::PATH_ALTERNATE_STATIC_ROUTE,
-            $event
-        );
+        \Pimcore::getEventDispatcher()->dispatch($event, I18nEvents::PATH_ALTERNATE_STATIC_ROUTE);
 
         $routeData = $event->getRoutes();
         if (empty($routeData)) {
@@ -142,7 +114,7 @@ class StaticRoute extends AbstractPathGenerator
             }
 
             // use domainUrl element since $link already comes with the locale part!
-            $url = strpos($link, 'http') !== false ? $link : System::joinPath([$routeInfo['domainUrl'], $link]);
+            $url = str_contains($link, 'http') ? $link : System::joinPath([$routeInfo['domainUrl'], $link]);
 
             $finalStoreData = [
                 'languageIso'      => $routeInfo['languageIso'],
@@ -161,12 +133,7 @@ class StaticRoute extends AbstractPathGenerator
         return $routes;
     }
 
-    /**
-     * @param array $staticRouteData
-     *
-     * @return string|null
-     */
-    protected function generateLink($staticRouteData)
+    protected function generateLink(array $staticRouteData): ?string
     {
         $staticRouteParams = $staticRouteData['params'];
 
@@ -182,7 +149,6 @@ class StaticRoute extends AbstractPathGenerator
             return null;
         }
 
-        /** @var Concrete $object */
         $object = $staticRouteData['object'];
         $linkGenerator = $object->getClass()->getLinkGenerator();
 

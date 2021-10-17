@@ -2,115 +2,73 @@
 
 namespace I18nBundle\Event;
 
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class ContextSwitchEvent extends Event
 {
-    /**
-     * @var array
-     */
-    private $params = [];
+    private array $params;
 
-    /**
-     * @param array $params
-     */
-    public function __construct($params)
+    public function __construct(array $params)
     {
         $this->params = $params;
     }
 
-    /**
-     * @return bool
-     */
-    public function zoneHasSwitched()
+    public function zoneHasSwitched(): bool
     {
         return $this->params['zoneHasSwitched'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function zoneSwitchedFrom()
+    public function zoneSwitchedFrom(): ?string
     {
         return $this->params['zoneFrom'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function zoneSwitchedTo()
+    public function zoneSwitchedTo(): ?string
     {
         return $this->params['zoneTo'];
     }
 
-    /**
-     * @return bool
-     */
-    public function localeHasSwitched()
+    public function localeHasSwitched(): bool
     {
         return $this->params['localeHasSwitched'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function localeSwitchedFrom()
+    public function localeSwitchedFrom(): ?string
     {
         return $this->params['localeFrom'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function localeSwitchedTo()
+    public function localeSwitchedTo(): ?string
     {
         return $this->params['localeTo'];
     }
 
-    /**
-     * @return bool
-     */
-    public function languageHasSwitched()
+    public function languageHasSwitched(): ?string
     {
         return $this->params['languageHasSwitched'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function languageSwitchedFrom()
+    public function languageSwitchedFrom(): ?string
     {
         return $this->params['languageFrom'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function languageSwitchedTo()
+    public function languageSwitchedTo(): ?string
     {
         return $this->params['languageTo'];
     }
 
-    /**
-     * @return bool
-     */
-    public function countryHasSwitched()
+    public function countryHasSwitched(): bool
     {
         return $this->params['countryHasSwitched'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function countrySwitchedFrom()
+    public function countrySwitchedFrom(): ?string
     {
         return $this->params['countryFrom'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function countrySwitchedTo()
+    public function countrySwitchedTo(): ?string
     {
         return $this->params['countryTo'];
     }

@@ -2,49 +2,20 @@
 
 namespace I18nBundle\Adapter\Redirector;
 
+use Pimcore\Model\Document;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class RedirectorBag
 {
-    /**
-     * @var array
-     */
-    protected $decisionBag = [];
+    protected array $decisionBag = [];
+    protected string $i18nMode;
+    protected Request $request;
+    protected Document $document;
+    protected ?string $documentLocale;
+    protected ?string $documentCountry;
+    protected ?string $defaultLocale;
 
-    /**
-     * @var string
-     */
-    protected $i18nMode;
-
-    /**
-     * @var Request
-     */
-    protected $request;
-
-    /**
-     * @var \Pimcore\Model\Document
-     */
-    protected $document;
-
-    /**
-     * @var string
-     */
-    protected $documentLocale;
-
-    /**
-     * @var string
-     */
-    protected $documentCountry;
-
-    /**
-     * @var string
-     */
-    protected $defaultLocale;
-
-    /**
-     * @param array $options
-     */
     public function __construct(array $options)
     {
         $resolver = new OptionsResolver();
@@ -69,11 +40,7 @@ class RedirectorBag
         $this->defaultLocale = $options['defaultLocale'];
     }
 
-    /**
-     * @param string $name
-     * @param array  $decision
-     */
-    public function addRedirectorDecisionToBag(string $name, array $decision)
+    public function addRedirectorDecisionToBag(string $name, array $decision): void
     {
         $this->decisionBag[] = [
             'name'     => $name,
@@ -81,36 +48,22 @@ class RedirectorBag
         ];
     }
 
-    /**
-     * @return Request
-     */
-    public function getRequest()
+    public function getRequest(): Request
     {
         return $this->request;
     }
 
-    /**
-     * @return string
-     */
-    public function getI18nMode()
+    public function getI18nMode(): string
     {
         return $this->i18nMode;
     }
 
-    /**
-     * @return null|array
-     */
-    public function getLastRedirectorDecision()
+    public function getLastRedirectorDecision(): ?array
     {
-        $last = array_values(array_slice($this->decisionBag, -1))[0];
-
-        return $last;
+        return array_values(array_slice($this->decisionBag, -1))[0];
     }
 
-    /**
-     * @return null|array
-     */
-    public function getLastValidRedirectorDecision()
+    public function getLastValidRedirectorDecision(): ?array
     {
         $lastValidBag = null;
         foreach (array_reverse($this->decisionBag) as $bag) {
@@ -124,15 +77,12 @@ class RedirectorBag
         return $lastValidBag;
     }
 
-    /**
-     * @return array
-     */
-    public function getRedirectorDecisionBag()
+    public function getRedirectorDecisionBag(): array
     {
         return $this->decisionBag;
     }
 
-    public function getDefaultLocale()
+    public function getDefaultLocale(): ?string
     {
         return $this->defaultLocale;
     }

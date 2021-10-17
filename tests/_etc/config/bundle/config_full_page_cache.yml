@@ -7,5 +7,3 @@ i18n:
 pimcore:
     full_page_cache:
         enabled: true
-    cache:
-        enabled: true

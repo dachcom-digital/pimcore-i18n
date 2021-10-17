@@ -10,16 +10,7 @@ use Pimcore\Tool\Frontend;
 
 class DocumentHelper
 {
-    /**
-     * Get Documents Url and Path.
-     *
-     * @param Document $document
-     *
-     * @return string
-     *
-     * @throws \Exception
-     */
-    public function getDocumentFullPath($document = null)
+    public function getDocumentFullPath(?Document $document): string
     {
         $hostUrl = Tool::getHostUrl();
 
@@ -33,12 +24,7 @@ class DocumentHelper
         return implode('', array_filter([$host, $fullPath]));
     }
 
-    /**
-     * @return string
-     *
-     * @throws \Exception
-     */
-    public function getCurrentPageRootPath()
+    public function getCurrentPageRootPath(): string
     {
         $rootPath = '/';
         if (PimcoreSite::isSiteRequest()) {
@@ -49,16 +35,8 @@ class DocumentHelper
         return $rootPath;
     }
 
-    /**
-     * @param Document $document
-     * @param string   $i18nType
-     *
-     * @return array
-     */
-    public function getDocumentLocaleData(Document $document, $i18nType = 'language')
+    public function getDocumentLocaleData(Document $document, string $i18nType = 'language'): array
     {
-        $documentLocale = null;
-        $documentLanguage = null;
         $documentCountry = null;
 
         if ($document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
@@ -75,7 +53,7 @@ class DocumentHelper
 
         $documentLanguage = $documentLocale;
 
-        if (strpos($documentLocale, '_') !== false) {
+        if (str_contains($documentLocale, '_')) {
             $parts = explode('_', $documentLocale);
             $documentLanguage = strtolower($parts[0]);
             if (isset($parts[1]) && !empty($parts[1])) {
@@ -90,18 +68,7 @@ class DocumentHelper
         ];
     }
 
-    /**
-     *  Get Documents Url without it's own path.
-     *
-     * @param Document $document
-     * @param bool     $returnAsArray
-     * @param bool     $restrictToCurrentSite
-     *
-     * @return array string document url without trailing slash
-     *
-     * @throws \Exception
-     */
-    protected function getDocumentUrl($document = null, $returnAsArray = false, $restrictToCurrentSite = true)
+    protected function getDocumentUrl(Document $document, bool $returnAsArray = false, bool $restrictToCurrentSite = true): string|array
     {
         $siteIsLanguageRoot = false;
         $url = '';
@@ -149,14 +116,8 @@ class DocumentHelper
     /**
      * Checks if document is in current site.
      * also true if given document is actually current site.
-     *
-     * @param Document $document
-     *
-     * @return bool
-     *
-     * @throws \Exception
      */
-    protected function isDocumentInCurrentSite($document)
+    protected function isDocumentInCurrentSite(Document $document): bool
     {
         if (!PimcoreSite::isSiteRequest()) {
             return false;

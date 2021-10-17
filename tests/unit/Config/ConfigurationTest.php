@@ -16,7 +16,7 @@ class ConfigurationTest extends BundleTestCase
         $configuration = $this->getContainer()->get(Configuration::class);
         $adminConfig = $configuration->getConfigNode();
 
-        $this->assertInternalType('array', $adminConfig);
+        $this->assertIsArray($adminConfig);
         $this->assertArrayHasKey('mode', $adminConfig);
         $this->assertArrayHasKey('locale_adapter', $adminConfig);
         $this->assertArrayHasKey('default_locale', $adminConfig);

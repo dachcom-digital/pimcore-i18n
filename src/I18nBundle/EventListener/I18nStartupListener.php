@@ -15,8 +15,8 @@ use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use I18nBundle\Helper\DocumentHelper;
 use I18nBundle\Helper\RequestValidatorHelper;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -25,56 +25,15 @@ use Symfony\Component\Templating\EngineInterface;
 
 class I18nStartupListener implements EventSubscriberInterface
 {
-    /**
-     * @var EngineInterface
-     */
-    protected $templating;
+    protected EngineInterface $templating;
+    protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
+    protected ZoneManager $zoneManager;
+    protected ContextManager $contextManager;
+    protected PathGeneratorManager $pathGeneratorManager;
+    protected EditmodeResolver $editmodeResolver;
+    protected DocumentHelper $documentHelper;
+    protected RequestValidatorHelper $requestValidatorHelper;
 
-    /**
-     * @var PimcoreDocumentResolverInterface
-     */
-    protected $pimcoreDocumentResolver;
-
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @var ContextManager
-     */
-    protected $contextManager;
-
-    /**
-     * @var PathGeneratorManager
-     */
-    protected $pathGeneratorManager;
-
-    /**
-     * @var EditmodeResolver
-     */
-    protected $editmodeResolver;
-
-    /**
-     * @var DocumentHelper
-     */
-    protected $documentHelper;
-
-    /**
-     * @var RequestValidatorHelper
-     */
-    protected $requestValidatorHelper;
-
-    /**
-     * @param EngineInterface                  $templating
-     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
-     * @param ZoneManager                      $zoneManager
-     * @param ContextManager                   $contextManager
-     * @param PathGeneratorManager             $pathGeneratorManager
-     * @param EditmodeResolver                 $editmodeResolver
-     * @param DocumentHelper                   $documentHelper
-     * @param RequestValidatorHelper           $requestValidatorHelper
-     */
     public function __construct(
         EngineInterface $templating,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
@@ -95,10 +54,7 @@ class I18nStartupListener implements EventSubscriberInterface
         $this->requestValidatorHelper = $requestValidatorHelper;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::EXCEPTION => [
@@ -117,14 +73,10 @@ class I18nStartupListener implements EventSubscriberInterface
      *
      * Since symfony tries to locate the current locale in LocaleListener via the request attribute "_locale",
      * we need to trigger his event earlier!
-     *
-     * @param GetResponseEvent $event
-     *
-     * @throws \Exception
      */
-    public function onKernelRequestLocale(GetResponseEvent $event)
+    public function onKernelRequestLocale(RequestEvent $event): void
     {
-        if ($event->isMasterRequest() === false) {
+        if ($event->isMainRequest() === false) {
             return;
         }
 
@@ -147,14 +99,9 @@ class I18nStartupListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * @param GetResponseForExceptionEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onKernelException(GetResponseForExceptionEvent $event)
+    public function onKernelException(ExceptionEvent $event): void
     {
-        if ($event->isMasterRequest() === false) {
+        if ($event->isMainRequest() === false) {
             return;
         }
 
@@ -163,7 +110,7 @@ class I18nStartupListener implements EventSubscriberInterface
         $locale = $event->getRequest()->getLocale();
 
         $languageIso = $locale;
-        if (strpos($locale, '_') !== false) {
+        if (str_contains($locale, '_')) {
             $localeFragments = explode('_', $locale);
             $languageIso = $localeFragments[0];
         }
@@ -176,14 +123,10 @@ class I18nStartupListener implements EventSubscriberInterface
 
     /**
      * Apply this method after the pimcore context resolver.
-     *
-     * @param GetResponseEvent $event
-     *
-     * @throws \Exception
      */
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
-        if ($event->isMasterRequest() === false) {
+        if ($event->isMainRequest() === false) {
             return;
         }
 
@@ -254,13 +197,7 @@ class I18nStartupListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * @param Request       $request
-     * @param Document|null $document
-     *
-     * @throws \Exception
-     */
-    private function initI18nSystem($request, ?Document $document)
+    private function initI18nSystem(Request $request, ?Document $document): void
     {
         $this->zoneManager->initZones();
 
@@ -276,13 +213,7 @@ class I18nStartupListener implements EventSubscriberInterface
         $this->pathGeneratorManager->initPathGenerator($request->attributes->get('pimcore_request_source'));
     }
 
-    /**
-     * @param Document         $document
-     * @param GetResponseEvent $event
-     *
-     * @throws \Exception
-     */
-    protected function setNotEditableAwareMessage(Document $document, GetResponseEvent $event)
+    protected function setNotEditableAwareMessage(Document $document, RequestEvent $event): void
     {
         //if document is root, no language tag is required
         if ($this->editmodeResolver->isEditmode()) {
@@ -294,7 +225,7 @@ class I18nStartupListener implements EventSubscriberInterface
                 $language = $user->getLanguage();
             }
 
-            $response->setContent($this->templating->render('I18nBundle::not_editable_aware_message.html.twig', ['adminLocale' => $language]));
+            $response->setContent($this->templating->render('@I18n/not_editable_aware_message.html.twig', ['adminLocale' => $language]));
             $event->setResponse($response);
 
             return;
@@ -308,15 +239,11 @@ class I18nStartupListener implements EventSubscriberInterface
 
         //if document is root, no language tag is required
         if ($document->getId() !== $siteId) {
-            throw new \Exception(get_class($document) . ' (' . $document->getId() . ') does not have a valid language property!');
+            throw new \Exception(sprintf('%s (%d) does not have a valid language property!', get_class($document), $document->getId()));
         }
     }
 
-    /**
-     * @param Request $request
-     * @param string  $documentLocale
-     */
-    protected function adjustRequestLocale(Request $request, string $documentLocale)
+    protected function adjustRequestLocale(Request $request, string $documentLocale): void
     {
         // set request locale
         $request->attributes->set('_locale', $documentLocale);

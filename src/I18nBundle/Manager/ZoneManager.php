@@ -16,77 +16,20 @@ use Pimcore\Model\Site;
 
 class ZoneManager
 {
-    /**
-     * @var string|null
-     */
-    protected $generalDomain;
+    protected ?string $generalDomain;
+    protected Connection $db;
+    protected RequestHelper $requestHelper;
+    protected SiteResolver $siteResolver;
+    protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
+    protected Configuration $configuration;
+    protected LocaleRegistry $localeRegistry;
+    protected EditmodeResolver $editmodeResolver;
+    protected ?array $currentZone = null;
+    protected ?array $currentZoneDomains = null;
+    protected bool $isInZone = false;
 
-    /**
-     * @var Connection
-     */
-    protected $db;
-
-    /**
-     * @var RequestHelper
-     */
-    protected $requestHelper;
-
-    /**
-     * @var SiteResolver
-     */
-    protected $siteResolver;
-
-    /**
-     * @var PimcoreDocumentResolverInterface
-     */
-    protected $pimcoreDocumentResolver;
-
-    /**
-     * @var Configuration
-     */
-    protected $configuration;
-
-    /**
-     * @var LocaleRegistry
-     */
-    protected $localeRegistry;
-
-    /**
-     * @var EditmodeResolver
-     */
-    protected $editmodeResolver;
-
-    /**
-     * Stores the current Zone info.
-     *
-     * @var array
-     */
-    protected $currentZone = null;
-
-    /**
-     * Stores the current Zone domains.
-     *
-     * @var array
-     */
-    protected $currentZoneDomains = null;
-
-    /**
-     * @var bool
-     */
-    protected $isInZone = false;
-
-    /**
-     * @param string|null                      $generalDomain
-     * @param Connection                       $db
-     * @param RequestHelper                    $requestHelper
-     * @param SiteResolver                     $siteResolver
-     * @param Configuration                    $configuration
-     * @param LocaleRegistry                   $localeRegistry
-     * @param EditmodeResolver                 $editmodeResolver
-     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
-     */
     public function __construct(
-        $generalDomain,
+        ?string $generalDomain,
         Connection $db,
         RequestHelper $requestHelper,
         SiteResolver $siteResolver,
@@ -108,7 +51,7 @@ class ZoneManager
     /**
      * @throws \Exception
      */
-    public function reinitializeZones()
+    public function reinitializeZones(): void
     {
         $this->isInZone = false;
         $this->currentZone = null;
@@ -117,11 +60,10 @@ class ZoneManager
         $this->initZones();
     }
 
-
     /**
      * @throws \Exception
      */
-    public function initZones()
+    public function initZones(): void
     {
         if (!empty($this->currentZone)) {
             return;
@@ -153,7 +95,7 @@ class ZoneManager
                 $currentSite = $site;
 
                 foreach ($zones as $zone) {
-                    if (in_array($currentSite->getMainDomain(), $zone['domains'])) {
+                    if (in_array($currentSite->getMainDomain(), $zone['domains'], true)) {
                         $validZone = true;
                         $zoneConfig = $zone;
 
@@ -180,13 +122,13 @@ class ZoneManager
     /**
      * @throws \Exception
      */
-    private function setupZoneDomains()
+    private function setupZoneDomains(): void
     {
         if (!is_null($this->currentZoneDomains)) {
-            return $this->currentZoneDomains;
+            return;
         }
 
-        $availableSites = $this->db->fetchAll('SELECT * FROM sites');
+        $availableSites = $this->db->fetchAllAssociative('SELECT * FROM sites');
 
         $zoneDomains = [];
         //it's a simple page, no sites.
@@ -196,7 +138,7 @@ class ZoneManager
         } else {
             foreach ($availableSites as $site) {
                 $domainInfo = $this->mapDomainData($site['mainDomain'], $site['rootId']);
-                if ($domainInfo !== false) {
+                if ($domainInfo !== null) {
                     $zoneDomains[] = $domainInfo;
                 }
             }
@@ -207,13 +149,9 @@ class ZoneManager
     }
 
     /**
-     * @param null $slot
-     *
-     * @return mixed
-     *
      * @throws \Exception
      */
-    public function getCurrentZoneInfo($slot = null)
+    public function getCurrentZoneInfo(string $slot): mixed
     {
         if (empty($this->currentZone)) {
             $this->initZones();
@@ -226,14 +164,7 @@ class ZoneManager
         return $this->currentZone[$slot];
     }
 
-    /**
-     * @param bool $flatten
-     *
-     * @return array|null
-     *
-     * @throws \Exception
-     */
-    public function getCurrentZoneDomains($flatten = false)
+    public function getCurrentZoneDomains(bool $flatten = false): ?array
     {
         if (empty($this->currentZone)) {
             $this->initZones();
@@ -243,11 +174,9 @@ class ZoneManager
     }
 
     /**
-     * @return LocaleInterface
-     *
      * @throws \Exception
      */
-    public function getCurrentZoneLocaleAdapter()
+    public function getCurrentZoneLocaleAdapter(): LocaleInterface
     {
         if (empty($this->currentZone)) {
             $this->initZones();
@@ -260,26 +189,15 @@ class ZoneManager
         return $this->currentZone['locale_adapter'];
     }
 
-    /**
-     * @return bool
-     *
-     * @throws \Exception
-     */
-    public function isInZone()
+    public function isInZone(): bool
     {
         return $this->isInZone;
     }
 
     /**
-     * @param array  $config
-     * @param int    $zoneId
-     * @param string $zoneName
-     *
-     * @return array
-     *
      * @throws \Exception
      */
-    private function mapData($config, $zoneId = null, $zoneName = null)
+    private function mapData(array $config, ?int $zoneId = null, ?string $zoneName = null): array
     {
         if (!empty($config['locale_adapter']) && !$this->localeRegistry->has($config['locale_adapter'])) {
             throw new \Exception(sprintf(
@@ -299,26 +217,19 @@ class ZoneManager
             $localeAdapter->setCurrentZoneConfig($zoneId, $this->setZoneConfiguration($config));
         }
 
-        $mapData = $this->currentZone = [
+        return $this->currentZone = [
             'zone_id'        => $zoneId,
             'zone_name'      => $zoneName,
             'mode'           => $config['mode'],
             'translations'   => $config['translations'],
             'locale_adapter' => $localeAdapter,
         ];
-
-        return $mapData;
     }
 
     /**
-     * @param string $domain
-     * @param int    $rootId
-     *
-     * @return array|bool
-     *
      * @throws \Exception
      */
-    private function mapDomainData($domain, $rootId)
+    private function mapDomainData(string $domain, int $rootId): ?array
     {
         $domainHost = $this->getDomainHost($domain);
         $domainDoc = Document::getById($rootId);
@@ -341,7 +252,7 @@ class ZoneManager
 
         $isPublishedMode = $domainDoc->isPublished() === true || $isFrontendRequestByAdmin;
         if ($valid === false || $isPublishedMode === false) {
-            return false;
+            return null;
         }
 
         $isRootDomain = false;
@@ -354,7 +265,7 @@ class ZoneManager
             $docCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
         }
 
-        if (strpos($docLocale, '_') !== false) {
+        if (str_contains($docLocale, '_')) {
             $parts = explode('_', $docLocale);
             if (isset($parts[1]) && !empty($parts[1])) {
                 $docCountryIso = $parts[1];
@@ -370,12 +281,11 @@ class ZoneManager
         if (!empty($docLocale)) {
             $isRootDomain = true;
             if (array_search($docLocale, array_column($validLocales, 'locale')) === false) {
-                return false;
+                return null;
             }
         } else {
             $children = $domainDoc->getChildren(true);
 
-            /** @var Document $child */
             foreach ($children as $child) {
                 if (!in_array($child->getType(), ['page', 'hardlink', 'link'])) {
                     continue;
@@ -391,7 +301,7 @@ class ZoneManager
                     /** @var Document\Link $linkChild */
                     $linkChild = $child;
                     while ($linkChild instanceof Document\Link) {
-                        if (in_array($linkChild->getPath(), $loopDetector)) {
+                        if (in_array($linkChild->getPath(), $loopDetector, true)) {
                             $validPath = false;
 
                             break;
@@ -401,7 +311,9 @@ class ZoneManager
                             $validPath = false;
 
                             break;
-                        } elseif ($linkChild->getInternalType() !== 'document') {
+                        }
+
+                        if ($linkChild->getInternalType() !== 'document') {
                             $validPath = false;
 
                             break;
@@ -440,7 +352,7 @@ class ZoneManager
                     $childCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
                 }
 
-                if (strpos($childDocLocale, '_') !== false) {
+                if (str_contains($childDocLocale, '_')) {
                     $parts = explode('_', $childDocLocale);
                     if (isset($parts[1]) && !empty($parts[1])) {
                         $childCountryIso = $parts[1];
@@ -492,7 +404,7 @@ class ZoneManager
 
         $domainUrl = $this->getDomainUrl($domain);
 
-        $domainData = [
+        return [
             'id'               => $rootId,
             'host'             => $domain,
             'realHost'         => $domainHost,
@@ -509,14 +421,9 @@ class ZoneManager
             'type'             => $domainDoc->getType(),
             'subPages'         => $subPages
         ];
-
-        return $domainData;
     }
 
-    /**
-     * @param array $zoneDomains
-     */
-    private function addLocaleUrlMappingToConfig($zoneDomains = [])
+    private function addLocaleUrlMappingToConfig(array $zoneDomains = []): void
     {
         $localeUrlMapping = [];
         $domains = $this->flattenDomainTree($zoneDomains);
@@ -532,50 +439,34 @@ class ZoneManager
 
     /**
      * Get Domain Url of given domain based on current request scheme!
-     *
-     * @param string $domain
-     *
-     * @return string
      */
-    private function getDomainUrl($domain)
+    private function getDomainUrl(string $domain): string
     {
         $scheme = \Pimcore\Tool::getRequestScheme();
         $domainHost = $this->getDomainHost($domain, false);
         $domainPort = $this->getDomainPort($domain);
         $domainUrl = $domainHost;
 
-        if (strpos($domainUrl, 'http:') === false) {
+        if (!str_contains($domainUrl, 'http:')) {
             $domainUrl = $scheme . '://' . $domainUrl;
         }
 
         if (!empty($domainPort)) {
-            $domainUrl = $domainUrl . ':' . $domainPort;
+            $domainUrl .= ':' . $domainPort;
         }
 
         return rtrim($domainUrl, DIRECTORY_SEPARATOR);
     }
 
-    /**
-     * @param string $domain
-     * @param bool   $stripWWW
-     *
-     * @return string
-     */
-    private function getDomainHost($domain, $stripWWW = true)
+    private function getDomainHost(string $domain, bool $stripWWW = true): string
     {
         $urlInfo = parse_url($domain);
-        $host = isset($urlInfo['host']) ? $urlInfo['host'] : $urlInfo['path'];
-        $host = $stripWWW ? preg_replace('/^www./', '', $host) : $host;
+        $host = $urlInfo['host'] ?? $urlInfo['path'];
 
-        return $host;
+        return $stripWWW ? preg_replace('/^www./', '', $host) : $host;
     }
 
-    /**
-     * @param string $domain
-     *
-     * @return string
-     */
-    private function getDomainPort($domain)
+    private function getDomainPort(string $domain): string
     {
         $port = '';
         $urlInfo = parse_url($domain);
@@ -586,12 +477,7 @@ class ZoneManager
         return $port;
     }
 
-    /**
-     * @param array $zoneDomains
-     *
-     * @return array
-     */
-    private function flattenDomainTree($zoneDomains)
+    private function flattenDomainTree(array $zoneDomains): array
     {
         $elements = [];
         foreach ($zoneDomains as $domain) {
@@ -611,18 +497,10 @@ class ZoneManager
         return $elements;
     }
 
-    /**
-     * create config array for adapter classes.
-     *
-     * @param array $config
-     *
-     * @return array
-     */
-    private function setZoneConfiguration($config)
+    private function setZoneConfiguration(array $config): array
     {
         $blackList = ['zones', 'mode', 'locale_adapter'];
-        $validConfig = array_diff_key($config, array_flip($blackList));
 
-        return $validConfig;
+        return array_diff_key($config, array_flip($blackList));
     }
 }

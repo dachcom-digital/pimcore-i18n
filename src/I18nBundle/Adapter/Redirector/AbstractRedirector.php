@@ -6,75 +6,41 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 abstract class AbstractRedirector implements RedirectorInterface
 {
-    /**
-     * @var bool
-     */
-    protected $enabled = true;
+    protected bool $enabled = true;
+    protected ?string $name;
+    protected array $decision = [];
 
-    /**
-     * @var null|string
-     */
-    protected $name;
-
-    /**
-     * @var array
-     */
-    protected $decision = [];
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isEnabled()
+    public function isEnabled(): bool
     {
         return $this->enabled;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setEnabled($enabled)
+    public function setEnabled(bool $enabled): void
     {
         $this->enabled = $enabled;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setName($name)
+    public function setName($name): void
     {
         $this->name = $name;
     }
 
-    /**
-     * @param array $decision
-     */
-    public function setDecision(array $decision)
+    public function setDecision(array $decision): void
     {
         $this->decision = $this->getResolver()->resolve($decision);
     }
 
-    /**
-     * @return array
-     */
-    public function getDecision()
+    public function getDecision(): array
     {
         return $this->getResolver()->resolve($this->decision);
     }
 
-    /**
-     * @param RedirectorBag $redirectorBag
-     *
-     * @return bool|mixed
-     */
-    public function lastRedirectorWasSuccessful(RedirectorBag $redirectorBag)
+    public function lastRedirectorWasSuccessful(RedirectorBag $redirectorBag): bool
     {
         $lastDecisionBag = $redirectorBag->getLastValidRedirectorDecision();
         if (!is_null($lastDecisionBag) && $lastDecisionBag['decision']['valid'] === true) {
@@ -86,10 +52,7 @@ abstract class AbstractRedirector implements RedirectorInterface
         return false;
     }
 
-    /**
-     * @return OptionsResolver
-     */
-    private function getResolver()
+    private function getResolver(): OptionsResolver
     {
         $resolver = new OptionsResolver();
         $resolver->setDefaults([

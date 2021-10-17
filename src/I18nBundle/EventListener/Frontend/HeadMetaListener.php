@@ -7,38 +7,19 @@ use I18nBundle\Manager\ContextManager;
 use I18nBundle\Manager\ZoneManager;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
-use Pimcore\Templating\Helper\HeadMeta;
+use Pimcore\Twig\Extension\Templating\HeadMeta;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-/**
- * Adds Meta Data entries of document to HeadMeta view helper.
- */
 class HeadMetaListener implements EventSubscriberInterface
 {
     use PimcoreContextAwareTrait;
 
-    /**
-     * @var HeadMeta
-     */
-    protected $headMeta;
+    protected HeadMeta $headMeta;
+    protected ZoneManager $zoneManager;
+    protected ContextManager $contextManager;
 
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @var ContextManager
-     */
-    protected $contextManager;
-
-    /**
-     * @param HeadMeta       $headMeta
-     * @param ZoneManager    $zoneManager
-     * @param ContextManager $contextManager
-     */
     public function __construct(
         HeadMeta $headMeta,
         ZoneManager $zoneManager,
@@ -49,27 +30,19 @@ class HeadMetaListener implements EventSubscriberInterface
         $this->contextManager = $contextManager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::REQUEST => ['onKernelRequest']
         ];
     }
 
-    /**
-     * @param GetResponseEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
 
         // just add meta data on master request
-        if (!$event->isMasterRequest()) {
+        if (!$event->isMainRequest()) {
             return;
         }
 

@@ -8,33 +8,22 @@ use Pimcore\Tool;
 
 class System extends AbstractLocale
 {
-    /**
-     * @var null
-     */
-    protected $validLocales = null;
+    protected array $validLocales = [];
+    protected ?string $defaultLocale = null;
 
-    /**
-     * @var bool|null|string
-     */
-    protected $defaultLocale = false;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultLocale()
+    public function getDefaultLocale(): ?string
     {
-        if ($this->defaultLocale !== false) {
+        if ($this->defaultLocale !== null) {
             return $this->defaultLocale;
         }
 
-        $defaultLocale = null;
         $configDefaultLocale = $this->currentZoneConfig['default_locale'];
 
         if (!is_null($configDefaultLocale)) {
             $defaultLocale = $configDefaultLocale;
         } else {
-            $config = Config::getSystemConfig();
-            $defaultSystemLocale = $config->general->defaultLanguage;
+            $config = Config::getSystemConfiguration('general');
+            $defaultSystemLocale = $config['default_language'];
             $defaultLocale = $defaultSystemLocale;
         }
 
@@ -43,9 +32,6 @@ class System extends AbstractLocale
         return $this->defaultLocale;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getActiveLocales(): array
     {
         if (!empty($this->validLocales)) {
@@ -68,12 +54,9 @@ class System extends AbstractLocale
         return $this->validLocales;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getLocaleData($locale, $field = null, $keyIdentifier = 'locale')
+    public function getLocaleData($locale, $field = null, $keyIdentifier = 'locale'): mixed
     {
-        $key = array_search($locale, array_column($this->getActiveLocales(), $keyIdentifier));
+        $key = array_search($locale, array_column($this->getActiveLocales(), $keyIdentifier), true);
         if ($key !== false) {
             return $this->validLocales[$key][$field];
         }
@@ -81,10 +64,7 @@ class System extends AbstractLocale
         return null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getGlobalInfo()
+    public function getGlobalInfo(): array
     {
         return [
             'id'      => null,
