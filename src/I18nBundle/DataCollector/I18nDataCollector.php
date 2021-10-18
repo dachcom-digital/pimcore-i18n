@@ -5,11 +5,11 @@ namespace I18nBundle\DataCollector;
 use I18nBundle\Manager\ZoneManager;
 use Pimcore\Cache\Runtime;
 use Pimcore\Http\RequestHelper;
+use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 
-class I18nDataCollector extends DataCollector
+class I18nDataCollector extends AbstractDataCollector
 {
     protected ZoneManager $zoneManager;
     protected RequestHelper $requestHelper;
@@ -60,6 +60,11 @@ class I18nDataCollector extends DataCollector
             'currentLanguage' => $currentLanguage,
             'currentCountry'  => $currentCountry
         ];
+    }
+
+    public static function getTemplate(): string
+    {
+        return '@I18n/profiler/data_collector.html.twig';
     }
 
     public function isFrontend(): bool
