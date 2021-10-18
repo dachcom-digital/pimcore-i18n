@@ -6,6 +6,12 @@
 ### Global Changes
 - PHP8 return type declarations added: you may have to adjust your extensions accordingly
 
+### Bugfixes
+--
+
+### Features
+- Check Akamai CDN header [@florian25686](https://github.com/dachcom-digital/pimcore-i18n/pull/76/files)
+
 ***
 
 I18nBundle 3.x Upgrade Notes: https://github.com/dachcom-digital/pimcore-i18n/blob/3.x/UPGRADE.md

@@ -62,6 +62,9 @@ class UserHelper
                 if ($mainRequest->server->has('HTTP_CLIENT_IP') &&
                     !empty($mainRequest->server->get('HTTP_CLIENT_IP'))) {
                     $ip = $mainRequest->server->get('HTTP_CLIENT_IP');
+                } elseif ($mainRequest->server->has('HTTP_TRUE_CLIENT_IP') &&
+                    !empty($mainRequest->server->get('HTTP_TRUE_CLIENT_IP'))) {
+                    $ip = $mainRequest->server->get('HTTP_TRUE_CLIENT_IP');
                 } elseif ($mainRequest->server->has('HTTP_X_FORWARDED_FOR') &&
                     !empty($mainRequest->server->get('HTTP_X_FORWARDED_FOR'))) {
                     $ip = $mainRequest->server->get('HTTP_X_FORWARDED_FOR');
