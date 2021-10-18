@@ -7,7 +7,7 @@
 - PHP8 return type declarations added: you may have to adjust your extensions accordingly
 
 ### Bugfixes
---
+- DetectorListener: Skip redirecting if request is frontend request by admin [@lorextera](https://github.com/dachcom-digital/pimcore-i18n/pull/83)
 
 ### Features
 - Check Akamai CDN header [@florian25686](https://github.com/dachcom-digital/pimcore-i18n/pull/76/files)

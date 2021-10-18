@@ -81,7 +81,7 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        if (!$this->requestValidatorHelper->isValidForRedirect($request)) {
+        if (!$this->requestValidatorHelper->isValidForRedirect($request, false)) {
             return;
         }
 
@@ -127,6 +127,9 @@ class DetectorListener implements EventSubscriberInterface
 
             $redirectorBag->addRedirectorDecisionToBag($redirector->getName(), $decision);
         }
+
+        dump($redirectUrl);
+        exit;
 
         if ($redirectUrl !== null) {
             $status = $this->configuration->getConfig('redirect_status_code');
