@@ -128,9 +128,6 @@ class DetectorListener implements EventSubscriberInterface
             $redirectorBag->addRedirectorDecisionToBag($redirector->getName(), $decision);
         }
 
-        dump($redirectUrl);
-        exit;
-
         if ($redirectUrl !== null) {
             $status = $this->configuration->getConfig('redirect_status_code');
             $event->setResponse(new RedirectResponse($this->getRedirectUrl($redirectUrl), $status));
