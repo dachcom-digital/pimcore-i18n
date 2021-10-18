@@ -13,7 +13,7 @@ class StaticRouteKeyTranslationCest
     {
         $srParams = [
             'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
-            'reverse'   => '/{%%_locale}/@testKey/%%testProperty',
+            'reverse'   => '/{%_locale}/@testKey/%testProperty',
             'action'    => 'defaultAction',
             'variables' => '_locale,entry',
         ];
@@ -34,7 +34,7 @@ class StaticRouteKeyTranslationCest
     {
         $srParams = [
             'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
-            'reverse'   => '/{%%_locale}/@testKey/%%testProperty',
+            'reverse'   => '/{%_locale}/@testKey/%testProperty',
             'action'    => 'defaultAction',
             'variables' => '_locale,entry',
         ];
