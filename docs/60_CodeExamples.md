@@ -194,46 +194,27 @@ The zone locale provider represents an instance of `LocaleProviderInterface` whi
 ### Language Drop-Down
 ```twig
 {% set i18n_zone = i18n_zone() %}
-{% set languages = i18n_zone.activeLanguages %}
-{% if languages is iterable %}
-    <nav id="navigation">
-        <select>
-            {% for language in languages %}
-                <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
-            {% endfor %}
-        </select>
-    </nav>
+{% if i18n_zone is not null %}
+    {% set languages = i18n_zone.activeLanguages %}
+    {% if languages is iterable %}
+        <nav id="navigation">
+            <select>
+                {% for language in languages %}
+                    <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+                {% endfor %}
+            </select>
+        </nav>
+    {% endif %}
 {% endif %}
 ```
 
 ### Country Selection
 ```twig
 {% set i18n_zone = i18n_zone() %}
-{% set countries = i18n_zone.activeCountries %}
-{% if countries is iterable %}
-    <nav id="navigation">
-        {% for country in countries %}
-            <ul>
-                <li class="country">{{ country.countryTitle }}
-                    <ul class="languages">
-                        {% for language in country.languages %}
-                            <li{{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </li>
-            </ul>
-        {% endfor %}
-    </nav>
-{% endif %}
-```
-
-### Complex Country / Language Selection based on Current Zone
-```twig
-<nav id="navigation">
-    {% set i18n_zone = i18n_zone() %}
-    {% if i18n_zone.mode == 'country' %}
-        {% set countries = i18n_zone.activeCountries %}
-        {% if countries is iterable %}
+{% if i18n_zone is not null %}
+    {% set countries = i18n_zone.activeCountries %}
+    {% if countries is iterable %}
+        <nav id="navigation">
             {% for country in countries %}
                 <ul>
                     <li class="country">{{ country.countryTitle }}
@@ -245,15 +226,40 @@ The zone locale provider represents an instance of `LocaleProviderInterface` whi
                     </li>
                 </ul>
             {% endfor %}
-        {% endif %}
-    {% elseif i18n_zone.mode == 'language' %}
-        {% set languages = i18n_zone.activeLanguages %}
-        {% if languages is iterable %}
-            <select>
-                {% for language in languages %}
-                    <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+        </nav>
+    {% endif %}
+{% endif %}
+```
+
+### Complex Country / Language Selection based on Current Zone
+```twig
+<nav id="navigation">
+    {% set i18n_zone = i18n_zone() %}
+    {% if i18n_zone is not null %}
+        {% if i18n_zone.mode == 'country' %}
+            {% set countries = i18n_zone.activeCountries %}
+            {% if countries is iterable %}
+                {% for country in countries %}
+                    <ul>
+                        <li class="country">{{ country.countryTitle }}
+                            <ul class="languages">
+                                {% for language in country.languages %}
+                                    <li{{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    </ul>
                 {% endfor %}
-            </select>
+            {% endif %}
+        {% elseif i18n_zone.mode == 'language' %}
+            {% set languages = i18n_zone.activeLanguages %}
+            {% if languages is iterable %}
+                <select>
+                    {% for language in languages %}
+                        <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
         {% endif %}
     {% endif %}
 </nav>

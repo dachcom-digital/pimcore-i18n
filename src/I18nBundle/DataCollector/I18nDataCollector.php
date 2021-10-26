@@ -2,8 +2,8 @@
 
 namespace I18nBundle\DataCollector;
 
-use I18nBundle\Manager\ZoneManager;
-use Pimcore\Cache\Runtime;
+use I18nBundle\Http\ZoneResolverInterface;
+use I18nBundle\Model\I18nZoneInterface;
 use Pimcore\Http\RequestHelper;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,13 +11,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class I18nDataCollector extends AbstractDataCollector
 {
-    protected ZoneManager $zoneManager;
+    protected ZoneResolverInterface $zoneResolver;
     protected RequestHelper $requestHelper;
     protected bool $isFrontend = true;
 
-    public function __construct(ZoneManager $zoneManager, RequestHelper $requestHelper)
+    public function __construct(ZoneResolverInterface $zoneResolver, RequestHelper $requestHelper)
     {
-        $this->zoneManager = $zoneManager;
+        $this->zoneResolver = $zoneResolver;
         $this->requestHelper = $requestHelper;
 
         $this->data = [
@@ -39,24 +39,35 @@ class I18nDataCollector extends AbstractDataCollector
             return;
         }
 
-        $zoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
-        $mode = $this->zoneManager->getCurrentZoneInfo('mode');
+        $zone = $this->zoneResolver->getZone($request);
+        if (!$zone instanceof I18nZoneInterface) {
+            return;
+        }
 
+        $zoneId = $zone->getZoneId();
+        $mode = $zone->getMode();
+
+        $currentLocale = '--';
         $currentLanguage = '--';
         $currentCountry = '--';
 
-        if (Runtime::isRegistered('i18n.countryIso')) {
-            $currentCountry = Runtime::get('i18n.countryIso');
+        if ($zone->getContext()->hasLocale()) {
+            $currentLocale = $zone->getContext()->getLocale();
         }
 
-        if (Runtime::isRegistered('i18n.languageIso')) {
-            $currentLanguage = Runtime::get('i18n.languageIso');
+        if ($zone->getContext()->hasCountryIso()) {
+            $currentCountry = $zone->getContext()->getCountryIso();
+        }
+
+        if ($zone->getContext()->hasLanguageIso()) {
+            $currentLanguage = $zone->getContext()->getLanguageIso();
         }
 
         $this->data = [
             'isFrontend'      => true,
-            'zoneId'          => empty($zoneId) ? 'none' : $zoneId,
+            'zoneId'          => $zoneId ?? 'None',
             'i18nMode'        => $mode,
+            'currentLocale'   => $currentLocale,
             'currentLanguage' => $currentLanguage,
             'currentCountry'  => $currentCountry
         ];
@@ -87,6 +98,11 @@ class I18nDataCollector extends AbstractDataCollector
         return $this->data['i18nMode'];
     }
 
+    public function getLocale(): ?string
+    {
+        return $this->data['currentLocale'];
+    }
+
     public function getLanguage(): ?string
     {
         return $this->data['currentLanguage'];
@@ -97,7 +113,7 @@ class I18nDataCollector extends AbstractDataCollector
         return $this->data['currentCountry'];
     }
 
-    public function getZoneId(): ?string
+    public function getZoneId(): string|int|null
     {
         return $this->data['zoneId'];
     }

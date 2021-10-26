@@ -127,7 +127,7 @@ class I18nStartupListener implements EventSubscriberInterface
         $siteId = 1;
         if (Site::isSiteRequest() === true) {
             $site = Site::getCurrentSite();
-            $siteId = $site?->getRootId();
+            $siteId = $site->getRootId();
         }
 
         //if document is root, no language tag is required

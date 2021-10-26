@@ -8,16 +8,18 @@
 </head>
 <body>
     <div id="site">
-
-        {% set languages = i18n_context('getActiveLanguages') %}
-        {% if languages is iterable %}
-            <nav id="i18n-language-selector">
-                <select>
-                    {% for language in languages %}
-                        <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
-                    {% endfor %}
-                </select>
-            </nav>
+        {% set i18n_zone = i18n_zone() %}
+        {% if i18n_zone is not null %}
+            {% set languages = zone.getActiveLanguages %}
+            {% if languages is iterable %}
+                <nav id="i18n-language-selector">
+                    <select>
+                        {% for language in languages %}
+                            <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </nav>
+            {% endif %}
         {% endif %}
 
         <div class="navigation">

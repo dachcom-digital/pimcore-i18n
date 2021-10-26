@@ -11,14 +11,12 @@ class StaticRouteKeyTranslationCest
      */
     public function testLocalizedStaticRoute(FunctionalTester $I)
     {
-        $srParams = [
+        $staticRoute = $I->haveAStaticRoute('test_route', [
             'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
             'reverse'   => '/{%_locale}/@testKey/%testProperty',
             'action'    => 'defaultAction',
             'variables' => '_locale,entry',
-        ];
-
-        $staticRoute = $I->haveAStaticRoute('test_route', $srParams);
+        ]);
 
         $I->amOnStaticRoute($staticRoute->getName(), ['_locale' => 'en', 'testProperty' => 'universe']);
         $I->seeCurrentUrlEquals('/en/news/universe');
@@ -32,14 +30,12 @@ class StaticRouteKeyTranslationCest
      */
     public function testLocalizedStaticRouteWithNotAvailableLocale(FunctionalTester $I)
     {
-        $srParams = [
+        $staticRoute = $I->haveAStaticRoute('test_route', [
             'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
             'reverse'   => '/{%_locale}/@testKey/%testProperty',
             'action'    => 'defaultAction',
             'variables' => '_locale,entry',
-        ];
-
-        $staticRoute = $I->haveAStaticRoute('test_route', $srParams);
+        ]);
 
         $exception = 'Exception';
         $exceptionMessage = 'i18n static route translation error: ';

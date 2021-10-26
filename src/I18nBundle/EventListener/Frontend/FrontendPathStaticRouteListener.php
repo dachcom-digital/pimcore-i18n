@@ -3,6 +3,7 @@
 namespace I18nBundle\EventListener\Frontend;
 
 use I18nBundle\Http\ZoneResolverInterface;
+use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Model\I18nZoneInterface;
 use I18nBundle\Tool\System;
 use Pimcore\Event\FrontendEvents;
@@ -15,13 +16,16 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
 {
     protected ZoneResolverInterface $zoneResolver;
     protected RequestStack $requestStack;
+    protected ZoneManager $zoneManager;
 
     public function __construct(
         RequestStack $requestStack,
-        ZoneResolverInterface $zoneResolver
+        ZoneResolverInterface $zoneResolver,
+        ZoneManager $zoneManager
     ) {
         $this->zoneResolver = $zoneResolver;
         $this->requestStack = $requestStack;
+        $this->zoneManager = $zoneManager;
     }
 
     public static function getSubscribedEvents(): array
@@ -44,6 +48,12 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
         } elseif ($this->requestStack->getMainRequest() instanceof Request) {
             // 2. check zone resolver from global request
             $zone = $this->zoneResolver->getZone($this->requestStack->getMainRequest());
+        } elseif (isset($params['_locale'])) {
+            // 3. create a temporary request, we're probably somewhere in cli mode
+            $request = Request::createFromGlobals();
+            $request->setLocale($params['_locale']);
+            $request->attributes->set('pimcore_request_source', 'staticroute');
+            $zone = $this->zoneManager->buildZoneByRequest($request, null);
         }
 
         if (!$zone instanceof I18nZoneInterface) {

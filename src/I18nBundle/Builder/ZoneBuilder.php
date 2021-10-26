@@ -204,7 +204,7 @@ class ZoneBuilder
         }
 
         $isRootDomain = false;
-        $subPages = false;
+        $subPages = [];
 
         $docLocale = $domainDoc->getProperty('language');
         $docCountryIso = null;
@@ -441,9 +441,7 @@ class ZoneBuilder
 
     protected function fetchAvailableSites(): array
     {
-        static $availableSites = null;
-
-        return $availableSites ?? ($availableSites = $this->db->fetchAllAssociative('SELECT `mainDomain`, `rootId` FROM sites'));
+        return $this->db->fetchAllAssociative('SELECT `mainDomain`, `rootId` FROM sites');
     }
 
 }

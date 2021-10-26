@@ -72,7 +72,7 @@ Every Zone object comes with a context object, which holds the  **current** zone
 
 ### Additional new Features
 - Check Akamai CDN header [@florian25686](https://github.com/dachcom-digital/pimcore-i18n/pull/76/files)
-- Allow different zone look-ups [#70](https://github.com/dachcom-digital/pimcore-i18n/issues/70)
+- Allow different zone look-ups [#70](https://github.com/dachcom-digital/pimcore-i18n/issues/70), read more about it [here](./docs/21_CustomZoneLookUp.md)
 - Allow symfony routes [#65](https://github.com/dachcom-digital/pimcore-i18n/issues/65)
 
 ***

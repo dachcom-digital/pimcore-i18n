@@ -48,6 +48,7 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 ## Further Information
 - [Geo IP/Control](docs/10_GeoControl.md): Enable GeoIP Data Provider.
 - [Zones](docs/20_Zones.md): Learn more about i18n zones and how to manage them.
+  - [Custom Zone Look-Up](docs/21_CustomZoneLookUp.md)] (🔥 New!)
 - [Href-Lang](docs/25_HrefLang.md): Find out more about the href-lang tag generator.
 - [Language Configuration](docs/26_Languages.md): Configure languages.
 - [Country Configuration](docs/27_Countries.md): Configure countries.
