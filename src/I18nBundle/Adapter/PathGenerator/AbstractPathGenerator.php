@@ -2,17 +2,17 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
-use I18nBundle\Helper\DocumentHelper;
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Model\I18nZoneInterface;
 
 abstract class AbstractPathGenerator implements PathGeneratorInterface
 {
-    protected ZoneManager $zoneManager;
-    protected DocumentHelper $documentHelper;
+    protected I18nZoneInterface $zone;
 
-    public function __construct(ZoneManager $zoneManager, DocumentHelper $documentHelper)
+    /**
+     * @internal
+     */
+    public function setZone(I18nZoneInterface $zone): void
     {
-        $this->zoneManager = $zoneManager;
-        $this->documentHelper = $documentHelper;
+        $this->zone = $zone;
     }
 }

@@ -27,7 +27,7 @@ Please be sure that all translation keys are also available in the pattern secti
 Now we'll add some configuration to translate this fragment:
 
 ```yaml
-# app/config/config.yml
+# app/config/config.yaml
 i18n:
 
     mode: country
@@ -59,7 +59,7 @@ Pimcore allows [optional placeholders](https://pimcore.com/docs/5.0.x/MVC/Routin
 If no locale has been found in your request url the fragment now gets excluded.
 
 ## href-lang Generator
-Now let's create a event listener to generate valid alternate links for our news entries:
+Now let's create an event listener to generate valid alternate links for our news entries:
 
 ```html
 <link href="https://www.domain.com/de/artikel/news-mit-headline" rel="alternate" hreflang="de" />
@@ -70,36 +70,52 @@ Now let's create a event listener to generate valid alternate links for our news
 
 First you need to register a service:
 ```yaml
-AppBundle\EventListener\StaticRoutesAlternateListener:
+App\EventListener\I18nRoutesAlternateListener:
     autowire: true
-    public: false
     tags:
-        - { name: kernel.event_listener, event: i18n.path.static_route.alternate, method: checkAlternate }
+        - { name: kernel.event_subscriber }
 ```
 
 Now implement the event listener itself:
 ```php
 <?php
 
-namespace AppBundle\EventListener;
+namespace App\EventListener;
 
-use I18nBundle\Event\AlternateStaticRouteEvent;
+use I18nBundle\Event\AlternateDynamicRouteEvent;
 use Pimcore\Model\DataObject;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class StaticRoutesAlternateListener
+class I18nRoutesAlternateListener implements EventSubscriberInterface
 {
-    public function checkAlternate(AlternateStaticRouteEvent $event)
+
+    /**
+    *   ATTENTION!
+    *   Do not rely on request stack in this event listener!
+    *   This event can be called at any state during different states
+    *   Always check/pass your dynamic data via attributes! 
+    */
+    
+    
+    public static function getSubscribedEvents(): array
     {
-        $route = $event->getCurrentStaticRoute();
-        $requestAttributes = $event->getRequestAttributes();
+        return [
+            I18nEvents::PATH_ALTERNATE_STATIC_ROUTE     => 'checkStaticRouteAlternate'
+        ];
+    }
+        
+    public function checkStaticRouteAlternate(AlternateStaticRouteEvent $event): void
+    {
+        $attributes = $event->getAttributes();
+        $route = $attributes['_route'] ?? null;
         $routes = [];
     
-        if ($route->getName() !== 'my_news_route') {
+        if ($route !== 'my_news_route') {
             return;
         }
 
-        $entryId = $requestAttributes->get('entry');
-        $news = DataObject\NewsEntry::getByLocalizedfields('detailUrl', $entryId, $requestAttributes->get('_locale'), ['limit' => 1]);
+        $entryId = $attributes['entry'];
+        $news = DataObject\NewsEntry::getByLocalizedfields('detailUrl', $entryId, $attributes['_locale'], ['limit' => 1]);
 
         if (!$news instanceof DataObject\NewsEntry) {
             return;

@@ -3,21 +3,16 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Adapter\Redirector\CookieRedirector;
-use I18nBundle\Helper\DocumentHelper;
 use I18nBundle\Helper\RequestValidatorHelper;
+use I18nBundle\Model\I18nZoneInterface;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use I18nBundle\Adapter\Redirector\RedirectorBag;
-use I18nBundle\Adapter\Redirector\RedirectorInterface;
-use I18nBundle\Manager\ContextManager;
-use I18nBundle\Manager\PathGeneratorManager;
 use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Registry\RedirectorRegistry;
 use Pimcore\Model\Site;
 use Pimcore\Routing\RedirectHandler;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -30,30 +25,21 @@ class PimcoreRedirectListener implements EventSubscriberInterface
 {
     protected RedirectorRegistry $redirectorRegistry;
     protected ZoneManager $zoneManager;
-    protected ContextManager $contextManager;
-    protected PathGeneratorManager $pathGeneratorManager;
     protected RedirectHandler $redirectHandler;
     protected SiteResolver $siteResolver;
-    protected DocumentHelper $documentHelper;
     protected RequestValidatorHelper $requestValidatorHelper;
 
     public function __construct(
         RedirectorRegistry $redirectorRegistry,
         ZoneManager $zoneManager,
-        ContextManager $contextManager,
-        PathGeneratorManager $pathGeneratorManager,
         RedirectHandler $redirectHandler,
         SiteResolver $siteResolver,
-        DocumentHelper $documentHelper,
         RequestValidatorHelper $requestValidatorHelper
     ) {
         $this->redirectorRegistry = $redirectorRegistry;
         $this->zoneManager = $zoneManager;
-        $this->contextManager = $contextManager;
-        $this->pathGeneratorManager = $pathGeneratorManager;
         $this->redirectHandler = $redirectHandler;
         $this->siteResolver = $siteResolver;
-        $this->documentHelper = $documentHelper;
         $this->requestValidatorHelper = $requestValidatorHelper;
     }
 
@@ -121,28 +107,20 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         }
 
         if (!$request->attributes->has('pimcore_request_source')) {
-            $request->attributes->set('pimcore_request_source', 'document');
+            $request->attributes->set('pimcore_request_source', sprintf('document_%d', $document->getId()));
         }
 
-        $this->zoneManager->initZones();
-        $this->contextManager->initContext($this->zoneManager->getCurrentZoneInfo('mode'), $document);
-        $this->pathGeneratorManager->initPathGenerator($request->attributes->get('pimcore_request_source'));
+        $zone = $this->zoneManager->buildZoneByRequest($request, $document);
 
-        $i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
-        $defaultLocale = $this->zoneManager->getCurrentZoneLocaleAdapter()->getDefaultLocale();
-        $documentLocaleData = $this->documentHelper->getDocumentLocaleData($document, $i18nType);
+        if (!$zone instanceof I18nZoneInterface) {
+            return $response;
+        }
 
-        $options = [
-            'i18nType'        => $i18nType,
-            'request'         => $request,
-            'document'        => $document,
-            'documentLocale'  => $documentLocaleData['documentLocale'],
-            'documentCountry' => $documentLocaleData['documentCountry'],
-            'defaultLocale'   => $defaultLocale
-        ];
+        $redirectorBag = new RedirectorBag([
+            'zone'    => $zone,
+            'request' => $request
+        ]);
 
-        $redirectorBag = new RedirectorBag($options);
-        /** @var RedirectorInterface $redirector */
         foreach ($this->redirectorRegistry->all() as $redirector) {
             // do not use redirector with storage functionality
             if ($redirector instanceof CookieRedirector) {
@@ -165,7 +143,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
             return $response;
         }
 
-        $localizedUrls = $this->pathGeneratorManager->getPathGenerator()->getUrls($document, false);
+        $localizedUrls = $zone->getLinkedLanguages(false);
 
         if (count($localizedUrls) === 0) {
             $response->setTargetUrl($document->getFullPath());

@@ -1,0 +1,13 @@
+services:
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    I18nBundle\Builder\ZoneBuilder:
+        arguments:
+            $generalDomain: '%router.request_context.host%'
+
+    I18nBundle\Builder\ContextBuilder: ~
+

@@ -3,8 +3,8 @@
 namespace I18nBundle\EventListener\Frontend;
 
 use I18nBundle\Definitions;
-use I18nBundle\Manager\ContextManager;
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Http\ZoneResolverInterface;
+use I18nBundle\Model\I18nZoneInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Twig\Extension\Templating\HeadMeta;
@@ -17,17 +17,14 @@ class HeadMetaListener implements EventSubscriberInterface
     use PimcoreContextAwareTrait;
 
     protected HeadMeta $headMeta;
-    protected ZoneManager $zoneManager;
-    protected ContextManager $contextManager;
+    protected ZoneResolverInterface $zoneResolver;
 
     public function __construct(
         HeadMeta $headMeta,
-        ZoneManager $zoneManager,
-        ContextManager $contextManager
+        ZoneResolverInterface $zoneResolver
     ) {
         $this->headMeta = $headMeta;
-        $this->zoneManager = $zoneManager;
-        $this->contextManager = $contextManager;
+        $this->zoneResolver = $zoneResolver;
     }
 
     public static function getSubscribedEvents(): array
@@ -50,11 +47,22 @@ class HeadMetaListener implements EventSubscriberInterface
             return;
         }
 
-        if ($this->zoneManager->getCurrentZoneInfo('mode') !== 'country') {
+        if ($request->attributes->get('_route') === 'fos_js_routing_js') {
             return;
         }
 
-        $currentCountryIso = $this->contextManager->getCountryContext()->getCurrentCountryIso();
+        $zone = $this->zoneResolver->getZone($request);
+
+        if (!$zone instanceof I18nZoneInterface) {
+            return;
+        }
+
+        if ($zone->getMode() !== 'country') {
+            return;
+        }
+
+        $currentCountryIso = $zone->getContext()->getCountryIso();
+
         if (empty($currentCountryIso)) {
             return;
         }

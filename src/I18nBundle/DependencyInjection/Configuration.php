@@ -20,6 +20,7 @@ class Configuration implements ConfigurationInterface
                     ->info('')
                 ->end()
                 ->enumNode('redirect_status_code')->defaultValue(302)->values([301,302])->end()
+                ->booleanNode('enable_context_switch_detector')->defaultValue(false)->end()
                 ->arrayNode('registry')
                     ->addDefaultsIfNotSet()
                     ->info('')

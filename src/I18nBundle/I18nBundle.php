@@ -3,7 +3,7 @@
 namespace I18nBundle;
 
 use I18nBundle\DependencyInjection\Compiler\ContextAdapterPass;
-use I18nBundle\DependencyInjection\Compiler\LocaleAdapterPass;
+use I18nBundle\DependencyInjection\Compiler\LocaleProviderAdapterPass;
 use I18nBundle\DependencyInjection\Compiler\PathGeneratorAdapterPass;
 use I18nBundle\DependencyInjection\Compiler\RedirectorAdapterPass;
 use I18nBundle\Tool\Install;
@@ -20,7 +20,7 @@ class I18nBundle extends AbstractPimcoreBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new RedirectorAdapterPass());
-        $container->addCompilerPass(new LocaleAdapterPass());
+        $container->addCompilerPass(new LocaleProviderAdapterPass());
         $container->addCompilerPass(new PathGeneratorAdapterPass());
         $container->addCompilerPass(new ContextAdapterPass());
     }

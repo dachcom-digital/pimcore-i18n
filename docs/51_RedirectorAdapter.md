@@ -22,7 +22,7 @@ or by default locale defined in your pimcore system settings.
 By default, a redirect will be dispatched with code `302`. If you want to change it, you need to update your config:
 
 ```yaml
-# app/config/config.yml
+# app/config/config.yaml
 i18n:
     redirect_status_code: 301
 ```
@@ -30,7 +30,7 @@ i18n:
 ## Disable a Redirector
 
 ```yaml
-# app/config/config.yml
+# app/config/config.yaml
 i18n:
     registry:
         redirector:
@@ -44,7 +44,7 @@ i18n:
 
 ```yaml
 # app/config/services.yml
-AppBundle\Services\I18nBundle\RedirectorAdapter\Website:
+App\Services\I18nBundle\RedirectorAdapter\Website:
     parent: I18nBundle\Adapter\Redirector\AbstractRedirector
     public: false
     tags:
@@ -59,22 +59,16 @@ Create a class, extend it from `AbstractRedirector`.
 ```php
 <?php
 
-namespace AppBundle\Services\I18nBundle\RedirectorAdapter;
+namespace App\Services\I18nBundle\RedirectorAdapter;
 
 use I18nBundle\Adapter\Redirector\AbstractRedirector;
 use I18nBundle\Adapter\Redirector\RedirectorBag;
 use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Model\I18nSiteInterface;
 
 class Website extends AbstractRedirector
 {
-    protected $zoneManager;
-
-    public function __construct(ZoneManager $zoneManager)
-    {
-        $this->zoneManager = $zoneManager;
-    }
-
-    public function makeDecision(RedirectorBag $redirectorBag)
+    public function makeDecision(RedirectorBag $redirectorBag): void
     {
         // if one of the last decisions was successful, we can skip further work.
         if ($this->lastRedirectorWasSuccessful($redirectorBag) === true) {
@@ -99,7 +93,7 @@ class Website extends AbstractRedirector
          * This example assumes that you're on localhost:
          * - geoCountry is empty because the "geo" redirector couldn't resolve your country
          *
-         * print_r($redirectorOptions);
+         * dump($redirectorOptions);
          *
          * returns an array:
          * Array (
@@ -112,7 +106,7 @@ class Website extends AbstractRedirector
         // get all valid zone domains
         // and check if there is something we can offer.
         $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
-        $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+        $zoneSites = $redirectorBag->getZone()->getSites(true);
 
         // only do something in zone 4.
         if($currentZoneId !== 4) {
@@ -124,26 +118,29 @@ class Website extends AbstractRedirector
         // we always want a redirection to "de_CH"
         if (empty($redirectorOptions['geoCountry'])) {
 
-            $indexId = array_search('de_CH', array_column($zoneDomains, 'locale'));
-
+            $indexId = array_search('de_CH', array_map(static function (I18nSiteInterface $site) {
+                    return $site->getLocale();
+            }, $zoneSites), true);
+                    
             // we found a valid locale
             if ($indexId !== false) {
-                $docData = $zoneDomains[$indexId];
+                /** @var I18nSiteInterface $zoneSite */
+                $zoneSite = $zoneSites[$indexId];
                 $this->setDecision([
                     'valid'    => true,
-                    'locale'   => $docData['locale'],
-                    'country'  => $docData['countryIso'],
-                    'language' => $docData['languageIso'],
-                    'url'      => $docData['homeUrl']
+                    'locale'   => $zoneSite->getLocale(),
+                    'country'  => $zoneSite->getCountryIso(),
+                    'language' => $zoneSite->getLanguageIso(),
+                    'url'      => $zoneSite->getHomeUrl()
                 ]);
             } else {
-                // otherwise we invalidate our decision
-                // so the next redirctor ("fallback" in our case) is allowed to find another route.
+                // otherwise, we invalidate our decision
+                // so the next redirector ("fallback" in our case) is allowed to find another route.
                 $this->setDecision(['valid' => false]);
             }
 
-            // otherwise we invalidate our decision
-            // so the next redirctor ("fallback" in our case) is allowed to find another route.
+            // otherwise, we invalidate our decision
+            // so the next redirector ("fallback" in our case) is allowed to find another route.
         } else {
             $this->setDecision(['valid' => false]);
         }

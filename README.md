@@ -43,7 +43,7 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 ### Preparation
 - If you're using `system` as your `locale_adapter`, which is the default, you need to enable all required locales in pimcore system settings
 - Always be sure that every document translation is connected via the [localization tool](https://www.pimcore.org/docs/5.0.0/Multi_Language_i18n/Localize_your_Documents.html).
-- If you're using the country detection, you need a valid maxmind geoip [data provider](docs/10_GeoControl.md)
+- If you're using the country detection, you need a valid maxmind geo ip [data provider](docs/10_GeoControl.md)
 
 ## Further Information
 - [Geo IP/Control](docs/10_GeoControl.md): Enable GeoIP Data Provider.
@@ -51,7 +51,9 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 - [Href-Lang](docs/25_HrefLang.md): Find out more about the href-lang tag generator.
 - [Language Configuration](docs/26_Languages.md): Configure languages.
 - [Country Configuration](docs/27_Countries.md): Configure countries.
-- [Static Routes](docs/28_StaticRoutes.md): Configure translatable static routes and implement href-lang tags.
+- Dynamic Routing
+  - [Static Routes](docs/28_StaticRoutes.md): Configure translatable static routes and implement href-lang tags.
+  - [Symfony Route](docs/29_SymfonyRoutes.md): Configure translatable symfony routes and implement href-lang tags.
 - [Front Page Mapping](docs/30_FrontPageMapping.md): Learn how to map a custom front page.
 - [Localized Error Documents](docs/40_LocaleErrorDocument.md): Learn how to create localized error documents.
 - [Custom Locale Adapter](docs/50_CustomLocaleAdapter.md): Learn how to create a custom locale adapter.

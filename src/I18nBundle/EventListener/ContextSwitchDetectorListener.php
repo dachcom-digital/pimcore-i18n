@@ -2,14 +2,16 @@
 
 namespace I18nBundle\EventListener;
 
+use I18nBundle\Configuration\Configuration;
+use I18nBundle\Http\ZoneResolverInterface;
+use I18nBundle\Model\I18nZoneInterface;
+use Pimcore\Config;
 use Pimcore\Logger;
 use Pimcore\Model\Document;
 use I18nBundle\Helper\RequestValidatorHelper;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use I18nBundle\I18nEvents;
-use I18nBundle\Helper\DocumentHelper;
 use I18nBundle\Event\ContextSwitchEvent;
-use I18nBundle\Manager\ZoneManager;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -19,30 +21,27 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ContextSwitchDetectorListener implements EventSubscriberInterface
 {
-    private ?string  $documentLocale;
-    private ?string $documentLanguage;
-    private ?string $documentCountry;
     protected EventDispatcherInterface $eventDispatcher;
     protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
-    protected ZoneManager $zoneManager;
-    protected DocumentHelper $documentHelper;
+    protected ZoneResolverInterface $zoneResolver;
     protected RequestValidatorHelper $requestValidatorHelper;
-    protected array $pimcoreConfig;
+    protected Config $pimcoreConfig;
+    protected Configuration $configuration;
 
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        ZoneManager $zoneManager,
-        DocumentHelper $documentHelper,
+        ZoneResolverInterface $zoneResolver,
         RequestValidatorHelper $requestValidatorHelper,
-        array $pimcoreConfig
+        Config $pimcoreConfig,
+        Configuration $configuration
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
-        $this->zoneManager = $zoneManager;
-        $this->documentHelper = $documentHelper;
+        $this->zoneResolver = $zoneResolver;
         $this->requestValidatorHelper = $requestValidatorHelper;
         $this->pimcoreConfig = $pimcoreConfig;
+        $this->configuration = $configuration;
     }
 
     public static function getSubscribedEvents(): array
@@ -57,8 +56,14 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     public function onKernelRequest(RequestEvent $event): void
     {
         $fullPageEnabled = false;
+        $request = $event->getRequest();
+
         if (isset($this->pimcoreConfig['full_page_cache'], $this->pimcoreConfig['full_page_cache']['enabled'])) {
             $fullPageEnabled = $this->pimcoreConfig['full_page_cache']['enabled'];
+        }
+
+        if ($this->configuration->getConfig('enable_context_switch_detector') === false) {
+            return;
         }
 
         if ($fullPageEnabled === true) {
@@ -73,24 +78,24 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $request = $event->getRequest();
-        $document = $this->pimcoreDocumentResolver->getDocument($request);
-
-        if (!$document instanceof Document) {
-            return;
-        }
-
         if (!$this->requestValidatorHelper->isValidForRedirect($request, false)) {
             return;
         }
 
-        $this->setDocumentLocale($document);
+        $document = $this->pimcoreDocumentResolver->getDocument($request);
+        if (!$document instanceof Document) {
+            return;
+        }
+
+        $zone = $this->zoneResolver->getZone($request);
+        if (!$zone instanceof I18nZoneInterface) {
+            return;
+        }
 
         // check if zone, language or country has been changed,
         // trigger event for 3th party.
-        $this->detectContextSwitch($request);
-
-        $this->updateSessionData($request);
+        $this->detectContextSwitch($zone, $request);
+        $this->updateSessionData($zone, $request);
     }
 
     /**
@@ -100,25 +105,29 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
      *
      * @throws \Exception
      */
-    private function detectContextSwitch(Request $request): void
+    private function detectContextSwitch(I18nZoneInterface $zone, Request $request): void
     {
         $session = $this->getSessionData($request);
-        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
+        $currentZoneId = $zone->getZoneId();
 
         $localeHasSwitched = false;
         $languageHasSwitched = false;
         $countryHasSwitched = false;
         $zoneHasSwitched = false;
 
-        if (is_null($session['lastLocale']) || (!is_null($session['lastLocale']) && $this->documentLocale !== $session['lastLocale'])) {
+        $documentLocale = $zone->getContext()->getLocale();
+        $documentLanguage = $zone->getContext()->getLanguageIso();
+        $documentCountry = $zone->getContext()->getCountryIso();
+
+        if (is_null($session['lastLocale']) || ($documentLocale !== $session['lastLocale'])) {
             $localeHasSwitched = true;
         }
 
-        if (is_null($session['lastLanguage']) || (!is_null($session['lastLanguage']) && $this->documentLanguage !== $session['lastLanguage'])) {
+        if (is_null($session['lastLanguage']) || ($documentLanguage !== $session['lastLanguage'])) {
             $languageHasSwitched = true;
         }
 
-        if ($session['lastCountry'] !== false && (!is_null($session['lastCountry']) && $this->documentCountry !== $session['lastCountry'])) {
+        if ($session['lastCountry'] !== false && (!is_null($session['lastCountry']) && $documentCountry !== $session['lastCountry'])) {
             $countryHasSwitched = true;
             $localeHasSwitched = true;
         }
@@ -134,13 +143,13 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
                 'zoneTo'              => $currentZoneId,
                 'localeHasSwitched'   => $localeHasSwitched,
                 'localeFrom'          => $session['lastLocale'],
-                'localeTo'            => $this->documentLocale,
+                'localeTo'            => $documentLocale,
                 'languageHasSwitched' => $languageHasSwitched,
                 'languageFrom'        => $session['lastLanguage'],
-                'languageTo'          => $this->documentLanguage,
+                'languageTo'          => $documentLanguage,
                 'countryHasSwitched'  => $countryHasSwitched,
                 'countryFrom'         => $session['lastCountry'],
-                'countryTo'           => $this->documentCountry
+                'countryTo'           => $documentCountry
             ];
 
             if ($zoneHasSwitched === true) {
@@ -159,7 +168,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
                     sprintf(
                         'switch locale: from %s to %s. triggered by: %s',
                         $session['lastLocale'],
-                        $this->documentLocale,
+                        $documentLocale,
                         $request->getRequestUri()
                     )
                 );
@@ -170,7 +179,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
                     sprintf(
                         'switch language: from %s to %s. triggered by: %s',
                         $session['lastLanguage'],
-                        $this->documentLanguage,
+                        $documentLanguage,
                         $request->getRequestUri()
                     )
                 );
@@ -181,7 +190,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
                     sprintf(
                         'switch country: from %s to %s. triggered by: %s',
                         $session['lastCountry'],
-                        $this->documentCountry,
+                        $documentCountry,
                         $request->getRequestUri()
                     )
                 );
@@ -224,38 +233,28 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     /**
      * @throws \Exception
      */
-    protected function updateSessionData(Request $request): void
+    protected function updateSessionData(I18nZoneInterface $zone, Request $request): void
     {
-        $currentZoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
+        $documentLocale = $zone->getContext()->getLocale();
+        $documentLanguage = $zone->getContext()->getLanguageIso();
+        $documentCountry = $zone->getContext()->getCountryIso();
+        $currentZoneId = $zone->getZoneId();
 
         /** @var NamespacedAttributeBag $bag */
         $bag = $request->getSession()->getBag('i18n_session');
 
-        if (!empty($this->documentLocale)) {
-            $bag->set('lastLocale', $this->documentLocale);
+        if (!empty($documentLocale)) {
+            $bag->set('lastLocale', $documentLocale);
         }
 
-        if (!empty($this->documentLanguage)) {
-            $bag->set('lastLanguage', $this->documentLanguage);
+        if (!empty($documentLanguage)) {
+            $bag->set('lastLanguage', $documentLanguage);
         }
 
-        if (!empty($this->documentCountry)) {
-            $bag->set('lastCountry', $this->documentCountry);
+        if (!empty($documentCountry)) {
+            $bag->set('lastCountry', $documentCountry);
         }
 
         $bag->set('lastZoneId', $currentZoneId);
-    }
-
-    /**
-     * @throws \Exception
-     */
-    protected function setDocumentLocale(Document $document): void
-    {
-        $i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
-        $documentLocaleData = $this->documentHelper->getDocumentLocaleData($document, $i18nType);
-
-        $this->documentLocale = $documentLocaleData['documentLocale'];
-        $this->documentLanguage = $documentLocaleData['documentLanguage'];
-        $this->documentCountry = $documentLocaleData['documentCountry'];
     }
 }

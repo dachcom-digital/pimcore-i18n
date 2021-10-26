@@ -2,64 +2,79 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
+use I18nBundle\Model\I18nSiteInterface;
 use I18nBundle\Tool\System;
 use Pimcore\Model\Document as PimcoreDocument;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Document extends AbstractPathGenerator
 {
+    protected array $options;
     protected array $cachedUrls = [];
 
-    public function getUrls(PimcoreDocument $currentDocument, bool $onlyShowRootLanguages = false): array
+    public function configureOptions(OptionsResolver $options): void
     {
-        if (isset($this->cachedUrls[$currentDocument->getId()])) {
-            return $this->cachedUrls[$currentDocument->getId()];
+        $options
+            ->setDefaults(['document'])
+            ->setRequired(['document'])
+            ->setAllowedTypes('document', [PimcoreDocument::class]);
+    }
+
+    public function setOptions(array $options): void
+    {
+        $this->options = $options;
+    }
+
+    public function getUrls(bool $onlyShowRootLanguages = false): array
+    {
+        $document = $this->options['document'];
+
+        if (isset($this->cachedUrls[$document->getId()])) {
+            return $this->cachedUrls[$document->getId()];
         }
 
-        try {
-            $mode = $this->zoneManager->getCurrentZoneInfo('mode');
-        } catch (\Exception $e) {
-            return [];
-        }
-
-        if ($mode === 'language') {
-            $urls = $this->documentUrlsFromLanguage($currentDocument, $onlyShowRootLanguages);
+        if ($this->zone->getMode() === 'language') {
+            $urls = $this->documentUrlsFromLanguage($document, $onlyShowRootLanguages);
         } else {
-            $urls = $this->documentUrlsFromCountry($currentDocument, $onlyShowRootLanguages);
+            $urls = $this->documentUrlsFromCountry($document, $onlyShowRootLanguages);
         }
 
-        $this->cachedUrls[$currentDocument->getId()] = $urls;
+        $this->cachedUrls[$document->getId()] = $urls;
 
         return $urls;
     }
 
-    private function documentUrlsFromLanguage(PimcoreDocument $currentDocument, bool $onlyShowRootLanguages = false): array
+    private function documentUrlsFromLanguage(PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
 
         try {
-            $tree = $this->zoneManager->getCurrentZoneDomains(true);
+            $zoneSites = $this->zone->getSites(true);
         } catch (\Exception $e) {
             return [];
         }
 
-        $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'), true);
+        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (I18nSiteInterface $site) {
+            return $site->getRootId();
+        }, $zoneSites), true);
 
         // case 1: no deep linking requested. only return root pages!
-        // case 2: current document is a root page ($rootDocumentId) - only return root pages!
-        if ($onlyShowRootLanguages === true || $rootDocumentId !== false) {
-            foreach ($tree as $pageInfo) {
-                if (empty($pageInfo['languageIso'])) {
+        // case 2: current document is a root page ($rootDocumentIndexId) - only return root pages!
+        if ($onlyShowRootLanguages === true || $rootDocumentIndexId !== false) {
+            foreach ($zoneSites as $zoneSite) {
+
+                if (empty($zoneSite->getLanguageIso())) {
                     continue;
                 }
 
                 $routes[] = [
-                    'languageIso'      => $pageInfo['languageIso'],
+                    'languageIso'      => $zoneSite->getLanguageIso(),
                     'countryIso'       => null,
-                    'locale'           => $pageInfo['locale'],
-                    'hrefLang'         => $pageInfo['hrefLang'],
-                    'localeUrlMapping' => $pageInfo['localeUrlMapping'],
-                    'key'              => $currentDocument->getKey(),
-                    'url'              => $pageInfo['url']
+                    'locale'           => $zoneSite->getLocale(),
+                    'hrefLang'         => $zoneSite->getHrefLang(),
+                    'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
+                    'key'              => $document->getKey(),
+                    'url'              => $zoneSite->getUrl()
                 ];
             }
 
@@ -67,14 +82,15 @@ class Document extends AbstractPathGenerator
         }
 
         $service = new PimcoreDocument\Service();
-        $translations = $service->getTranslations($currentDocument);
+        $translations = $service->getTranslations($document);
 
-        foreach ($tree as $pageInfo) {
-            if (empty($pageInfo['locale'])) {
+        foreach ($zoneSites as $zoneSite) {
+
+            if (empty($zoneSite->getLocale())) {
                 continue;
             }
 
-            $pageInfoLocale = $pageInfo['locale'];
+            $pageInfoLocale = $zoneSite->getLocale();
             if (isset($translations[$pageInfoLocale])) {
                 try {
                     /** @var PimcoreDocument\Page $document */
@@ -89,20 +105,20 @@ class Document extends AbstractPathGenerator
 
                 if ($this->hasPrettyUrl($document) === true) {
                     $relativePath = $document->getPrettyUrl();
-                    $url = System::joinPath([$pageInfo['domainUrl'], $relativePath]);
+                    $url = System::joinPath([$zoneSite->getDomainUrl(), $relativePath]);
                 } else {
-                    //map paths
+                    // map paths
                     $documentPath = $document->getRealPath() . $document->getKey();
-                    $relativePath = preg_replace('/^' . preg_quote($pageInfo['fullPath'], '/') . '/', '', $documentPath);
-                    $url = System::joinPath([$pageInfo['url'], $relativePath]);
+                    $relativePath = preg_replace('/^' . preg_quote($zoneSite->getFullPath(), '/') . '/', '', $documentPath);
+                    $url = System::joinPath([$zoneSite->getUrl(), $relativePath]);
                 }
 
                 $routes[] = [
-                    'languageIso'      => $pageInfo['languageIso'],
+                    'languageIso'      => $zoneSite->getLanguageIso(),
                     'countryIso'       => null,
-                    'locale'           => $pageInfo['locale'],
-                    'hrefLang'         => $pageInfo['hrefLang'],
-                    'localeUrlMapping' => $pageInfo['localeUrlMapping'],
+                    'locale'           => $zoneSite->getLocale(),
+                    'hrefLang'         => $zoneSite->getHrefLang(),
+                    'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
                     'key'              => $document->getKey(),
                     'relativePath'     => $relativePath,
                     'url'              => $url
@@ -113,30 +129,32 @@ class Document extends AbstractPathGenerator
         return $routes;
     }
 
-    private function documentUrlsFromCountry(PimcoreDocument $currentDocument, bool $onlyShowRootLanguages = false): array
+    private function documentUrlsFromCountry(PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
 
         try {
-            $tree = $this->zoneManager->getCurrentZoneDomains(true);
+            $zoneSites = $this->zone->getSites(true);
         } catch (\Exception $e) {
             return [];
         }
 
-        $rootDocumentId = array_search($currentDocument->getId(), array_column($tree, 'id'), true);
+        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (I18nSiteInterface $site) {
+            return $site->getRootId();
+        }, $zoneSites), true);
 
-        if ($onlyShowRootLanguages === true || $rootDocumentId !== false) {
+        if ($onlyShowRootLanguages === true || $rootDocumentIndexId !== false) {
 
-            foreach ($tree as $pageInfo) {
-                if (!empty($pageInfo['countryIso'])) {
+            foreach ($zoneSites as $zoneSite) {
+                if (!empty($zoneSite->getCountryIso())) {
                     $routes[] = [
-                        'languageIso'      => $pageInfo['languageIso'],
-                        'countryIso'       => $pageInfo['countryIso'],
-                        'locale'           => $pageInfo['locale'],
-                        'hrefLang'         => $pageInfo['hrefLang'],
-                        'localeUrlMapping' => $pageInfo['localeUrlMapping'],
-                        'key'              => $currentDocument->getKey(),
-                        'url'              => $pageInfo['url']
+                        'languageIso'      => $zoneSite->getLanguageIso(),
+                        'countryIso'       => $zoneSite->getCountryIso(),
+                        'locale'           => $zoneSite->getLocale(),
+                        'hrefLang'         => $zoneSite->getHrefLang(),
+                        'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
+                        'key'              => $document->getKey(),
+                        'url'              => $zoneSite->getUrl()
                     ];
                 }
             }
@@ -144,36 +162,36 @@ class Document extends AbstractPathGenerator
             return $routes;
         }
 
-        $hardLinksToCheck = [];
+        $hardLinkZoneSitesToCheck = [];
         $service = new PimcoreDocument\Service();
-        $translations = $service->getTranslations($currentDocument);
+        $translations = $service->getTranslations($document);
 
         //if no translation has been found, add document itself:
-        if (empty($translations) && $currentDocument->hasProperty('language')) {
-            if ($currentDocument instanceof PimcoreDocument\Hardlink\Wrapper\WrapperInterface) {
+        if (empty($translations) && $document->hasProperty('language')) {
+            if ($document instanceof PimcoreDocument\Hardlink\Wrapper\WrapperInterface) {
                 /** @var PimcoreDocument\Hardlink\Wrapper\WrapperInterface $wrapperDocument */
-                $wrapperDocument = $currentDocument;
-                $locale = $wrapperDocument->getHardLinkSource()->getSourceDocument()->getProperty('language');
+                $wrapperDocument = $document;
+                $locale = $wrapperDocument->getHardLinkSource()->getSourceDocument()?->getProperty('language');
             } else {
-                $locale = $currentDocument->getProperty('language');
+                $locale = $document->getProperty('language');
             }
 
-            $translations = [$locale => $currentDocument->getId()];
+            $translations = [$locale => $document->getId()];
         }
 
-        foreach ($tree as $pageInfo) {
+        foreach ($zoneSites as $zoneSite) {
 
-            if (empty($pageInfo['locale'])) {
+            if (empty($zoneSite->getLocale())) {
                 continue;
             }
 
-            $pageInfoLocale = $pageInfo['locale'];
+            $pageInfoLocale = $zoneSite->getLocale();
 
             // document/translation does not exist.
             // if page info is type of "hardlink", we need to add them to a second check
             if (!isset($translations[$pageInfoLocale])) {
-                if ($pageInfo['type'] === 'hardlink') {
-                    $hardLinksToCheck[] = $pageInfo;
+                if ($zoneSite->getType() === 'hardlink') {
+                    $hardLinkZoneSitesToCheck[] = $zoneSite;
                 }
                 continue;
             }
@@ -193,20 +211,20 @@ class Document extends AbstractPathGenerator
             if ($this->hasPrettyUrl($document) === true) {
                 $hasPrettyUrl = true;
                 $relativePath = $document->getPrettyUrl();
-                $url = System::joinPath([$pageInfo['domainUrl'], $relativePath]);
+                $url = System::joinPath([$zoneSite->getDomainUrl(), $relativePath]);
             } else {
                 //map paths
                 $documentPath = $document->getRealPath() . $document->getKey();
-                $relativePath = preg_replace('/^' . preg_quote($pageInfo['fullPath'], '/') . '/', '', $documentPath);
-                $url = System::joinPath([$pageInfo['url'], $relativePath]);
+                $relativePath = preg_replace('/^' . preg_quote($zoneSite->getFullPath(), '/') . '/', '', $documentPath);
+                $url = System::joinPath([$zoneSite->getUrl(), $relativePath]);
             }
 
             $routes[] = [
-                'languageIso'      => $pageInfo['languageIso'],
-                'countryIso'       => $pageInfo['countryIso'],
-                'locale'           => $pageInfo['locale'],
-                'hrefLang'         => $pageInfo['hrefLang'],
-                'localeUrlMapping' => $pageInfo['localeUrlMapping'],
+                'languageIso'      => $zoneSite->getLanguageIso(),
+                'countryIso'       => $zoneSite->getCountryIso(),
+                'locale'           => $zoneSite->getLocale(),
+                'hrefLang'         => $zoneSite->getHrefLang(),
+                'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
                 'key'              => $document->getKey(),
                 'relativePath'     => $relativePath,
                 'hasPrettyUrl'     => $hasPrettyUrl,
@@ -214,19 +232,19 @@ class Document extends AbstractPathGenerator
             ];
         }
 
-        if (empty($hardLinksToCheck)) {
+        if (count($hardLinkZoneSitesToCheck) === 0) {
             return $routes;
         }
 
-        foreach ($hardLinksToCheck as $hardLinkWrapper) {
+        foreach ($hardLinkZoneSitesToCheck as $hardLinkZoneSiteWrapper) {
 
-            $sameLanguageContext = array_search($hardLinkWrapper['languageIso'], array_column($routes, 'languageIso'), true);
+            $sameLanguageContext = array_search($hardLinkZoneSiteWrapper->getLanguageIso(), array_column($routes, 'languageIso'), true);
             if ($sameLanguageContext === false || !isset($routes[$sameLanguageContext])) {
                 continue;
             }
 
             $languageContext = $routes[$sameLanguageContext];
-            $posGlobalPath = System::joinPath([$hardLinkWrapper['fullPath'], $languageContext['relativePath']]);
+            $posGlobalPath = System::joinPath([$hardLinkZoneSiteWrapper->getFullPath(), $languageContext['relativePath']]);
 
             // case 1: only add hardlinks check if document has no pretty url => we can't guess pretty urls by magic.
             // case 2: always continue: could be disabled or isn't linked via translations.
@@ -235,13 +253,13 @@ class Document extends AbstractPathGenerator
             }
 
             $routes[] = [
-                'languageIso'      => $hardLinkWrapper['languageIso'],
-                'countryIso'       => $hardLinkWrapper['countryIso'],
-                'locale'           => $hardLinkWrapper['locale'],
-                'hrefLang'         => $hardLinkWrapper['hrefLang'],
-                'localeUrlMapping' => $hardLinkWrapper['localeUrlMapping'],
+                'languageIso'      => $hardLinkZoneSiteWrapper->getLanguageIso(),
+                'countryIso'       => $hardLinkZoneSiteWrapper->getCountryIso(),
+                'locale'           => $hardLinkZoneSiteWrapper->getLocale(),
+                'hrefLang'         => $hardLinkZoneSiteWrapper->getHrefLang(),
+                'localeUrlMapping' => $hardLinkZoneSiteWrapper->getLocaleUrlMapping(),
                 'key'              => $languageContext['key'],
-                'url'              => System::joinPath([$hardLinkWrapper['url'], $languageContext['relativePath']])
+                'url'              => System::joinPath([$hardLinkZoneSiteWrapper->getUrl(), $languageContext['relativePath']])
             ];
         }
 

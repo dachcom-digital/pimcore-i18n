@@ -16,8 +16,9 @@ If you want to override the team content you just need to copy your `/en/team` i
 But what if you want to override the front page content? That's a tricky one since `en-us` is just a hardlink.
 
 ### i18n to the rescue
-Just add a new (document) property  named `front_page_map` to your hardlink and assign a custom document. Also disable the inheritance option for this property. You can leave the document unpublished, so it stays private.
+Just add a new (document) property named `front_page_map` to your hardlink and assign a custom document. 
+Also disable the inheritance option for this property. You can leave the document unpublished, so it stays private.
 
 > This property should be available in your predefined properties since it gets automatically installed.
 
-If your opening your `en-us/` front page again you'll see the new content. Bravo!
+Just navigate to `/en-us` front page again and you'll see the new content.

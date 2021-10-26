@@ -19,7 +19,7 @@ i18n will generate a x-default link, based on default values:
 - If not defined, NULL will be returned (which means, no x-default tag)
 > **Note**: It's possible to override the `getDefaultLocale()` method within a custom locale adapter.
 
-**Important:** Be sure that your defined default locale is valid (in current zone). Otherwise no x-default tag will be generated.
+**Important:** Be sure that your defined default locale is valid (in current zone). Otherwise, no x-default tag will be generated.
 
 ## Static Routes
 If you're using static routes, please [read this](28_StaticRoutes.md) to enable href-lang tags for dynamic routes.

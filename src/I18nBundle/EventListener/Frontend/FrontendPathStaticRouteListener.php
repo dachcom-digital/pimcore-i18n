@@ -2,19 +2,26 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Http\ZoneResolverInterface;
+use I18nBundle\Model\I18nZoneInterface;
 use I18nBundle\Tool\System;
 use Pimcore\Event\FrontendEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class FrontendPathStaticRouteListener implements EventSubscriberInterface
 {
-    protected ZoneManager $zoneManager;
+    protected ZoneResolverInterface $zoneResolver;
+    protected RequestStack $requestStack;
 
-    public function __construct(ZoneManager $zoneManager)
-    {
-        $this->zoneManager = $zoneManager;
+    public function __construct(
+        RequestStack $requestStack,
+        ZoneResolverInterface $zoneResolver
+    ) {
+        $this->zoneResolver = $zoneResolver;
+        $this->requestStack = $requestStack;
     }
 
     public static function getSubscribedEvents(): array
@@ -26,24 +33,41 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
 
     public function onFrontendPathStaticRouteRequest(GenericEvent $event): void
     {
+        $zone = null;
         $frontEndPath = $event->getArgument('frontendPath');
         $params = $event->getArgument('params');
+
+        if (isset($params['_18n_zone'])) {
+            // 1. if zone is available as parameter,
+            // we'll always prefer it because it could be a sub zone url generation
+            $zone = $params['_18n_zone'];
+        } elseif ($this->requestStack->getMainRequest() instanceof Request) {
+            // 2. check zone resolver from global request
+            $zone = $this->zoneResolver->getZone($this->requestStack->getMainRequest());
+        }
+
+        if (!$zone instanceof I18nZoneInterface) {
+            throw new \Exception('Could not resolve zone to build i18n aware static route');
+        }
 
         if (!isset($params['_locale'])) {
             return;
         }
 
         $locale = $params['_locale'];
-        $urlMapping = $this->zoneManager->getCurrentZoneInfo('locale_url_mapping');
+        $urlMapping = $zone->getLocaleUrlMapping();
+        $zoneTranslations = $zone->getTranslations();
+
         $validLocaleIso = array_search($params['_locale'], $urlMapping, true);
+
         if ($validLocaleIso !== false) {
             $locale = $validLocaleIso;
         }
 
         $frontEndPath = preg_replace_callback(
             '/@((?:(?![\/|?]).)*)/',
-            function ($matches) use ($locale) {
-                return $this->translateKey($matches[1], $locale);
+            function ($matches) use ($locale, $zoneTranslations) {
+                return $this->translateKey($matches[1], $locale, $zoneTranslations);
             },
             $frontEndPath
         );
@@ -65,17 +89,16 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
     /**
      * @throws \Exception
      */
-    private function translateKey(string $key, string $locale): string
+    private function translateKey(string $key, string $locale, array $zoneTranslations): string
     {
-        $translationConfig = $this->zoneManager->getCurrentZoneInfo('translations');
         $throw = false;
         $keyIndex = false;
 
-        if (empty($translationConfig)) {
+        if (empty($zoneTranslations)) {
             $throw = true;
         } else {
-            $keyIndex = array_search($key, array_column($translationConfig, 'key'));
-            if ($keyIndex === false || !isset($translationConfig[$keyIndex]['values'][$locale])) {
+            $keyIndex = array_search($key, array_column($zoneTranslations, 'key'), true);
+            if ($keyIndex === false || !isset($zoneTranslations[$keyIndex]['values'][$locale])) {
                 $throw = true;
             }
         }
@@ -92,6 +115,6 @@ class FrontendPathStaticRouteListener implements EventSubscriberInterface
             ));
         }
 
-        return $translationConfig[$keyIndex]['values'][$locale];
+        return $zoneTranslations[$keyIndex]['values'][$locale];
     }
 }

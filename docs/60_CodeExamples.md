@@ -4,274 +4,197 @@
 This Service helps you to get information about your current zone.
 If no zones are configured, you'll get the default settings.
 
-**Twig**
-```twig
-{# get current mode #}
-{{ i18n_zone_info('mode') }}
-```
-
-**PHP**
-```twig
-<?php
-
-use I18nBundle\Manager\ZoneManager;
-
-class ExampleService
-{
-    protected $zoneManager;
-
-    public function __construct(ZoneManager $zoneManager)
-    {
-        $this->zoneManager = $zoneManager;
-    }
-
-    public function getInformation()
-    {
-        // returns 'language' or 'country'
-        $currentZoneMode = $this->zoneManager->getCurrentZoneInfo('mode');
-    }
-}
-```
-
-## Context Info
-This Service helps you to get information from your current context.
-
-### Current Context Information
-To get data from current context you may want to use the `getCurrentContextInfo` method. 
-Since the current context gets defined via the current locale, be sure that locale is always available.
-
-**Twig**
-```twig
-{# get current context info #}
-{{ dump(i18n_context('getCurrentContextInfo', ['url'])) }}
-
-{# get current context info #}
-{{ dump(i18n_context('getCurrentContextInfo', ['localeUrlMapping'])) }}
-```
-
-**PHP**
-```twig
-<?php
-
-use I18nBundle\Manager\ContextManager;
-
-class ExampleService
-{
-    protected $contextManager;
-
-    public function __construct(ContextManager $contextManager)
-    {
-        $this->contextManager = $contextManager;
-    }
-
-    public function getInformation()
-    {
-        $currentContextInfo = $this->contextManager->getContext()->getCurrentContextInfo('url');
-        $currentContextInfo = $this->contextManager->getContext()->getCurrentContextInfo('localeUrlMapping');
-    }
-}
-```
-
-Available Options for the `getCurrentContextInfo` context helper:
+The current zone represents an instance of `I18nZoneInterface` which comes with some helper methods:
 
 | Name | Description |
 |------|-------------|
-| host | For example: `www.pimcore5-domain4.test` |
-| realHost | For example: `pimcore5-domain4.test` |
-| locale | For example: `de_CH` |
-| countryIso | For example: `CH` |
-| languageIso | For example: `de` |
-| hrefLang | For example: `de-ch` |
-| localeUrlMapping | For example: `de-ch`. Mostly used to build [static routes](https://github.com/dachcom-digital/pimcore-i18n/blob/master/docs/28_StaticRoutes.md#naming-convention-in-country-context). |
-| url | For example: `https://pimcore5-domain4.test/de-ch` |
-| domainUrl | For example: `https://pimcore5-domain4.test` |
-| fullPath | For example: `domain4/de-ch` |
-| type | For example: `hardlink` |
-
-## Specific Current Context
-This Service helps you to get transformed data from your current context.
-There are two context services available:
-
-- language
-- country (language & country)
-
-## Global Information
-Some of the context methods are available in both services:
+| getZoneId | given zone id (null, if it no zones have been configured |
+| getZoneName | given zone name (null, if no zones have been configured |
+| getZoneDomains | all available domains for given zone |
+| getMode | returns `language` or `country` |
+| getTranslations | array, translations for static routes |
+| getContext | get current context, see [below](./60_CodeExamples.md#zone-context-information) |
+| getLocaleProvider | get locale provider, see [below](./60_CodeExamples.md#zone-locale-provider-information)  |
+| getSites(bool $flatten = false) | returns all available sites of given zone |
+| isActiveZone | bool |
+| getLocaleUrlMapping | array |
+| getCurrentSite | get current site, see [below](./60_CodeExamples.md#zone-current-site-information) |
+| getActiveLocaleInfo(string $field) | shortcut helper (calls `localeProvider->getLocaleData` and passes `context->getLocale`) to get detailed information about active locale |
+| getCurrentLocale | shortcut helper (calls `context->getLocale`) to get current locale |
+| getCurrentCountryAndLanguage(bool $returnAsString = true) | get country and locale info |
+| getLinkedLanguages(bool $onlyShowRootLanguages = false) | get all (raw) linked documents of current route |
+| getActiveLanguages | helper method to list all active languages of current route (see [navigation code example](./60_CodeExamples.md#navigation-examples)) |
+| getActiveCountries | helper method to list all active countries and languages of current route (see [navigation code example](./60_CodeExamples.md#navigation-examples)) |
+| getLanguageNameByIsoCode(string $languageIso, ?string $locale = null) | helper to get language name by iso code |
+| getCountryNameByIsoCode(string $countryIso, ?string $locale = null) | helper to get country name by iso code |
 
 **Twig**
 ```twig
-{# get current locale #}
-{{ dump(i18n_context('getCurrentLocale')) }}
 
-{# get current language iso #}
-{{ dump(i18n_context('getCurrentLanguageIso')) }}
+{# 
+    be careful, i18n_zone is allowed to return null!
+#}
 
-{# get linked languages #}
-{{ dump(i18n_context('getLinkedLanguages')) }}
+{% set current_locale = i18n_zone().context.locale %}
+{% set current_language_iso = i18n_zone().context.languageIso %}
+{% set current_country_iso = i18n_zone().context.countryIso %}
 
-{# get linked languages [true] only rootDocuments #}
-{{ dump(i18n_context('getLinkedLanguages', [true])) }}
-
-{# get language name by iso code #}
-{{ dump(i18n_context('getLanguageNameByIsoCode', [ i18n_context('getCurrentLanguageIso'), i18n_context('getCurrentLocale') ])) }}
-
+{{ dump(i18n_zone().mode) }}
+{{ dump(i18n_zone().context.locale) }}
+{{ dump(i18n_zone().getLinkedLanguages) }}
+{{ dump(i18n_zone().getActiveLanguages) }}
+{{ dump(i18n_zone().getActiveCountries) }}
+{{ dump(i18n_zone().getLanguageNameByIsoCode(current_language_iso, current_locale)) }}
+{{ dump(i18n_zone().getCountryNameByIsoCode(current_country_iso, current_locale)) }}
 ```
 
 **PHP**
-```twig
+```php
 <?php
 
-use I18nBundle\Manager\ContextManager;
+use Symfony\Component\HttpFoundation\RequestStack;
+use I18nBundle\Http\ZoneResolverInterface;
 
 class ExampleService
 {
-    protected $contextManager;
+    protected RequestStack $requestStack;
+    protected ZoneResolverInterface $zoneResolver;
 
-    public function __construct(ContextManager $contextManager)
+    public function __construct(RequestStack $requestStack, ZoneResolverInterface $zoneResolver)
     {
-        $this->contextManager = $contextManager;
+        $this->requestStack = $requestStack;
+        $this->zoneResolver = $zoneResolver;
     }
 
     public function getInformation()
     {
+        $zone = $this->zoneResolver->getZone($this->requestStack->getMainRequest());
+        
+        $mode = $zone?->getMode();
+        $LinkedLanguages = $zone?->getLinkedLanguages();
+        
         // get current locale
-        $currentLocale = $this->contextManager->getContext()->getCurrentLocale();
+        $currentLocale = $zone->getContext()->getLocale();
 
         // get current language iso
-        $currentLanguageIso = $this->contextManager->getContext()->getCurrentLanguageIso();
+        $currentLanguageIso = $zone->getContext()->getLanguageIso();
 
         // get linked languages
-        $linkedLanguages = $this->contextManager->getContext()->getLinkedLanguages();
+        $linkedLanguages = $zone->getLinkedLanguages();
 
         // get linked languages, but only rootDocuments
-        $linkedLanguages = $this->contextManager->getContext()->getLinkedLanguages(true);
+        $linkedLanguages = $zone->getLinkedLanguages(true);
 
         // get language name by iso code
-        $languageName = $this->contextManager->getContext()->getLanguageNameByIsoCode($currentLanguageIso, $currentLocale);
-
+        $languageName = $zone->getContext()->getLanguageNameByIsoCode($currentLanguageIso, $currentLocale);
     }
 }
 ```
 
-### Language Context Information
-These methods are only available in the `language` context:
+### Zone Current Site Information
+To retrieve data from an active site, you may want to use the `getCurrentSite()` method. 
+Since the current site gets defined via the current locale, be sure that locale is always available.
 
-```twig
-
-{# get active languages #}
-{{ dump(i18n_context('getActiveLanguages')) }}
-
-{# get current language info (id) #}
-{{ dump(i18n_context('getCurrentLanguageInfo', ['id'])) }}
-```
-
-**PHP**
-```twig
-<?php
-
-use I18nBundle\Manager\ContextManager;
-
-class ExampleService
-{
-    protected $contextManager;
-
-    public function __construct(ContextManager $contextManager)
-    {
-        $this->contextManager = $contextManager;
-    }
-
-    public function getInformation()
-    {
-        // note: instead of "getContext()" it's possible to use "getLanguageContext()"
-
-        // get active languages
-        $activeLanguages = $this->contextManager->getContext()->getActiveLanguages();
-
-        // get current language info (id)
-        $currentLanguageId = $this->contextManager->getContext()->getCurrentLanguageInfo('id');
-
-    }
-}
-```
-
-### Country Context Information
-
-```twig
-
-{# get current country iso #}
-{{ dump(i18n_context('getCurrentCountryIso')) }}
-
-{# get active country localizations #}
-{{ dump(i18n_context('getActiveCountries')) }}
-
-{# get current country info (id) #}
-{{ dump(i18n_context('getCurrentCountryInfo', ['id'])) }}
-
-{# get country name by iso code #}
-{{ dump(i18n_context('getCountryNameByIsoCode', [ i18n_context('getCurrentCountryIso'), i18n_context('getCurrentLocale') ])) }}
-```
-
-**PHP**
-```twig
-<?php
-
-use I18nBundle\Manager\ContextManager;
-
-class ExampleService
-{
-    protected $contextManager;
-
-    public function __construct(ContextManager $contextManager)
-    {
-        $this->contextManager = $contextManager;
-    }
-
-    public function getInformation()
-    {
-        // note: instead of "getContext()" it's possible to use "getCountryContext()"
-
-        // get current locale
-        $currentLocale = $this->contextManager->getContext()->getCurrentLocale();
-
-        // get current language iso
-        $currentLanguageIso = $this->contextManager->getContext()->getCurrentLanguageIso();
-
-        // get current country iso
-        $currentCountryIso = $this->contextManager->getContext()->getCurrentCountryIso();
-
-        // get active countries
-        $activeCountries = $this->contextManager->getContext()->getActiveCountries();
-
-        // get current language info (id)
-        $currentCountryId = $this->contextManager->getContext()->getCurrentCountryInfo('id');
-
-        // get language name by iso code
-        // basically the same as in global context but you're able to pass the country iso also
-        $languageName = $this->contextManager->getContext()->getLanguageNameByIsoCode($currentLanguageIso, $currentLocale, $currentCountryIso);
-
-        // get country name by iso code
-        $countryName = $this->contextManager->getContext()->getCountryNameByIsoCode($currentCountryIso, $currentLocale);
-
-    }
-}
-```
-
-Available Options for the `getCurrentCountryInfo` or `getCurrentLanguageInfo` context (from system adapter):
-
-> Please note: you probably never need those two methods. 
-> But if you're using a custom locale adapter, you might find it helpful.
+The current site represents an instance of `I18nSiteInterface` which comes with some helper methods:
 
 | Name | Description |
 |------|-------------|
-| id | Id |
-| locale | Iso Code |
-| isoCode | Iso Code |
+| getHost | For example: `www.pimcore5-domain4.test` |
+| getRealHost | For example: `pimcore5-domain4.test` |
+| isRootDomain | bool |
+| getLocale | For example: `de_CH` |
+| getCountryIso | For example: `CH` |
+| getLanguageIso | For example: `de` |
+| getHrefLang | For example: `de-ch` |
+| getLocaleUrlMapping | For example: `de-ch`. Mostly used to build [static routes](./28_StaticRoutes.md#naming-convention-in-country-context). |
+| getUrl | For example: `https://pimcore5-domain4.test/de-ch` |
+| getHomeUrl | string |
+| getDomainUrl | For example: `https://pimcore5-domain4.test` |
+| getFullPath | For example: `domain4/de-ch` |
+| getType | For example: `hardlink` |
+| getSubSites | array |
+| hasSubSites | bool |
 
-## Implementation Examples
+**Twig**
+```twig
+{# get current context info #}
+{{ dump(i18n_zone().currentSite.url) }}
+{{ dump(i18n_zone().currentSite.localeUrlMapping) }}
+```
+
+**PHP**
+```php
+<?php
+
+use Symfony\Component\HttpFoundation\RequestStack;
+use I18nBundle\Http\ZoneResolverInterface;
+
+class ExampleService
+{
+    protected RequestStack $requestStack;
+    protected ZoneResolverInterface $zoneResolver;
+
+    public function __construct(RequestStack $requestStack, ZoneResolverInterface $zoneResolver)
+    {
+        $this->requestStack = $requestStack;
+        $this->zoneResolver = $zoneResolver;
+    }
+
+    public function getInformation()
+    {
+        $zone = $this->zoneResolver->getZone($this->requestStack->getMainRequest());
+        
+        $currentContextInfo = $zone->getCurrentSite()->getUrl();
+        $currentContextInfo = $zone->getCurrentSite()->getLocaleUrlMapping();
+    }
+}
+```
+
+### Zone Context Information
+Zone context always holds **active** locale information about the **current** zone (mostly based on current request) like the current locale.
+
+The zone context represents an instance of `I18nContextInterface` which comes with some helper methods:
+
+| Name | Description |
+|------|-------------|
+| hasLocale | returns false if locale is null |
+| getLocale | For example: `de_DE` |
+| hasLanguageIso | returns false if language iso is null |
+| getLanguageIso | For example: `de` |
+| hasCountryIso | returns false if country iso is null |
+| getCountryIso | For example: `DE` |
+| isValidZoneLocale | bool |
+
+**Twig**
+```twig
+{{ dump(i18n_zone().context.locale) }}
+{{ dump(i18n_zone().context.countryIso) }}
+```
+
+### Zone Locale Provider Information
+Zone locale provider always holds **provided** locales information in the **current** zone like all valid and available locales.
+
+The zone locale provider represents an instance of `LocaleProviderInterface` which comes with some helper methods:
+
+| Name | Description |
+|------|-------------|
+| getActiveLocales | array, all active locales which are available and valid for current zone |
+| getLocaleData(string $locale, ?string $field = null, string $keyIdentifier = 'locale' | For example: `de_DE` |
+| getDefaultLocale) | For example: `de_DE` |
+| getGlobalInfo | array, international state |
+
+**Twig**
+```twig
+{{ dump(i18n_zone().localeProvider.defaultLocale) }}
+{{ dump(i18n_zone().localeProvider.countryIso) }}
+```
+
+## Navigation Examples
 
 ### Language Drop-Down
 ```twig
-{% set languages = i18n_context('getActiveLanguages') %}
+{% set i18n_zone = i18n_zone() %}
+{% set languages = i18n_zone.activeLanguages %}
 {% if languages is iterable %}
     <nav id="navigation">
         <select>
@@ -281,12 +204,12 @@ Available Options for the `getCurrentCountryInfo` or `getCurrentLanguageInfo` co
         </select>
     </nav>
 {% endif %}
-
 ```
 
 ### Country Selection
 ```twig
-{% set countries = i18n_context('getActiveCountries') %}
+{% set i18n_zone = i18n_zone() %}
+{% set countries = i18n_zone.activeCountries %}
 {% if countries is iterable %}
     <nav id="navigation">
         {% for country in countries %}
@@ -307,30 +230,31 @@ Available Options for the `getCurrentCountryInfo` or `getCurrentLanguageInfo` co
 ### Complex Country / Language Selection based on Current Zone
 ```twig
 <nav id="navigation">
-{% if i18n_zone_info('mode') == 'country' %}
-    {% set countries = i18n_context('getActiveCountries') %}
-    {% if countries is iterable %}
-        {% for country in countries %}
-            <ul>
-                <li class="country">{{ country.countryTitle }}
-                    <ul class="languages">
-                        {% for language in country.languages %}
-                            <li{{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </li>
-            </ul>
-        {% endfor %}
-    {% endif %}
-{% elseif i18n_zone_info('mode') == 'language' %}
-    {% set languages = i18n_context('getActiveLanguages') %}
-    {% if languages is iterable %}
-        <select>
-            {% for language in languages %}
-                <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+    {% set i18n_zone = i18n_zone() %}
+    {% if i18n_zone.mode == 'country' %}
+        {% set countries = i18n_zone.activeCountries %}
+        {% if countries is iterable %}
+            {% for country in countries %}
+                <ul>
+                    <li class="country">{{ country.countryTitle }}
+                        <ul class="languages">
+                            {% for language in country.languages %}
+                                <li{{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
             {% endfor %}
-        </select>
+        {% endif %}
+    {% elseif i18n_zone.mode == 'language' %}
+        {% set languages = i18n_zone.activeLanguages %}
+        {% if languages is iterable %}
+            <select>
+                {% for language in languages %}
+                    <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+                {% endfor %}
+            </select>
+        {% endif %}
     {% endif %}
-{% endif %}
 </nav>
 ```

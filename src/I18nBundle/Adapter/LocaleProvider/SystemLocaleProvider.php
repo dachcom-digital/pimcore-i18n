@@ -1,12 +1,12 @@
 <?php
 
-namespace I18nBundle\Adapter\Locale;
+namespace I18nBundle\Adapter\LocaleProvider;
 
 use I18nBundle\Definitions;
 use Pimcore\Config;
 use Pimcore\Tool;
 
-class System extends AbstractLocale
+class SystemLocaleProvider extends AbstractLocaleProvider
 {
     protected array $validLocales = [];
     protected ?string $defaultLocale = null;
@@ -54,9 +54,10 @@ class System extends AbstractLocale
         return $this->validLocales;
     }
 
-    public function getLocaleData($locale, $field = null, $keyIdentifier = 'locale'): mixed
+    public function getLocaleData(string $locale, string $field, string $keyIdentifier = 'id'): mixed
     {
         $key = array_search($locale, array_column($this->getActiveLocales(), $keyIdentifier), true);
+
         if ($key !== false) {
             return $this->validLocales[$key][$field];
         }

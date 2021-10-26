@@ -2,6 +2,8 @@
 
 namespace I18nBundle\Registry;
 
+use I18nBundle\Adapter\Redirector\RedirectorInterface;
+
 class RedirectorRegistry
 {
     protected array $adapter = [];
@@ -32,7 +34,7 @@ class RedirectorRegistry
         return isset($this->adapter[$alias]);
     }
 
-    public function get(string $alias)
+    public function get(string $alias): RedirectorInterface
     {
         if (!$this->has($alias)) {
             throw new \Exception('"' . $alias . '" redirector identifier does not exist');
@@ -41,6 +43,9 @@ class RedirectorRegistry
         return $this->adapter[$alias];
     }
 
+    /**
+     * @return array<int, RedirectorInterface>
+     */
     public function all(): array
     {
         $list = [];

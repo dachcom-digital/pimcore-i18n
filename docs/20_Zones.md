@@ -2,7 +2,7 @@
 
 ![zone](https://user-images.githubusercontent.com/700119/28177968-0a3e592e-67fd-11e7-99a3-52b8f77683a4.jpg)
 
-By default the i18nBundle works with the global settings (see example below). 
+By default, the i18nBundle works with the global settings (see example below). 
 But you may need some more complex structures, so we implemented the zone manager.
 
 ### Default Configuration Options
@@ -49,9 +49,9 @@ i18n:
             id: 1
             # domains must be the main domain of page
             domains:
-                - 'pimcore5-domain1.dev'
-                - 'pimcore5-domain2.dev'
-                - 'pimcore5-domain3.dev'
+                - 'pimcore5-domain1.test'
+                - 'pimcore5-domain2.test'
+                - 'pimcore5-domain3.test'
             config:
                 mode: language
                 locale_adapter: system
@@ -61,9 +61,9 @@ i18n:
         zone2:
             id: 2
             domains:
-                - 'pimcore5-domain4.dev'
-                - 'pimcore5-domain5.dev'
-                - 'pimcore5-domain6.dev'
+                - 'pimcore5-domain4.test'
+                - 'pimcore5-domain5.test'
+                - 'pimcore5-domain6.test'
             config:
                 mode: country
                 locale_adapter: system
@@ -73,7 +73,7 @@ i18n:
         zone3:
             id: 3
             domains:
-                - 'pimcore5-domain7.dev'
+                - 'pimcore5-domain7.test'
             config:
                 mode: language
                 locale_adapter: system

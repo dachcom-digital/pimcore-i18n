@@ -2,19 +2,13 @@
 
 namespace I18nBundle\Adapter\Redirector;
 
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Model\I18nSiteInterface;
 
 class FallbackRedirector extends AbstractRedirector
 {
     protected ?string $guessedLocale = null;
     protected ?string $guessedLanguage = null;
     protected ?string $guessedCountry = null;
-    protected ZoneManager $zoneManager;
-
-    public function __construct(ZoneManager $zoneManager)
-    {
-        $this->zoneManager = $zoneManager;
-    }
 
     public function makeDecision(RedirectorBag $redirectorBag): void
     {
@@ -22,42 +16,44 @@ class FallbackRedirector extends AbstractRedirector
             return;
         }
 
-        $url = $this->findUrlInZoneTree($redirectorBag->getDefaultLocale());
-        $valid = !empty($url);
+        $zoneSite = $this->findZoneSite($redirectorBag);
+
+        if (!$zoneSite instanceof I18nSiteInterface) {
+            $this->setDecision(['valid' => false]);
+            return;
+        }
 
         $this->setDecision([
-            'valid'    => $valid,
-            'locale'   => is_string($this->guessedLocale) ? $this->guessedLocale : null,
-            'country'  => is_string($this->guessedCountry) ? $this->guessedCountry : null,
-            'language' => is_string($this->guessedLanguage) ? $this->guessedLanguage : null,
-            'url'      => is_string($url) ? $url : null
+            'valid'    => true,
+            'locale'   => $zoneSite->getLocale(),
+            'country'  => $zoneSite->getCountryIso(),
+            'language' => $zoneSite->getLanguageIso(),
+            'url'      => $zoneSite->getHomeUrl()
         ]);
     }
 
-    protected function findUrlInZoneTree(?string $fallBackLocale): ?string
+    protected function findZoneSite(RedirectorBag $redirectorBag): ?I18nSiteInterface
     {
+        $fallbackLocale = $redirectorBag->getZone()->getLocaleProvider()->getDefaultLocale();
+
         try {
-            $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+            $zoneSites = $redirectorBag->getZone()->getSites(true);
         } catch (\Exception $e) {
             return null;
         }
 
-        if (!is_array($zoneDomains)) {
+        if (!is_array($zoneSites)) {
             return null;
         }
 
-        $indexId = array_search($fallBackLocale, array_column($zoneDomains, 'locale'), true);
+        $indexId = array_search($fallbackLocale, array_map(static function (I18nSiteInterface $site) {
+            return $site->getLocale();
+        }, $zoneSites), true);
 
         if ($indexId === false) {
             return null;
         }
 
-        $docData = $zoneDomains[$indexId];
-
-        $this->guessedLocale = $docData['locale'];
-        $this->guessedLanguage = $docData['languageIso'];
-        $this->guessedCountry = $docData['countryIso'];
-
-        return $docData['homeUrl'];
+        return $zoneSites[$indexId];
     }
 }

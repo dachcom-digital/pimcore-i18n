@@ -3,6 +3,7 @@
 namespace I18nBundle\EventListener\Frontend;
 
 use I18nBundle\Definitions;
+use Pimcore\Bundle\CoreBundle\EventListener\Frontend\ElementListener;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
@@ -42,6 +43,10 @@ class FrontPageMapperListener implements EventSubscriberInterface
             return;
         }
 
+        if ($request->attributes->get('_route') === 'fos_js_routing_js') {
+            return;
+        }
+
         // use original document resolver to allow using document override!
         $document = $this->documentResolver->getDocument($request);
         if (!$document instanceof Document) {
@@ -54,13 +59,17 @@ class FrontPageMapperListener implements EventSubscriberInterface
 
         /** @var Hardlink\Wrapper\WrapperInterface $wrapperDocument */
         $wrapperDocument = $document;
-        if ($wrapperDocument->getHardLinkSource()->getFullPath() === $document->getFullPath()) {
-            $mapDocument = $wrapperDocument->getHardLinkSource()->getProperty('front_page_map');
-            if (!empty($mapDocument)) {
-                $request->attributes->set(Definitions::FRONT_PAGE_MAP, ['id' => $document->getId(), 'key' => $document->getKey()]);
-                $this->documentResolver->setDocument($request, $mapDocument);
-            }
+        if ($wrapperDocument->getHardLinkSource()->getFullPath() !== $document->getFullPath()) {
+            return;
         }
 
+        $mapDocument = $wrapperDocument->getHardLinkSource()->getProperty('front_page_map');
+        if (!$mapDocument instanceof Document) {
+            return;
+        }
+
+        $request->attributes->set(ElementListener::FORCE_ALLOW_PROCESSING_UNPUBLISHED_ELEMENTS, true);
+        $request->attributes->set(Definitions::FRONT_PAGE_MAP, ['id' => $document->getId(), 'key' => $document->getKey()]);
+        $this->documentResolver->setDocument($request, $mapDocument);
     }
 }

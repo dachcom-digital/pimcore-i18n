@@ -2,42 +2,32 @@
 
 namespace I18nBundle\Adapter\Redirector;
 
-use Pimcore\Model\Document;
+use I18nBundle\Model\I18nZoneInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class RedirectorBag
 {
     protected array $decisionBag = [];
-    protected string $i18nMode;
+    protected I18nZoneInterface $zone;
     protected Request $request;
-    protected Document $document;
-    protected ?string $documentLocale;
-    protected ?string $documentCountry;
-    protected ?string $defaultLocale;
 
     public function __construct(array $options)
     {
         $resolver = new OptionsResolver();
         $resolver->setDefaults([
-            'i18nType'        => null,
-            'request'         => null,
-            'document'        => null,
-            'documentLocale'  => null,
-            'documentCountry' => null,
-            'defaultLocale'   => null,
+            'zone'    => null,
+            'request' => null,
         ]);
 
-        $resolver->setRequired(['i18nType', 'request', 'document']);
+        $resolver->setRequired(['zone', 'request']);
+        $resolver->setAllowedTypes('zone', [I18nZoneInterface::class]);
+        $resolver->setAllowedTypes('request', [Request::class]);
 
         $options = $resolver->resolve($options);
 
-        $this->i18nMode = $options['i18nType'];
+        $this->zone = $options['zone'];
         $this->request = $options['request'];
-        $this->document = $options['document'];
-        $this->documentLocale = $options['documentLocale'];
-        $this->documentCountry = $options['documentCountry'];
-        $this->defaultLocale = $options['defaultLocale'];
     }
 
     public function addRedirectorDecisionToBag(string $name, array $decision): void
@@ -53,9 +43,9 @@ class RedirectorBag
         return $this->request;
     }
 
-    public function getI18nMode(): string
+    public function getZone(): I18nZoneInterface
     {
-        return $this->i18nMode;
+        return $this->zone;
     }
 
     public function getLastRedirectorDecision(): ?array
@@ -80,10 +70,5 @@ class RedirectorBag
     public function getRedirectorDecisionBag(): array
     {
         return $this->decisionBag;
-    }
-
-    public function getDefaultLocale(): ?string
-    {
-        return $this->defaultLocale;
     }
 }

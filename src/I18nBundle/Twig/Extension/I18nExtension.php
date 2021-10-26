@@ -3,43 +3,53 @@
 namespace I18nBundle\Twig\Extension;
 
 use I18nBundle\Exception\ContextNotDefinedException;
+use I18nBundle\Http\ZoneResolverInterface;
 use I18nBundle\Manager\ZoneManager;
-use I18nBundle\Manager\ContextManager;
+use I18nBundle\Model\I18nZoneInterface;
+use Pimcore\Model\DataObject\AbstractObject;
+use Pimcore\Model\Document\PageSnippet;
+use Pimcore\Model\Element\ElementInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
 class I18nExtension extends AbstractExtension
 {
+    protected RequestStack $requestStack;
+    protected ZoneResolverInterface $zoneResolver;
     protected ZoneManager $zoneManager;
-    protected ContextManager $contextManager;
 
-    public function __construct(ZoneManager $zoneManager, ContextManager $contextManager)
-    {
+    public function __construct(
+        RequestStack $requestStack,
+        ZoneResolverInterface $zoneResolver,
+        ZoneManager $zoneManager
+    ) {
+        $this->requestStack = $requestStack;
+        $this->zoneResolver = $zoneResolver;
         $this->zoneManager = $zoneManager;
-        $this->contextManager = $contextManager;
     }
 
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('i18n_context', [$this, 'getI18Context']),
-            new TwigFunction('i18n_zone_info', [$this, 'getI18nZoneInfo'])
+            new TwigFunction('i18n_zone', [$this, 'getI18nZone']),
+            new TwigFunction('i18n_create_zone_by_entity', [$this, 'createI18nZoneByEntity'], ['needs_context' => true]),
         ];
     }
 
-    public function getI18Context(string $method = '', array $options = []): mixed
+    public function getI18nZone(): ?I18nZoneInterface
     {
-        try {
-            $context = $this->contextManager->getContext();
-        } catch (ContextNotDefinedException $e) {
-            return null;
-        }
-
-        return call_user_func_array([$context, $method], $options);
+        return $this->zoneResolver->getZone($this->requestStack->getCurrentRequest());
     }
 
-    public function getI18nZoneInfo(string $slot = ''): mixed
+    public function createI18nZoneByEntity(array $context, ElementInterface $entity, string $locale, array $routeParams = [], ?string $mappedDomain = null)
     {
-        return $this->zoneManager->getCurrentZoneInfo($slot);
+        $baseDocument = $entity instanceof AbstractObject ? $context['document'] : $entity;
+
+        if (!$baseDocument instanceof PageSnippet) {
+            throw new \Exception('Entity context requires a valid document');
+        }
+
+        return $this->zoneManager->buildZoneByEntity($entity, $locale, $routeParams, $mappedDomain);
     }
 }

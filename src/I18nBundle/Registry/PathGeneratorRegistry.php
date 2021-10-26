@@ -2,6 +2,8 @@
 
 namespace I18nBundle\Registry;
 
+use I18nBundle\Adapter\PathGenerator\PathGeneratorInterface;
+
 class PathGeneratorRegistry
 {
     protected array $adapter = [];
@@ -33,7 +35,7 @@ class PathGeneratorRegistry
         return isset($this->adapter[$alias]);
     }
 
-    public function get(string $alias)
+    public function get(string $alias): PathGeneratorInterface
     {
         if (!$this->has($alias)) {
             throw new \Exception('"' . $alias . '" PathGenerator Identifier does not exist');

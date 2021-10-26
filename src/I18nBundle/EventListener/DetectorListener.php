@@ -3,14 +3,13 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Helper\CookieHelper;
-use I18nBundle\Helper\DocumentHelper;
 use I18nBundle\Helper\RequestValidatorHelper;
+use I18nBundle\Http\ZoneResolverInterface;
+use I18nBundle\Model\I18nSiteInterface;
+use I18nBundle\Model\I18nZoneInterface;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use I18nBundle\Adapter\Redirector\RedirectorBag;
-use I18nBundle\Adapter\Redirector\RedirectorInterface;
 use I18nBundle\Configuration\Configuration;
-use I18nBundle\Manager\ContextManager;
-use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Registry\RedirectorRegistry;
 use I18nBundle\Tool\System;
 use Pimcore\Config;
@@ -20,7 +19,6 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Pimcore\Model\Document;
-use Pimcore\Cache;
 
 class DetectorListener implements EventSubscriberInterface
 {
@@ -28,29 +26,23 @@ class DetectorListener implements EventSubscriberInterface
     protected CookieHelper $cookieHelper;
     protected RedirectorRegistry $redirectorRegistry;
     protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
-    protected ZoneManager $zoneManager;
-    protected ContextManager $contextManager;
-    protected DocumentHelper $documentHelper;
     protected RequestValidatorHelper $requestValidatorHelper;
+    protected ZoneResolverInterface $zoneResolver;
 
     public function __construct(
         Configuration $configuration,
         CookieHelper $cookieHelper,
         RedirectorRegistry $redirectorRegistry,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        ZoneManager $zoneManager,
-        ContextManager $contextManager,
-        DocumentHelper $documentHelper,
+        ZoneResolverInterface $zoneResolver,
         RequestValidatorHelper $requestValidatorHelper
     ) {
         $this->configuration = $configuration;
         $this->cookieHelper = $cookieHelper;
         $this->redirectorRegistry = $redirectorRegistry;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
-        $this->zoneManager = $zoneManager;
-        $this->contextManager = $contextManager;
-        $this->documentHelper = $documentHelper;
         $this->requestValidatorHelper = $requestValidatorHelper;
+        $this->zoneResolver = $zoneResolver;
     }
 
     public static function getSubscribedEvents(): array
@@ -77,10 +69,6 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        if (!$document instanceof Document) {
-            return;
-        }
-
         if (!$this->requestValidatorHelper->isValidForRedirect($request, false)) {
             return;
         }
@@ -89,34 +77,26 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $validLocales = $this->zoneManager->getCurrentZoneLocaleAdapter()->getActiveLocales();
-        $defaultLocale = $this->zoneManager->getCurrentZoneLocaleAdapter()->getDefaultLocale();
-        $i18nType = $this->zoneManager->getCurrentZoneInfo('mode');
-
-        $documentLocaleData = $this->documentHelper->getDocumentLocaleData($document, $i18nType);
-
-        $documentLocale = $documentLocaleData['documentLocale'];
-        $documentCountry = $documentLocaleData['documentCountry'];
-
-        $validLocale = !empty($documentLocale) && array_search($documentLocale, array_column($validLocales, 'locale')) !== false;
-
-        // locale is available, no redirect required.
-        if ($validLocale !== false) {
+        if (!$document instanceof Document) {
             return;
         }
 
-        $options = [
-            'i18nType'        => $i18nType,
-            'request'         => $request,
-            'document'        => $document,
-            'documentLocale'  => $documentLocale,
-            'documentCountry' => $documentCountry,
-            'defaultLocale'   => $defaultLocale
-        ];
+        // request may contains valid locale (default is "en") so we need to check against given document!
+        if (!empty($document->getProperty('language'))) {
+            return;
+        }
 
-        $redirectorBag = new RedirectorBag($options);
+        $zone = $this->zoneResolver->getZone($request);
 
-        /** @var RedirectorInterface $redirector */
+        if (!$zone instanceof I18nZoneInterface) {
+            return;
+        }
+
+        $redirectorBag = new RedirectorBag([
+            'zone'    => $zone,
+            'request' => $request,
+        ]);
+
         foreach ($this->redirectorRegistry->all() as $redirector) {
             $redirector->makeDecision($redirectorBag);
             $decision = $redirector->getDecision();
@@ -152,10 +132,6 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $currentLocale = false;
-        $currentLanguage = false;
-        $currentCountry = false;
-
         $registryConfig = $this->configuration->getConfig('registry');
         $available = isset($registryConfig['redirector']['cookie'])
             ? $registryConfig['redirector']['cookie']['enabled']
@@ -166,19 +142,13 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        if (Cache\Runtime::isRegistered('i18n.locale')) {
-            $currentLocale = Cache\Runtime::get('i18n.locale');
+        $zone = $this->zoneResolver->getZone($event->getRequest());
+
+        if (!$zone instanceof I18nZoneInterface) {
+            return;
         }
 
-        if (Cache\Runtime::isRegistered('i18n.languageIso')) {
-            $currentLanguage = Cache\Runtime::get('i18n.languageIso');
-        }
-
-        if (Cache\Runtime::isRegistered('i18n.countryIso')) {
-            $currentCountry = Cache\Runtime::get('i18n.countryIso');
-        }
-
-        $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+        $zoneSites = $zone->getSites(true);
         $validUri = $this->getRedirectUrl(strtok($event->getRequest()->getUri(), '?'));
 
         $cookie = $this->cookieHelper->get($event->getRequest());
@@ -189,17 +159,21 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         //check if url is valid
-        $indexId = array_search($validUri, array_column($zoneDomains, 'url'), true);
-        if ($indexId !== false) {
-            $cookieData = [
-                'url'      => $validUri,
-                'locale'   => $currentLocale,
-                'language' => $currentLanguage,
-                'country'  => $currentCountry
-            ];
+        $indexId = array_search($validUri, array_map(static function (I18nSiteInterface $site) {
+            return $site->getUrl();
+        }, $zoneSites), true);
 
-            $this->cookieHelper->set($event->getResponse(), $cookieData);
+        if ($indexId === false) {
+            return;
         }
+
+        $this->cookieHelper->set($event->getResponse(), [
+            'url'      => $validUri,
+            'locale'   => $zone->getContext()->getLocale(),
+            'language' => $zone->getContext()->getLanguageIso(),
+            'country'  => $zone->getContext()->getCountryIso()
+        ]);
+
     }
 
     protected function getRedirectUrl(string $path): string

@@ -2,11 +2,11 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
-use I18nBundle\Manager\ContextManager;
-use I18nBundle\Manager\PathGeneratorManager;
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Http\ZoneResolverInterface;
+use I18nBundle\Model\I18nZoneInterface;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
+use Pimcore\Config;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Twig\Extension\Templating\HeadLink;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -18,24 +18,18 @@ class HeadLinkListener implements EventSubscriberInterface
     use PimcoreContextAwareTrait;
 
     protected HeadLink $headLink;
-    protected ZoneManager $zoneManager;
-    protected ContextManager $contextManager;
-    protected PathGeneratorManager $pathGeneratorManager;
+    protected ZoneResolverInterface $zoneResolver;
     protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
-    protected array $pimcoreConfig;
+    protected Config $pimcoreConfig;
 
     public function __construct(
         HeadLink $headLink,
-        ZoneManager $zoneManager,
-        ContextManager $contextManager,
-        PathGeneratorManager $pathGeneratorManager,
+        ZoneResolverInterface $zoneResolver,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        array $pimcoreConfig
+        Config $pimcoreConfig
     ) {
         $this->headLink = $headLink;
-        $this->zoneManager = $zoneManager;
-        $this->contextManager = $contextManager;
-        $this->pathGeneratorManager = $pathGeneratorManager;
+        $this->zoneResolver = $zoneResolver;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
         $this->pimcoreConfig = $pimcoreConfig;
     }
@@ -60,11 +54,20 @@ class HeadLinkListener implements EventSubscriberInterface
             return;
         }
 
-        $document = $this->pimcoreDocumentResolver->getDocument($request);
-        $hrefLinks = $this->pathGeneratorManager->getPathGenerator()->getUrls($document);
+        if ($request->attributes->get('_route') === 'fos_js_routing_js') {
+            return;
+        }
+
+        $zone = $this->zoneResolver->getZone($request);
+
+        if (!$zone instanceof I18nZoneInterface) {
+            return;
+        }
+
+        $hrefLinks = $zone->getLinkedLanguages();
 
         // Add x-default to main page!
-        $xDefaultUrl = $this->getXDefaultLink($hrefLinks);
+        $xDefaultUrl = $this->getXDefaultLink($zone->getLocaleProvider()->getDefaultLocale(), $hrefLinks);
 
         if (!is_null($xDefaultUrl)) {
             $this->headLink->appendAlternate($this->generateHrefLink($xDefaultUrl), false, false, ['hreflang' => 'x-default']);
@@ -91,15 +94,13 @@ class HeadLinkListener implements EventSubscriberInterface
      *
      * @throws \Exception
      */
-    private function getXDefaultLink(array $hrefLinks = []): ?string
+    private function getXDefaultLink(?string $defaultLocale, array $hrefLinks = []): ?string
     {
         $hrefUrl = null;
 
         if (empty($hrefLinks)) {
             return null;
         }
-
-        $defaultLocale = $this->zoneManager->getCurrentZoneLocaleAdapter()->getDefaultLocale();
 
         foreach ($hrefLinks as $link) {
             if ($link['locale'] === $defaultLocale) {

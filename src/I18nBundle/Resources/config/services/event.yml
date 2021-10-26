@@ -24,8 +24,6 @@ services:
     I18nBundle\EventListener\ContextSwitchDetectorListener:
         tags:
             - { name: kernel.event_subscriber }
-        arguments:
-            $pimcoreConfig: '%pimcore.config%'
 
      # event: checks if hardlink page has a front-page map
     I18nBundle\EventListener\Frontend\FrontPageMapperListener:
@@ -49,14 +47,12 @@ services:
 
     # event: adds i18n meta tags to HeadMeta view helper
     I18nBundle\EventListener\Frontend\HeadLinkListener:
-        arguments:
-            $pimcoreConfig: '%pimcore.config%'
         tags:
             - { name: kernel.event_subscriber }
 
     # override pimcore not found exception handling
     I18nBundle\EventListener\Frontend\ResponseExceptionListener:
-        arguments:
-            $pimcoreConfig: '%pimcore.config%'
+        calls:
+            - [setLogger, ['@logger']]
         tags:
             - { name: kernel.event_subscriber }

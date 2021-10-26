@@ -1,8 +1,8 @@
 <?php
 
-namespace I18nBundle\Adapter\Locale;
+namespace I18nBundle\Adapter\LocaleProvider;
 
-abstract class AbstractLocale implements LocaleInterface
+abstract class AbstractLocaleProvider implements LocaleProviderInterface
 {
     protected ?array $currentZoneConfig = null;
     protected ?int $currentZoneId = null;

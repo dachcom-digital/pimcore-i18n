@@ -5,20 +5,15 @@ services:
         autoconfigure: true
         public: false
 
-    # registry: locale
-    I18nBundle\Registry\LocaleRegistry:
+    # registry: locale provider
+    I18nBundle\Registry\LocaleProviderRegistry:
         arguments:
-            $interface: I18nBundle\Adapter\Locale\LocaleInterface
+            $interface: I18nBundle\Adapter\LocaleProvider\LocaleProviderInterface
 
     # registry: path generator
     I18nBundle\Registry\PathGeneratorRegistry:
         arguments:
             $interface: I18nBundle\Adapter\PathGenerator\PathGeneratorInterface
-
-    # registry: context
-    I18nBundle\Registry\ContextRegistry:
-        arguments:
-            $interface: I18nBundle\Adapter\Context\ContextInterface
 
     # registry: redirector
     I18nBundle\Registry\RedirectorRegistry:
