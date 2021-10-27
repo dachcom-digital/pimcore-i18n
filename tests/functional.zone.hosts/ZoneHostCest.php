@@ -12,8 +12,31 @@ class ZoneHostCest
     public function testZoneWithAdditionalDomains(FunctionalTester $I)
     {
         $I->haveAKernelWithoutDebugMode();
+        $I->haveReplacedPimcoreRuntimeConfigurationNode([
+            'documents' => [
+                'error_pages' => [
+                    'default'   => '/error',
+                    'localized' => [
+                        'en'    => '/en/error',
+                        'de'    => '/de/error',
+                    ]
+                ]
+            ]
+        ]);
 
-        $site1 = $I->haveASite('test-domain8.test', [], null, true, ['test-domain8.test']);
+        $site1 = $I->haveASite(
+            'test-domain8.test',
+            [],
+            null,
+            true,
+            [
+                'test-domain8.test'
+            ],
+            [
+                'en' => '/test-domain8-test/en/error',
+                'de' => '/test-domain8-test/de/error',
+            ]
+        );
 
         $document1 = $I->haveAPageDocumentForSite($site1, 'en', [], 'en');
         $document2 = $I->haveASubPageDocument($document1, 'error', [], 'en');

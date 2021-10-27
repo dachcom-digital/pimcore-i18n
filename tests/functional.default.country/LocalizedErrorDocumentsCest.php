@@ -12,13 +12,20 @@ class LocalizedErrorDocumentsCest
     public function testDefaultErrorPage(FunctionalTester $I)
     {
         $I->haveAKernelWithoutDebugMode();
+        $I->haveReplacedPimcoreRuntimeConfigurationNode([
+            'documents' => [
+                'error_pages' => [
+                    'default' => '/error'
+                ]
+            ]
+        ]);
 
         $defaultErrorDocument = $I->haveAPageDocument('error', [], 'en');
 
         $document1 = $I->haveAPageDocument('en', [], 'en');
         $document2 = $I->haveAPageDocument('de', [], 'de');
 
-        $I->amOnPageWithLocaleAndCountry('/this-page-does-not-exist', 'de_CH', 'switzerland');
+        $I->amOnPageWithLocaleAndCountry('/this-page-does-not-exist', 'en', 'switzerland');
 
         $I->seeCurrentUrlEquals('/this-page-does-not-exist');
 
@@ -32,9 +39,20 @@ class LocalizedErrorDocumentsCest
     public function testLocalizedCountryErrorPage(FunctionalTester $I)
     {
         $I->haveAKernelWithoutDebugMode();
+        $I->haveReplacedPimcoreRuntimeConfigurationNode([
+            'documents' => [
+                'error_pages' => [
+                    'default'   => '/error',
+                    'localized' => [
+                        'en'    => '/en/error',
+                        'de'    => '/de/error',
+                    ]
+                ]
+            ]
+        ]);
 
         // we need to unpublish the default page here
-        // since the default error page is placed on root level (defined in system.php)
+        // since the default error page is placed on root level (defined in system.yaml)
         $defaultErrorDocument = $I->haveAPageDocument('error', [], 'en');
         $I->haveAUnPublishedDocument($defaultErrorDocument);
 
