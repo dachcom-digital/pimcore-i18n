@@ -11,7 +11,7 @@ class LocalizedErrorDocumentsCest extends AbstractZone
      */
     public function testLocalizedErrorPageInDifferentZones(FunctionalTester $I)
     {
-        $setup = $this->setupSites($I);
+        $setup = $this->setupSites($I, true);
 
         $I->haveAKernelWithoutDebugMode();
 
@@ -65,6 +65,8 @@ class LocalizedErrorDocumentsCest extends AbstractZone
         $I->see($localizedErrorDocument11->getId(), '#page-id');
 
         // zone 3 requests
+        $I->amOnPageWithLocaleAndCountry('http://test-domain7.test/questa-pagina-non-esiste', 'it', 'germany');
+        $I->see($localizedErrorDocument12->getId(), '#page-id');
         $I->amOnPageWithLocaleAndCountry('http://test-domain7.test/questa-pagina-non-esiste', 'de_DE', 'germany');
         $I->see($localizedErrorDocument12->getId(), '#page-id');
 
