@@ -2,13 +2,11 @@
 
 namespace I18nBundle\Model;
 
-interface I18nSiteInterface
+interface I18nZoneSiteInterface
 {
+    public function getSiteRequestContext(): SiteRequestContext;
+
     public function getRootId(): int;
-
-    public function getHost(): string;
-
-    public function getRealHost(): string;
 
     public function isRootDomain(): bool;
 
@@ -25,8 +23,6 @@ interface I18nSiteInterface
     public function getUrl(): string;
 
     public function getHomeUrl(): ?string;
-
-    public function getDomainUrl(): ?string;
 
     public function getFullPath(): string;
 

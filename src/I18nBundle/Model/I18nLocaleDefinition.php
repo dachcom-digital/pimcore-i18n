@@ -2,23 +2,20 @@
 
 namespace I18nBundle\Model;
 
-class I18nContext implements I18nContextInterface
+class I18nLocaleDefinition implements I18nLocaleDefinitionInterface
 {
     protected ?string $locale;
     protected ?string $languageIso;
     protected ?string $countryIso;
-    protected bool $isValidZoneLocale;
 
     public function __construct(
         ?string $locale,
         ?string $languageIso,
         ?string $countryIso,
-        bool $isValidZoneLocale,
     ) {
         $this->locale = $locale;
         $this->languageIso = $languageIso;
         $this->countryIso = $countryIso;
-        $this->isValidZoneLocale = $isValidZoneLocale;
     }
 
     public function getLocale(): ?string
@@ -49,10 +46,5 @@ class I18nContext implements I18nContextInterface
     public function hasCountryIso(): bool
     {
         return $this->countryIso !== null;
-    }
-
-    public function isValidZoneLocale(): bool
-    {
-        return $this->isValidZoneLocale === true;
     }
 }

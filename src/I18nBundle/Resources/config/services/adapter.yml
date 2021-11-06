@@ -19,11 +19,14 @@ services:
     I18nBundle\Adapter\PathGenerator\AbstractPathGenerator:
         abstract: true
         autowire: true
+        calls:
+            - [setAlternateRouteItemTransformer, ['@I18nBundle\Transformer\AlternateRouteItemTransformer']]
 
     I18nBundle\Adapter\PathGenerator\StaticRoute:
         parent: I18nBundle\Adapter\PathGenerator\AbstractPathGenerator
         arguments:
             - '@router'
+            - '@event_dispatcher'
         tags:
             - { name: i18n.adapter.path.generator, alias: static_route }
 

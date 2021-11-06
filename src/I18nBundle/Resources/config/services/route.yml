@@ -1,0 +1,4 @@
+services:
+
+    I18nBundle\Factory\RouteItemFactory:
+        autowire: true

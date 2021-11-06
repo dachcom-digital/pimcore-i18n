@@ -30,11 +30,6 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
-    # event: check frontend path static route
-    I18nBundle\EventListener\Frontend\FrontendPathStaticRouteListener:
-        tags:
-            - { name: kernel.event_subscriber }
-
     # event: removes canonical Link tag from hardlink headers
     I18nBundle\EventListener\CanonicalListener:
         tags:

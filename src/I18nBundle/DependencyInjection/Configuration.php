@@ -21,6 +21,8 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->enumNode('redirect_status_code')->defaultValue(302)->values([301,302])->end()
                 ->booleanNode('enable_context_switch_detector')->defaultValue(false)->end()
+                ->scalarNode('request_scheme')->isRequired()->end()
+                ->integerNode('request_port')->isRequired()->end()
                 ->arrayNode('registry')
                     ->addDefaultsIfNotSet()
                     ->info('')
@@ -68,7 +70,35 @@ class Configuration implements ConfigurationInterface
                             ->integerNode('id')->isRequired()->end()
                             ->scalarNode('name')->defaultValue(null)->end()
                             ->arrayNode('domains')
-                                ->prototype('scalar')->end()
+                                ->prototype('variable')
+                                    ->validate()
+                                        ->ifTrue(function ($domain) {
+
+                                            if (is_string($domain)) {
+                                                return false;
+                                            }
+
+                                            if (!is_array($domain)) {
+                                                return true;
+                                            }
+
+                                            if (!isset($domain[0]) || !is_string($domain[0])) {
+                                                return true;
+                                            }
+
+                                            if (!isset($domain[1]) || !is_string($domain[1])) {
+                                                return true;
+                                            }
+
+                                            if (!isset($domain[2]) || !is_int($domain[2])) {
+                                                return true;
+                                            }
+
+                                            return false;
+                                        })
+                                        ->thenInvalid('Error in your domain setup %s. Use a string for domain name or an array in format [(string) domain.com, (string) https, (int) 99]')
+                                    ->end()
+                                ->end()
                             ->end()
                             ->arrayNode('config')
                                 ->children()

@@ -12,6 +12,11 @@ Generating links via commandline could be a usecase for example.
 {% set object_zone = i18n_create_zone_by_entity(pimcore_object(16), 'en', { attributes: {_route: 'test_route', object_id: 16 } }) %}
 {{ dump(object_zone) }}
 {{ dump(object_zone.linkedLanguages) }}
+<hr>
+<h4>I18n Zone Look-Up (symfony route)</h4>
+{% set object_zone = i18n_create_zone_by_entity(pimcore_object(16), 'en', { attributes: {_route: 'test_route', object_id: 16 } }) %}
+{{ dump(object_zone) }}
+{{ dump(object_zone.linkedLanguages) }}
 ```
 
 ```php

@@ -167,7 +167,7 @@ So your i18n urls should look like this, otherwise symfony will not recognize th
 - `www.domain.com/de_CH/artikel/mein-artikel`
 - `www.domain.com/en_US/news/my-news`
 
-This looks quite ugly, right? We want some nice looking urls:
+This looks quite ugly. We want some nice looking urls:
 - `www.domain.com/de/artikel/mein-artikel`
 - `www.domain.com/de-ch/artikel/mein-artikel`
 - `www.domain.com/en-us/news/my-news`
@@ -175,7 +175,7 @@ This looks quite ugly, right? We want some nice looking urls:
 Yea - that's also possible. Just create your [country element](27_Countries.md) like described and set the document key to `en-us` instead of `en_US` for example.
 This Bundle will automatically transform your static routes locale fragment into valid ones.
 
-> **Note:** Of course it's still possible to use iso code formatted url structures if you really want to do that. ;)
+> **Note:** Of course it's still possible to use iso code formatted url structures if you really want to do that. :)
 
 ## Creating Static Routes in Twig 
 Nothing special here. Just create your url like you know it from the twig standard.

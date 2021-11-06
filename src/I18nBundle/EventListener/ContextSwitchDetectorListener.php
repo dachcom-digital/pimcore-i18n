@@ -3,8 +3,8 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Configuration\Configuration;
-use I18nBundle\Http\ZoneResolverInterface;
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Http\RouteItemResolverInterface;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Config;
 use Pimcore\Logger;
 use Pimcore\Model\Document;
@@ -23,7 +23,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
 {
     protected EventDispatcherInterface $eventDispatcher;
     protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
-    protected ZoneResolverInterface $zoneResolver;
+    protected RouteItemResolverInterface $routeItemResolver;
     protected RequestValidatorHelper $requestValidatorHelper;
     protected Config $pimcoreConfig;
     protected Configuration $configuration;
@@ -31,14 +31,14 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        ZoneResolverInterface $zoneResolver,
+        RouteItemResolverInterface $routeItemResolver,
         RequestValidatorHelper $requestValidatorHelper,
         Config $pimcoreConfig,
         Configuration $configuration
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
-        $this->zoneResolver = $zoneResolver;
+        $this->routeItemResolver = $routeItemResolver;
         $this->requestValidatorHelper = $requestValidatorHelper;
         $this->pimcoreConfig = $pimcoreConfig;
         $this->configuration = $configuration;
@@ -87,15 +87,15 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $zone = $this->zoneResolver->getZone($request);
-        if (!$zone instanceof I18nZoneInterface) {
+        $routeItem = $this->routeItemResolver->getRouteItem($request);
+        if (!$routeItem instanceof RouteItemInterface) {
             return;
         }
 
         // check if zone, language or country has been changed,
         // trigger event for 3th party.
-        $this->detectContextSwitch($zone, $request);
-        $this->updateSessionData($zone, $request);
+        $this->detectContextSwitch($routeItem, $request);
+        $this->updateSessionData($routeItem, $request);
     }
 
     /**
@@ -105,8 +105,10 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
      *
      * @throws \Exception
      */
-    private function detectContextSwitch(I18nZoneInterface $zone, Request $request): void
+    private function detectContextSwitch(RouteItemInterface $routeItem, Request $request): void
     {
+        $zone = $routeItem->getI18nZone();
+
         $session = $this->getSessionData($request);
         $currentZoneId = $zone->getZoneId();
 
@@ -115,9 +117,9 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
         $countryHasSwitched = false;
         $zoneHasSwitched = false;
 
-        $documentLocale = $zone->getContext()->getLocale();
-        $documentLanguage = $zone->getContext()->getLanguageIso();
-        $documentCountry = $zone->getContext()->getCountryIso();
+        $documentLocale = $routeItem->getLocaleDefinition()->getLocale();
+        $documentLanguage = $routeItem->getLocaleDefinition()->getLanguageIso();
+        $documentCountry = $routeItem->getLocaleDefinition()->getCountryIso();
 
         if (is_null($session['lastLocale']) || ($documentLocale !== $session['lastLocale'])) {
             $localeHasSwitched = true;
@@ -233,12 +235,12 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     /**
      * @throws \Exception
      */
-    protected function updateSessionData(I18nZoneInterface $zone, Request $request): void
+    protected function updateSessionData(RouteItemInterface $routeItem, Request $request): void
     {
-        $documentLocale = $zone->getContext()->getLocale();
-        $documentLanguage = $zone->getContext()->getLanguageIso();
-        $documentCountry = $zone->getContext()->getCountryIso();
-        $currentZoneId = $zone->getZoneId();
+        $documentLocale = $routeItem->getLocaleDefinition()->getLocale();
+        $documentLanguage = $routeItem->getLocaleDefinition()->getLanguageIso();
+        $documentCountry = $routeItem->getLocaleDefinition()->getCountryIso();
+        $currentZoneId = $routeItem->getI18nZone()->getZoneId();
 
         /** @var NamespacedAttributeBag $bag */
         $bag = $request->getSession()->getBag('i18n_session');

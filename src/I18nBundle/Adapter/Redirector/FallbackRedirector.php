@@ -2,7 +2,7 @@
 
 namespace I18nBundle\Adapter\Redirector;
 
-use I18nBundle\Model\I18nSiteInterface;
+use I18nBundle\Model\I18nZoneSiteInterface;
 
 class FallbackRedirector extends AbstractRedirector
 {
@@ -18,7 +18,7 @@ class FallbackRedirector extends AbstractRedirector
 
         $zoneSite = $this->findZoneSite($redirectorBag);
 
-        if (!$zoneSite instanceof I18nSiteInterface) {
+        if (!$zoneSite instanceof I18nZoneSiteInterface) {
             $this->setDecision(['valid' => false]);
             return;
         }
@@ -32,9 +32,9 @@ class FallbackRedirector extends AbstractRedirector
         ]);
     }
 
-    protected function findZoneSite(RedirectorBag $redirectorBag): ?I18nSiteInterface
+    protected function findZoneSite(RedirectorBag $redirectorBag): ?I18nZoneSiteInterface
     {
-        $fallbackLocale = $redirectorBag->getZone()->getLocaleProvider()->getDefaultLocale();
+        $fallbackLocale = $redirectorBag->getZone()->getLocaleProviderDefaultLocale();
 
         try {
             $zoneSites = $redirectorBag->getZone()->getSites(true);
@@ -46,7 +46,7 @@ class FallbackRedirector extends AbstractRedirector
             return null;
         }
 
-        $indexId = array_search($fallbackLocale, array_map(static function (I18nSiteInterface $site) {
+        $indexId = array_search($fallbackLocale, array_map(static function (I18nZoneSiteInterface $site) {
             return $site->getLocale();
         }, $zoneSites), true);
 

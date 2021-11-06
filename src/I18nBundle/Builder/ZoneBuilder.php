@@ -2,16 +2,17 @@
 
 namespace I18nBundle\Builder;
 
-use I18nBundle\Adapter\LocaleProvider\LocaleProviderInterface;
 use I18nBundle\Adapter\PathGenerator\PathGeneratorInterface;
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Definitions;
-use I18nBundle\Model\I18nSite;
-use I18nBundle\Model\I18nSiteInterface;
+use I18nBundle\Model\I18nZoneSite;
+use I18nBundle\Model\I18nZoneSiteInterface;
 use I18nBundle\Model\I18nZone;
 use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Model\SiteRequestContext;
 use I18nBundle\Registry\LocaleProviderRegistry;
 use I18nBundle\Registry\PathGeneratorRegistry;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Db\Connection;
 use Pimcore\Model\Document;
 use Pimcore\Model\Site;
@@ -22,7 +23,6 @@ class ZoneBuilder
     protected ?string $generalDomain;
     protected Connection $db;
     protected Configuration $configuration;
-    protected ContextBuilder $contextBuilder;
     protected LocaleProviderRegistry $localeProviderRegistry;
     protected PathGeneratorRegistry $pathGeneratorRegistry;
 
@@ -30,37 +30,28 @@ class ZoneBuilder
         ?string $generalDomain,
         Connection $db,
         Configuration $configuration,
-        ContextBuilder $contextBuilder,
         LocaleProviderRegistry $localeProviderRegistry,
         PathGeneratorRegistry $pathGeneratorRegistry
     ) {
         $this->db = $db;
         $this->generalDomain = $generalDomain;
         $this->configuration = $configuration;
-        $this->contextBuilder = $contextBuilder;
         $this->localeProviderRegistry = $localeProviderRegistry;
         $this->pathGeneratorRegistry = $pathGeneratorRegistry;
     }
 
-    public function buildZone(array $contextOptions)
+    public function buildZone(array $contextOptions): I18nZoneInterface
     {
         $optionsResolver = new OptionsResolver();
         $optionsResolver
             ->setDefaults([
-                'site'                         => null,
-                'request_source'               => null,
-                'base_locale'                  => null,
-                'path_generator_options'       => null,
-                'edit_mode'                    => null,
-                'is_frontend_request_by_admin' => null,
+                'route_item'                   => null,
+                'edit_mode'                    => false,
+                'is_frontend_request_by_admin' => false,
             ])
-            ->setAllowedTypes('site', ['null', Site::class])
-            ->setAllowedTypes('request_source', ['string'])
-            ->setAllowedTypes('base_locale', ['string'])
-            ->setAllowedTypes('path_generator_options', ['array'])
+            ->setAllowedTypes('route_item', [RouteItemInterface::class])
             ->setAllowedTypes('edit_mode', ['bool'])
-            ->setAllowedTypes('is_frontend_request_by_admin', ['bool'])
-            ->setAllowedValues('request_source', ['static_route', 'document', 'symfony']);
+            ->setAllowedTypes('is_frontend_request_by_admin', ['bool']);
 
         $options = $optionsResolver->resolve($contextOptions);
 
@@ -69,7 +60,9 @@ class ZoneBuilder
 
     protected function build(array $options): I18nZoneInterface
     {
-        $site = $options['site'];
+        /** @var RouteItemInterface $routeItem */
+        $routeItem = $options['route_item'];
+        $site = $routeItem->getRouteContextBag()->get('site');
 
         $zones = $this->configuration->getConfig('zones');
 
@@ -78,17 +71,20 @@ class ZoneBuilder
             return $this->createZone($options, $this->configuration->getConfigNode());
         }
 
-        // it's not a site request, zones are invalid. use the default settings.
         if (!$site instanceof Site) {
-            return $this->createZone($options, $this->configuration->getConfigNode());
+            throw new \Exception('To generate a zone object, you need to assign a valid site if zones are configured. No site assignment found. Maybe there is a typo in your i18n.zones.domains mapping?');
         }
 
         $validZone = false;
         $zoneConfig = [];
-        $currentSite = $site;
 
         foreach ($zones as $zone) {
-            if (in_array($currentSite->getMainDomain(), $zone['domains'], true)) {
+
+            $flattenDomains = array_map(static function ($domain) {
+                return is_string($domain) ? $domain : $domain[0];
+            }, $zone['domains']);
+
+            if (in_array($site->getMainDomain(), $flattenDomains, true)) {
                 $validZone = true;
                 $zoneConfig = $zone;
 
@@ -98,7 +94,7 @@ class ZoneBuilder
 
         // no valid zone found. use default one.
         if ($validZone === false) {
-            return $this->createZone($options, $this->configuration->getConfigNode());
+            throw new \Exception(sprintf('No i18n zone for domain "%s" found. Maybe there is a typo in your i18n.zones.domains mapping?', $site->getMainDomain()));
         }
 
         return $this->createZone($options, $zoneConfig['config'], $zoneConfig['id'], $zoneConfig['name'], $zoneConfig['domains']);
@@ -106,46 +102,52 @@ class ZoneBuilder
 
     protected function createZone(
         array $options,
-        array $config,
+        array $zoneDefinition,
         ?int $currentZoneId = null,
         ?string $currentZoneName = null,
         array $currentZoneDomains = []
     ): I18nZoneInterface {
 
-        if (!empty($config['locale_adapter']) && !$this->localeProviderRegistry->has($config['locale_adapter'])) {
+        if (!empty($zoneDefinition['locale_adapter']) && !$this->localeProviderRegistry->has($zoneDefinition['locale_adapter'])) {
             throw new \Exception(sprintf(
                 'locale provider "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.',
-                $config['locale_adapter'],
+                $zoneDefinition['locale_adapter'],
                 'i18n.adapter.locale',
-                $config['locale']
+                $zoneDefinition['locale']
             ));
         }
 
-        $baseLocale = $options['base_locale'];
-        $requestSource = $options['request_source'];
-        $pathGeneratorOptions = $options['path_generator_options'];
+        $filteredZoneDefinition = $this->filterZoneDefinition($zoneDefinition);
 
-        $localeProvider = $this->localeProviderRegistry->get($config['locale_adapter']);
-        $localeProvider->setCurrentZoneConfig($currentZoneId, $this->filterZoneConfiguration($config));
+        /** @var RouteItemInterface $routeItem */
+        $routeItem = $options['route_item'];
 
-        $context = $this->contextBuilder->build($baseLocale, $localeProvider, $config['mode']);
-        $pathGenerator = $this->buildPathGenerator($requestSource, $pathGeneratorOptions);
-        $zoneSites = $this->createZoneSites($options, $config, $currentZoneId, $currentZoneDomains, $localeProvider);
+        $localeProvider = $this->localeProviderRegistry->get($zoneDefinition['locale_adapter']);
+        $activeZoneLocales = $localeProvider->getActiveLocales($filteredZoneDefinition);
+
+        $pathGeneratorOptionsResolver = new OptionsResolver();
+        $pathGeneratorOptionsResolver->setDefined(array_keys($routeItem->getRouteAttributes()));
+        $pathGeneratorOptionsResolver->resolve($routeItem->getRouteAttributes());
+
+        $pathGenerator = $this->buildPathGenerator($routeItem->getType());
+        $pathGenerator->configureOptions($pathGeneratorOptionsResolver);
+
+        $zoneSites = $this->createZoneSites($options, $zoneDefinition, $currentZoneId, $currentZoneDomains, $activeZoneLocales);
 
         return new I18nZone(
             $currentZoneId,
             $currentZoneName,
+            $zoneDefinition['mode'],
             $currentZoneDomains,
-            $config['mode'],
-            $config['translations'],
-            $context,
+            $filteredZoneDefinition,
+            $routeItem,
             $localeProvider,
             $pathGenerator,
             $zoneSites,
         );
     }
 
-    protected function createZoneSites(array $options, array $config, ?int $currentZoneId, array $currentZoneDomains, LocaleProviderInterface $localeProvider): array
+    protected function createZoneSites(array $options, array $zoneDefinition, ?int $currentZoneId, array $currentZoneDomains, array $activeZoneLocales): array
     {
         $zoneSites = [];
         $availableSites = $this->fetchAvailableSites();
@@ -159,8 +161,10 @@ class ZoneBuilder
         }
 
         foreach ($availableSites as $site) {
-            $zoneSite = $this->createZoneSite($options, $config, $localeProvider, $currentZoneId, $currentZoneDomains, $site['mainDomain'], $site['rootId']);
-            if ($zoneSite instanceof I18nSiteInterface) {
+
+
+            $zoneSite = $this->createZoneSite($options, $zoneDefinition, $activeZoneLocales, $currentZoneId, $currentZoneDomains, $site['mainDomain'], $site['rootId']);
+            if ($zoneSite instanceof I18nZoneSiteInterface) {
                 $zoneSites[] = $zoneSite;
             }
         }
@@ -170,33 +174,38 @@ class ZoneBuilder
 
     protected function createZoneSite(
         array $options,
-        array $config,
-        LocaleProviderInterface $localeProvider,
+        array $zoneDefinition,
+        array $activeZoneLocales,
         ?int $currentZoneId,
         array $currentZoneDomains,
-        string $domain,
+        string $mainDomain,
         int $rootId
-    ): ?I18nSiteInterface {
+    ): ?I18nZoneSiteInterface {
+
         $domainDoc = Document::getById($rootId);
 
         if (!$domainDoc instanceof Document) {
             return null;
         }
 
-        $domainHost = $this->getDomainHost($domain);
         $isFrontendRequestByAdmin = $options['is_frontend_request_by_admin'];
 
+        $currentZoneDomainConfiguration = null;
         $valid = $currentZoneId === null;
 
         if ($currentZoneId !== null && !empty($currentZoneDomains)) {
             foreach ($currentZoneDomains as $currentZoneDomain) {
-                if ($domainHost === $this->getDomainHost($currentZoneDomain)) {
+                $currentZoneDomainHost = is_array($currentZoneDomain) ? $currentZoneDomain[0] : $currentZoneDomain;
+                if ($mainDomain === $currentZoneDomainHost) {
+                    $currentZoneDomainConfiguration = $currentZoneDomain;
                     $valid = true;
 
                     break;
                 }
             }
         }
+
+        $siteRequestContext = $this->generateSiteRequestContext($mainDomain, $currentZoneDomainConfiguration);
 
         $isPublishedMode = $domainDoc->isPublished() === true || $isFrontendRequestByAdmin;
         if ($valid === false || $isPublishedMode === false) {
@@ -209,7 +218,7 @@ class ZoneBuilder
         $docLocale = $domainDoc->getProperty('language');
         $docCountryIso = null;
 
-        if ($config['mode'] === 'country' && !empty($docLocale)) {
+        if ($zoneDefinition['mode'] === 'country' && !empty($docLocale)) {
             $docCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
         }
 
@@ -220,12 +229,10 @@ class ZoneBuilder
             }
         }
 
-        $activeLocales = $localeProvider->getActiveLocales();
-
         //domain has language, it's the root.
         if (!empty($docLocale)) {
             $isRootDomain = true;
-            if (!in_array($docLocale, array_column($activeLocales, 'locale'), true)) {
+            if (!in_array($docLocale, array_column($activeZoneLocales, 'locale'), true)) {
                 return null;
             }
         } else {
@@ -294,7 +301,7 @@ class ZoneBuilder
                 $childDocLocale = $child->getProperty('language');
                 $childCountryIso = null;
 
-                if ($config['mode'] === 'country') {
+                if ($zoneDefinition['mode'] === 'country') {
                     $childCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
                 }
 
@@ -305,13 +312,12 @@ class ZoneBuilder
                     }
                 }
 
-                if (empty($childDocLocale) || !in_array($childDocLocale, array_column($activeLocales, 'locale'), true)) {
+                if (empty($childDocLocale) || !in_array($childDocLocale, array_column($activeZoneLocales, 'locale'), true)) {
                     continue;
                 }
 
-                $domainUrl = $this->getDomainUrl($domain);
-                $domainUrlWithKey = rtrim($domainUrl . DIRECTORY_SEPARATOR . $urlKey, DIRECTORY_SEPARATOR);
-                $homeDomainUrlWithKey = rtrim($domainUrl . DIRECTORY_SEPARATOR . $docUrl, DIRECTORY_SEPARATOR);
+                $domainUrlWithKey = rtrim($siteRequestContext->getDomainUrl() . DIRECTORY_SEPARATOR . $urlKey, DIRECTORY_SEPARATOR);
+                $homeDomainUrlWithKey = rtrim($siteRequestContext->getDomainUrl() . DIRECTORY_SEPARATOR . $docUrl, DIRECTORY_SEPARATOR);
 
                 $realLang = explode('_', $childDocLocale);
                 $hrefLang = strtolower($realLang[0]);
@@ -319,10 +325,9 @@ class ZoneBuilder
                     $hrefLang .= '-' . strtolower($childCountryIso);
                 }
 
-                $subPages[] = new I18nSite(
+                $subPages[] = new I18nZoneSite(
+                    $siteRequestContext,
                     $child->getId(),
-                    $domain,
-                    $domainHost,
                     false,
                     $childDocLocale,
                     $childCountryIso,
@@ -331,7 +336,6 @@ class ZoneBuilder
                     $urlKey,
                     $domainUrlWithKey,
                     $homeDomainUrlWithKey,
-                    $domainUrl,
                     $child->getRealFullPath(),
                     $child->getType()
                 );
@@ -350,28 +354,24 @@ class ZoneBuilder
             }
         }
 
-        $domainUrl = $this->getDomainUrl($domain);
-
-        return new I18nSite(
+        return new I18nZoneSite(
+            $siteRequestContext,
             $rootId,
-            $domain,
-            $domainHost,
             $isRootDomain,
             $docLocale,
             $docCountryIso,
             $docRealLanguageIso,
             $hrefLang,
             null,
-            $domainUrl,
-            $domainUrl,
-            $domainUrl,
+            $siteRequestContext->getDomainUrl(),
+            $siteRequestContext->getDomainUrl(),
             $domainDoc->getRealFullPath(),
             $domainDoc->getType(),
             $subPages
         );
     }
 
-    public function buildPathGenerator(?string $pathGeneratorIdentifier, array $pathGeneratorOptions): PathGeneratorInterface
+    public function buildPathGenerator(?string $pathGeneratorIdentifier): PathGeneratorInterface
     {
         if (!$this->pathGeneratorRegistry->has($pathGeneratorIdentifier)) {
             throw new \Exception(
@@ -383,56 +383,46 @@ class ZoneBuilder
             );
         }
 
-        $pathGenerator = $this->pathGeneratorRegistry->get($pathGeneratorIdentifier);
-
-        $pathGeneratorOptionsResolver = new OptionsResolver();
-        $pathGenerator->configureOptions($pathGeneratorOptionsResolver);
-        $pathGenerator->setOptions($pathGeneratorOptionsResolver->resolve($pathGeneratorOptions));
-
-        return $pathGenerator;
+        return $this->pathGeneratorRegistry->get($pathGeneratorIdentifier);
     }
 
-    /**
-     * Get Domain Url of given domain based on current request scheme!
-     */
-    protected function getDomainUrl(string $domain): string
+    protected function generateSiteRequestContext(string $domain, mixed $domainConfiguration): SiteRequestContext
     {
-        $scheme = \Pimcore\Tool::getRequestScheme();
-        $domainHost = $this->getDomainHost($domain, false);
-        $domainPort = $this->getDomainPort($domain);
-        $domainUrl = $domainHost;
+        $defaultScheme = $this->configuration->getConfig('request_scheme');
+        $defaultPort = $this->configuration->getConfig('request_port');
 
-        if (!str_contains($domainUrl, 'http:')) {
-            $domainUrl = $scheme . '://' . $domainUrl;
+        $httpScheme = is_array($domainConfiguration) ? $domainConfiguration[1] : $defaultScheme;
+        $httpPort = is_array($domainConfiguration) ? $domainConfiguration[2] : $defaultPort;
+        $httpsPort = is_array($domainConfiguration) ? $domainConfiguration[2] : ($defaultScheme === 'http' ? 443 : $defaultPort);
+
+        $domainUrl = $domain;
+
+        $domainPort = null;
+        if ($httpScheme === 'http' && $httpPort !== 80) {
+            $domainPort = $httpPort;
+        } elseif ($httpScheme === 'https' && $httpPort !== 443) {
+            $domainPort = $httpsPort;
         }
 
-        if (!empty($domainPort)) {
-            $domainUrl .= ':' . $domainPort;
+        if (!str_starts_with($domainUrl, 'http')) {
+            $domainUrl = sprintf('%s://%s', $httpScheme, $domainUrl);;
         }
 
-        return rtrim($domainUrl, DIRECTORY_SEPARATOR);
-    }
-
-    protected function getDomainHost(string $domain, bool $stripWWW = true): string
-    {
-        $urlInfo = parse_url($domain);
-        $host = $urlInfo['host'] ?? $urlInfo['path'];
-
-        return $stripWWW ? preg_replace('/^www./', '', $host) : $host;
-    }
-
-    protected function getDomainPort(string $domain): string
-    {
-        $port = '';
-        $urlInfo = parse_url($domain);
-        if (isset($urlInfo['port']) && $urlInfo['port'] !== 80) {
-            $port = $urlInfo['port'];
+        if ($domainPort !== null) {
+            $domainUrl = sprintf('%s:%d', $domainUrl, $domainPort);
         }
 
-        return $port;
+        return new SiteRequestContext(
+            $httpScheme,
+            $httpPort,
+            $httpsPort,
+            rtrim($domainUrl, DIRECTORY_SEPARATOR),
+            $domain,
+            preg_replace('/^www./', '', $domain)
+        );
     }
 
-    protected function filterZoneConfiguration(array $config): array
+    protected function filterZoneDefinition(array $config): array
     {
         $blackList = ['zones', 'mode', 'locale_adapter'];
 
@@ -443,5 +433,4 @@ class ZoneBuilder
     {
         return $this->db->fetchAllAssociative('SELECT `mainDomain`, `rootId` FROM sites');
     }
-
 }

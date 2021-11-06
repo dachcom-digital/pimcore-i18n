@@ -3,6 +3,8 @@ i18n:
     mode: language
     locale_adapter: system
     default_locale: 'en'
+    request_scheme: 'http'
+    request_port: 80
     translations: ~
 
 pimcore:

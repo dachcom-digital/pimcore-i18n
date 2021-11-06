@@ -12,7 +12,7 @@ If you have a complex e-commerce environment for example, you may want to check 
 
 ## Important Stuff to know
 - ContextSwitch only works in **same domain levels**. Since there is no way for simple cross-domain session ids, the zone switch will be sort of useless most of the time. 
-- The ContextSwitchEvent **ignores** ajax request. If your requesting data via ajax in a different language / country, no event will be triggered!
+- The ContextSwitchEvent **ignores** ajax request. If you're requesting data via ajax in a different language / country, no event will be triggered!
 
 ## Limitation
 This event is disabled if the pimcore full page cache feature is enable to prevent session interventions.

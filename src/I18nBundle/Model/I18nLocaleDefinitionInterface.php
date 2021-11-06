@@ -2,7 +2,7 @@
 
 namespace I18nBundle\Model;
 
-interface I18nContextInterface
+interface I18nLocaleDefinitionInterface
 {
     public function getLocale(): ?string;
 
@@ -15,6 +15,4 @@ interface I18nContextInterface
     public function getCountryIso(): ?string;
 
     public function hasCountryIso(): bool;
-
-    public function isValidZoneLocale(): bool;
 }

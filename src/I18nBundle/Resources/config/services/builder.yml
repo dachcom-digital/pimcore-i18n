@@ -9,5 +9,4 @@ services:
         arguments:
             $generalDomain: '%router.request_context.host%'
 
-    I18nBundle\Builder\ContextBuilder: ~
 

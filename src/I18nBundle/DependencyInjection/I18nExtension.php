@@ -2,14 +2,41 @@
 
 namespace I18nBundle\DependencyInjection;
 
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use I18nBundle\Configuration\Configuration as BundleConfiguration;
 
-class I18nExtension extends Extension
+class I18nExtension extends Extension implements PrependExtensionInterface
 {
+    public function prepend(ContainerBuilder $container)
+    {
+        $configs = $container->getExtensionConfig($this->getAlias());
+
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
+
+        $zoneTranslations = array_values(array_map(static function (array $zone) {
+            return $zone['config']['translations'];
+        }, $config['zones']));
+
+        $translations = array_merge($config['translations'], ...$zoneTranslations);
+
+        foreach ($translations as $translation) {
+
+            $translationKey = sprintf('i18n.route.translations.%s', $translation['key']);
+            $translationValue = implode('|', $translation['values']);
+
+            if ($container->hasParameter($translationKey)) {
+                continue;
+            }
+
+            $container->setParameter($translationKey, $translationValue);
+        }
+    }
+
     public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();

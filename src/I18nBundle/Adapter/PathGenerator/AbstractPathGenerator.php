@@ -2,17 +2,20 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Transformer\AlternateRouteItemTransformer;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 abstract class AbstractPathGenerator implements PathGeneratorInterface
 {
-    protected I18nZoneInterface $zone;
+    protected AlternateRouteItemTransformer $alternateRouteItemTransformer;
 
-    /**
-     * @internal
-     */
-    public function setZone(I18nZoneInterface $zone): void
+    public function setAlternateRouteItemTransformer(AlternateRouteItemTransformer $alternateRouteItemTransformer): void
     {
-        $this->zone = $zone;
+        $this->alternateRouteItemTransformer = $alternateRouteItemTransformer;
+    }
+
+    public function configureOptions(OptionsResolver $options): void
+    {
+        // overwritten by actual path generator, if required.
     }
 }

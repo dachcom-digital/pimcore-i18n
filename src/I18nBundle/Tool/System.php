@@ -18,13 +18,13 @@ class System
 
     public static function isInCliMode(): bool
     {
-        return php_sapi_name() === 'cli' && Config::getEnvironment() !== 'test';
+        return PHP_SAPI === 'cli' && Config::getEnvironment() !== 'test';
     }
 
     public static function joinPath(array $fragments, bool $addStartSlash = false): string
     {
         $f = [];
-        $addStartSlash = $addStartSlash === true || substr($fragments[0], 0, 1) === DIRECTORY_SEPARATOR;
+        $addStartSlash = $addStartSlash === true || str_starts_with($fragments[0], DIRECTORY_SEPARATOR);
         foreach ($fragments as $fragment) {
             if (empty($fragment)) {
                 continue;
@@ -32,6 +32,6 @@ class System
             $f[] = trim($fragment, DIRECTORY_SEPARATOR);
         }
 
-        return ($addStartSlash ? DIRECTORY_SEPARATOR : '') . join(DIRECTORY_SEPARATOR, $f);
+        return ($addStartSlash ? DIRECTORY_SEPARATOR : '') . implode(DIRECTORY_SEPARATOR, $f);
     }
 }

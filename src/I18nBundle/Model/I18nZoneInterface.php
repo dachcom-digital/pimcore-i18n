@@ -2,7 +2,7 @@
 
 namespace I18nBundle\Model;
 
-use I18nBundle\Adapter\LocaleProvider\LocaleProviderInterface;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 
 interface I18nZoneInterface
 {
@@ -14,14 +14,12 @@ interface I18nZoneInterface
 
     public function getMode(): string;
 
+    public function getRouteItem(): RouteItemInterface;
+
     public function getTranslations(): array;
 
-    public function getContext(): I18nContextInterface;
-
-    public function getLocaleProvider(): LocaleProviderInterface;
-
     /**
-     * @return array<int, I18nSiteInterface>
+     * @return array<int, I18nZoneSiteInterface>
      */
     public function getSites(bool $flatten = false): array;
 
@@ -29,11 +27,19 @@ interface I18nZoneInterface
 
     public function getLocaleUrlMapping(): array;
 
-    public function getCurrentSite(): I18nSiteInterface;
-
-    public function getActiveLocaleInfo(string $field): mixed;
+    public function getCurrentSite(): I18nZoneSiteInterface;
 
     public function getCurrentLocale(): ?string;
+
+    public function getCurrentLocaleInfo(string $field): mixed;
+
+    public function getLocaleProviderLocaleInfo(string $locale, string $field): mixed;
+
+    public function getLocaleProviderDefaultLocale(): ?string;
+
+    public function getLocaleProviderActiveLocales(): ?array;
+
+    public function getLocaleProviderGlobalInfo(): array;
 
     public function getCurrentCountryAndLanguage(bool $returnAsString = true): string|array;
 

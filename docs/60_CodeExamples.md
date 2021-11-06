@@ -10,16 +10,14 @@ The current zone represents an instance of `I18nZoneInterface` which comes with 
 |------|-------------|
 | getZoneId | given zone id (null, if it no zones have been configured |
 | getZoneName | given zone name (null, if no zones have been configured |
-| getZoneDomains | all available domains for given zone |
+| getZoneDomains | all available domains for given zone. |
 | getMode | returns `language` or `country` |
 | getTranslations | array, translations for static routes |
 | getContext | get current context, see [below](./60_CodeExamples.md#zone-context-information) |
-| getLocaleProvider | get locale provider, see [below](./60_CodeExamples.md#zone-locale-provider-information)  |
 | getSites(bool $flatten = false) | returns all available sites of given zone |
 | isActiveZone | bool |
 | getLocaleUrlMapping | array |
 | getCurrentSite | get current site, see [below](./60_CodeExamples.md#zone-current-site-information) |
-| getActiveLocaleInfo(string $field) | shortcut helper (calls `localeProvider->getLocaleData` and passes `context->getLocale`) to get detailed information about active locale |
 | getCurrentLocale | shortcut helper (calls `context->getLocale`) to get current locale |
 | getCurrentCountryAndLanguage(bool $returnAsString = true) | get country and locale info |
 | getLinkedLanguages(bool $onlyShowRootLanguages = false) | get all (raw) linked documents of current route |
@@ -27,10 +25,15 @@ The current zone represents an instance of `I18nZoneInterface` which comes with 
 | getActiveCountries | helper method to list all active countries and languages of current route (see [navigation code example](./60_CodeExamples.md#navigation-examples)) |
 | getLanguageNameByIsoCode(string $languageIso, ?string $locale = null) | helper to get language name by iso code |
 | getCountryNameByIsoCode(string $countryIso, ?string $locale = null) | helper to get country name by iso code |
+| *Locale Provider Helper Below:* | |
+|  -> getCurrentLocaleInfo(string $field) | shortcut helper (calls `localeProvider->getLocaleData` and passes `context->getLocale`) to get detailed information about active locale |
+|  -> getLocaleProviderLocaleInfo(string $locale, string $field) | mixed, get locale info of given locale from locale provider |
+|  -> getLocaleProviderDefaultLocale | For example: `de_DE` |
+|  -> getLocaleProviderActiveLocales | array, all active locales which are available and valid for current zone |
+|  -> getLocaleProviderGlobalInfo | array, international state |
 
 **Twig**
 ```twig
-
 {# 
     be careful, i18n_zone is allowed to return null!
 #}
@@ -41,11 +44,14 @@ The current zone represents an instance of `I18nZoneInterface` which comes with 
 
 {{ dump(i18n_zone().mode) }}
 {{ dump(i18n_zone().context.locale) }}
-{{ dump(i18n_zone().getLinkedLanguages) }}
-{{ dump(i18n_zone().getActiveLanguages) }}
-{{ dump(i18n_zone().getActiveCountries) }}
-{{ dump(i18n_zone().getLanguageNameByIsoCode(current_language_iso, current_locale)) }}
-{{ dump(i18n_zone().getCountryNameByIsoCode(current_country_iso, current_locale)) }}
+{{ dump(i18n_zone().linkedLanguages) }}
+{{ dump(i18n_zone().activeLanguages) }}
+{{ dump(i18n_zone().activeCountries) }}
+{{ dump(i18n_zone().languageNameByIsoCode(current_language_iso, current_locale)) }}
+{{ dump(i18n_zone().countryNameByIsoCode(current_country_iso, current_locale)) }}
+
+{{ dump(i18n_zone().localeProviderActiveLocales()) }}
+{{ dump(i18n_zone().localeProviderLocaleInfo('de', 'id')) }}
 ```
 
 **PHP**
@@ -87,6 +93,10 @@ class ExampleService
 
         // get language name by iso code
         $languageName = $zone->getContext()->getLanguageNameByIsoCode($currentLanguageIso, $currentLocale);
+        
+        // locale provider info
+        $localProviderActiveLocales = $zone->getLocaleProviderActiveLocales();
+        $localeProviderLocaleInfo = $zone->getLocaleProviderLocaleInfo('de', 'id');
     }
 }
 ```
@@ -95,7 +105,7 @@ class ExampleService
 To retrieve data from an active site, you may want to use the `getCurrentSite()` method. 
 Since the current site gets defined via the current locale, be sure that locale is always available.
 
-The current site represents an instance of `I18nSiteInterface` which comes with some helper methods:
+The current site represents an instance of `I18nZoneSiteInterface` which comes with some helper methods:
 
 | Name | Description |
 |------|-------------|
@@ -169,24 +179,6 @@ The zone context represents an instance of `I18nContextInterface` which comes wi
 ```twig
 {{ dump(i18n_zone().context.locale) }}
 {{ dump(i18n_zone().context.countryIso) }}
-```
-
-### Zone Locale Provider Information
-Zone locale provider always holds **provided** locales information in the **current** zone like all valid and available locales.
-
-The zone locale provider represents an instance of `LocaleProviderInterface` which comes with some helper methods:
-
-| Name | Description |
-|------|-------------|
-| getActiveLocales | array, all active locales which are available and valid for current zone |
-| getLocaleData(string $locale, ?string $field = null, string $keyIdentifier = 'locale' | For example: `de_DE` |
-| getDefaultLocale) | For example: `de_DE` |
-| getGlobalInfo | array, international state |
-
-**Twig**
-```twig
-{{ dump(i18n_zone().localeProvider.defaultLocale) }}
-{{ dump(i18n_zone().localeProvider.countryIso) }}
 ```
 
 ## Navigation Examples

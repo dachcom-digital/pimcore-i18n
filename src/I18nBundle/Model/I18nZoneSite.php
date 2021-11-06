@@ -2,11 +2,10 @@
 
 namespace I18nBundle\Model;
 
-class I18nSite implements I18nSiteInterface
+class I18nZoneSite implements I18nZoneSiteInterface
 {
+    protected SiteRequestContext $siteRequestContext;
     protected int $rootId;
-    protected string $host;
-    protected string $realHost;
     protected bool $isRootDomain;
     protected ?string $locale;
     protected ?string $countryIso;
@@ -15,15 +14,13 @@ class I18nSite implements I18nSiteInterface
     protected ?string $localeUrlMapping;
     protected string $url;
     protected ?string $homeUrl;
-    protected ?string $domainUrl;
     protected string $fullPath;
     protected ?string $type;
     protected array $subSites;
 
     public function __construct(
+        SiteRequestContext $siteRequestContext,
         int $rootId,
-        string $host,
-        string $realHost,
         bool $isRootDomain,
         ?string $locale,
         ?string $countryIso,
@@ -32,14 +29,12 @@ class I18nSite implements I18nSiteInterface
         ?string $localeUrlMapping,
         string $url,
         ?string $homeUrl,
-        ?string $domainUrl,
         string $fullPath,
         ?string $type,
         array $subSites = []
     ) {
+        $this->siteRequestContext = $siteRequestContext;
         $this->rootId = $rootId;
-        $this->host = $host;
-        $this->realHost = $realHost;
         $this->isRootDomain = $isRootDomain;
         $this->locale = $locale;
         $this->countryIso = $countryIso;
@@ -48,25 +43,19 @@ class I18nSite implements I18nSiteInterface
         $this->localeUrlMapping = $localeUrlMapping;
         $this->url = $url;
         $this->homeUrl = $homeUrl;
-        $this->domainUrl = $domainUrl;
         $this->fullPath = $fullPath;
         $this->type = $type;
         $this->subSites = $subSites;
     }
 
+    public function getSiteRequestContext(): SiteRequestContext
+    {
+        return $this->siteRequestContext;
+    }
+
     public function getRootId(): int
     {
         return $this->rootId;
-    }
-
-    public function getHost(): string
-    {
-        return $this->host;
-    }
-
-    public function getRealHost(): string
-    {
-        return $this->realHost;
     }
 
     public function isRootDomain(): bool
@@ -107,11 +96,6 @@ class I18nSite implements I18nSiteInterface
     public function getHomeUrl(): ?string
     {
         return $this->homeUrl;
-    }
-
-    public function getDomainUrl(): ?string
-    {
-        return $this->domainUrl;
     }
 
     public function getFullPath(): string

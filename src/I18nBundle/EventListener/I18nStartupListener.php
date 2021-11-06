@@ -2,14 +2,14 @@
 
 namespace I18nBundle\EventListener;
 
-use I18nBundle\Http\ZoneResolverInterface;
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Http\RouteItemResolverInterface;
+use I18nBundle\Manager\RouteItemManager;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Model\Site;
 use Pimcore\Tool\Admin;
 use Pimcore\Tool\Authentication;
 use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use I18nBundle\Definitions;
-use I18nBundle\Manager\ZoneManager;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use I18nBundle\Helper\RequestValidatorHelper;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,24 +24,24 @@ class I18nStartupListener implements EventSubscriberInterface
 {
     protected EngineInterface $templating;
     protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
-    protected ZoneManager $zoneManager;
+    protected RouteItemManager $routeItemManager;
     protected EditmodeResolver $editmodeResolver;
-    protected ZoneResolverInterface $zoneResolver;
+    protected RouteItemResolverInterface $routeItemResolver;
     protected RequestValidatorHelper $requestValidatorHelper;
 
     public function __construct(
         EngineInterface $templating,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        ZoneManager $zoneManager,
+        RouteItemManager $routeItemManager,
         EditmodeResolver $editmodeResolver,
-        ZoneResolverInterface $zoneResolver,
+        RouteItemResolverInterface $routeItemResolver,
         RequestValidatorHelper $requestValidatorHelper
     ) {
         $this->templating = $templating;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
-        $this->zoneManager = $zoneManager;
+        $this->routeItemManager = $routeItemManager;
         $this->editmodeResolver = $editmodeResolver;
-        $this->zoneResolver = $zoneResolver;
+        $this->routeItemResolver = $routeItemResolver;
         $this->requestValidatorHelper = $requestValidatorHelper;
     }
 
@@ -74,9 +74,9 @@ class I18nStartupListener implements EventSubscriberInterface
             return;
         }
 
-        $zone = $this->initializeZone($request, $document);
+        $routeItem = $this->initializeRouteItem($request, $document);
 
-        if (!$zone instanceof I18nZoneInterface) {
+        if (!$routeItem instanceof RouteItemInterface) {
             // @todo: log this?
             return;
         }
@@ -87,23 +87,23 @@ class I18nStartupListener implements EventSubscriberInterface
         }
     }
 
-    protected function initializeZone(Request $request, ?Document $document): ?I18nZoneInterface
+    protected function initializeRouteItem(Request $request, ?Document $document): ?RouteItemInterface
     {
         if ($document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
             $document = $document->getSourceDocument();
         }
 
-        $zone = $this->zoneManager->buildZoneByRequest($request, $document);
+        $routeItem = $this->routeItemManager->buildRouteItemByRequest($request, $document);
 
-        if (!$zone instanceof I18nZoneInterface) {
+        if (!$routeItem instanceof RouteItemInterface) {
             return null;
         }
 
-        $this->zoneResolver->setZone($zone, $request);
+        $this->routeItemResolver->setRouteItem($routeItem, $request);
 
         $request->attributes->set(Definitions::ATTRIBUTE_I18N_CONTEXT, true);
 
-        return $zone;
+        return $routeItem;
     }
 
     protected function setNotEditableAwareMessage(Document $document, RequestEvent $event): void

@@ -64,7 +64,7 @@ namespace App\Services\I18nBundle\RedirectorAdapter;
 use I18nBundle\Adapter\Redirector\AbstractRedirector;
 use I18nBundle\Adapter\Redirector\RedirectorBag;
 use I18nBundle\Manager\ZoneManager;
-use I18nBundle\Model\I18nSiteInterface;
+use I18nBundle\Model\I18nZoneSiteInterface;
 
 class Website extends AbstractRedirector
 {
@@ -118,13 +118,13 @@ class Website extends AbstractRedirector
         // we always want a redirection to "de_CH"
         if (empty($redirectorOptions['geoCountry'])) {
 
-            $indexId = array_search('de_CH', array_map(static function (I18nSiteInterface $site) {
+            $indexId = array_search('de_CH', array_map(static function (I18nZoneSiteInterface $site) {
                     return $site->getLocale();
             }, $zoneSites), true);
                     
             // we found a valid locale
             if ($indexId !== false) {
-                /** @var I18nSiteInterface $zoneSite */
+                /** @var I18nZoneSiteInterface $zoneSite */
                 $zoneSite = $zoneSites[$indexId];
                 $this->setDecision([
                     'valid'    => true,

@@ -4,13 +4,13 @@ namespace I18nBundle\EventListener;
 
 use I18nBundle\Helper\CookieHelper;
 use I18nBundle\Helper\RequestValidatorHelper;
-use I18nBundle\Http\ZoneResolverInterface;
-use I18nBundle\Model\I18nSiteInterface;
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Http\RouteItemResolverInterface;
+use I18nBundle\Model\I18nZoneSiteInterface;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use I18nBundle\Adapter\Redirector\RedirectorBag;
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Registry\RedirectorRegistry;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Tool\System;
 use Pimcore\Config;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -26,23 +26,23 @@ class DetectorListener implements EventSubscriberInterface
     protected CookieHelper $cookieHelper;
     protected RedirectorRegistry $redirectorRegistry;
     protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
+    protected RouteItemResolverInterface $routeItemResolver;
     protected RequestValidatorHelper $requestValidatorHelper;
-    protected ZoneResolverInterface $zoneResolver;
 
     public function __construct(
         Configuration $configuration,
         CookieHelper $cookieHelper,
         RedirectorRegistry $redirectorRegistry,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        ZoneResolverInterface $zoneResolver,
+        RouteItemResolverInterface $routeItemResolver,
         RequestValidatorHelper $requestValidatorHelper
     ) {
         $this->configuration = $configuration;
         $this->cookieHelper = $cookieHelper;
         $this->redirectorRegistry = $redirectorRegistry;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
+        $this->routeItemResolver = $routeItemResolver;
         $this->requestValidatorHelper = $requestValidatorHelper;
-        $this->zoneResolver = $zoneResolver;
     }
 
     public static function getSubscribedEvents(): array
@@ -86,14 +86,14 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $zone = $this->zoneResolver->getZone($request);
+        $routeItem = $this->routeItemResolver->getRouteItem($request);
 
-        if (!$zone instanceof I18nZoneInterface) {
+        if (!$routeItem instanceof RouteItemInterface) {
             return;
         }
 
         $redirectorBag = new RedirectorBag([
-            'zone'    => $zone,
+            'zone'    => $routeItem->getI18nZone(),
             'request' => $request,
         ]);
 
@@ -142,11 +142,13 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $zone = $this->zoneResolver->getZone($event->getRequest());
+        $routeItem = $this->routeItemResolver->getRouteItem($event->getRequest());
 
-        if (!$zone instanceof I18nZoneInterface) {
+        if (!$routeItem instanceof RouteItemInterface) {
             return;
         }
+
+        $zone = $routeItem->getI18nZone();
 
         $zoneSites = $zone->getSites(true);
         $validUri = $this->getRedirectUrl(strtok($event->getRequest()->getUri(), '?'));
@@ -159,7 +161,7 @@ class DetectorListener implements EventSubscriberInterface
         }
 
         //check if url is valid
-        $indexId = array_search($validUri, array_map(static function (I18nSiteInterface $site) {
+        $indexId = array_search($validUri, array_map(static function (I18nZoneSiteInterface $site) {
             return $site->getUrl();
         }, $zoneSites), true);
 
@@ -169,9 +171,9 @@ class DetectorListener implements EventSubscriberInterface
 
         $this->cookieHelper->set($event->getResponse(), [
             'url'      => $validUri,
-            'locale'   => $zone->getContext()->getLocale(),
-            'language' => $zone->getContext()->getLanguageIso(),
-            'country'  => $zone->getContext()->getCountryIso()
+            'locale'   => $routeItem->getLocaleDefinition()->getLocale(),
+            'language' => $routeItem->getLocaleDefinition()->getLanguageIso(),
+            'country'  => $routeItem->getLocaleDefinition()->getCountryIso()
         ]);
 
     }

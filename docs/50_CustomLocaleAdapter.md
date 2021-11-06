@@ -43,22 +43,21 @@ use I18nBundle\Adapter\LocaleProvider\SystemLocaleProvider;
 class SpecialLocaleProvider extends AbstractLocale
 {
     protected SystemLocaleProvider $systemLocaleProvider;
-    protected ?array $validLocales = null;
 
     public function __construct(SystemLocaleProvider $systemLocaleProvider)
     {
         $this->systemLocaleProvider = $systemLocaleProvider;
     }
 
-    public function getDefaultLocale(): ?string
+    public function getDefaultLocale(array $zoneDefinition): ?string
     {
-        return $this->systemLocaleProvider->getDefaultLocale();
+        return $this->systemLocaleProvider->getDefaultLocale($zoneDefinition);
     }
 
-    public function getActiveLocales(): array
+    public function getActiveLocales(array $zoneDefinition): array
     {
         // get default locales
-        $validLocales = $this->systemLocaleProvider->getActiveLocales();
+        $validLocales = $this->systemLocaleProvider->getActiveLocales($zoneDefinition);
 
         // remove some locales in zone 4
         if ($this->currentZoneId === 4) {
@@ -69,14 +68,14 @@ class SpecialLocaleProvider extends AbstractLocale
         return $validLocales;
     }
 
-    public function getLocaleData($isoCode = '', $field = null, $keyIdentifier = 'locale'): mixed
+    public function getLocaleData(array $zoneDefinition, $locale = '', $field = null, $keyIdentifier = 'locale'): mixed
     {
-        return $this->systemLocaleProvider->getLocaleData($isoCode, $field, $keyIdentifier);
+        return $this->systemLocaleProvider->getLocaleData($zoneDefinition, $locale, $field, $keyIdentifier);
     }
 
-    public function getGlobalInfo(): array
+    public function getGlobalInfo(array $zoneDefinition): array
     {
-        return $this->systemLocaleProvider->getGlobalInfo();
+        return $this->systemLocaleProvider->getGlobalInfo($zoneDefinition);
     }
 }
 ```

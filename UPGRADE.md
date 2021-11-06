@@ -13,13 +13,13 @@ I18n will generate a Zone Object at every request which is accessible via a new 
 But it is also possible to create a custom zone object to fetch all linked documents / objects during process.
 Please check out  the [code examples](./docs/60_CodeExamples.md) doc section to learn more about accessing zone information.
 
-- Model `I18nZoneInterface`, `I18nSiteInterface` and `I18nContextInterface` introduced
+- Model `I18nZoneInterface`, `I18nZoneSiteInterface` and `I18nContextInterface` introduced
     - `I18nZoneInterface` contains:
         - all available site of given zone (if no zone has been configured, a default zone will be created)
         - locale provider: provides all available/valid locales for given zone 
         - context: current language/country information
         - path generator: corresponding path generator (document, static route or symfony route)
-    - `I18nSiteInterface` contains:
+    - `I18nZoneSiteInterface` contains:
         - all active sites of given zone. You can access them via `$zone->getSites()` but also to fetch the active one via `getCurrentSite()`
     - `I18nContextInterface` contains:
         - current locale information (within given zone)
@@ -35,8 +35,8 @@ Every Zone object comes with a context object, which holds the  **current** zone
 - API Fetch Change: Instead of calling `getCurrentContextInfo('url)` you now need to call `$zone->getCurrentSite()->getUrl()`
 - TWIG Fetch Change: Instead of calling `i18n_context('getCurrentContextInfo', ['url'])` you now need to call `i18n_zone().currentSite.url`
 - `getCurrentLanguageInfo` and `getCurrentCountryInfo` has been removed:
-    - API Fetch Change: Instead of calling `$this->contextManager->getContext()->getCurrentLanguageInfo('id')` you now need to call `$zone->getActiveLocaleInfo('id')`
-    - API Fetch Change: Instead of calling `$this->contextManager->getContext()->getCurrentCountryInfo('id')` you now need to call `$zone->getActiveLocaleInfo('id')`
+    - API Fetch Change: Instead of calling `$this->contextManager->getContext()->getCurrentLanguageInfo('id')` you now need to call `$zone->getCurrentLocaleInfo('id')`
+    - API Fetch Change: Instead of calling `$this->contextManager->getContext()->getCurrentCountryInfo('id')` you now need to call `$zone->getCurrentLocaleInfo('id')`
     - TWIG Fetch Change: Instead of calling `i18n_context('getCurrentLanguageInfo', ['id']))` you now need to call `i18n_zone().activeLocaleInfo('id')`
     - TWIG Fetch Change: Instead of calling `i18n_context('getCurrentCountryInfo', ['id']))` you now need to call `i18n_zone().activeLocaleInfo('id')`
 
@@ -44,9 +44,17 @@ Every Zone object comes with a context object, which holds the  **current** zone
 - PHP8 return type declarations added: you may have to adjust your extensions accordingly
 - Locale Provider:
     - Namespace changed from `I18nBundle\Adapter\Locale` to `I18nBundle\Adapter\LocaleProvider`
+    - `LocaleProviderInterface` signatures changed:
+         - `::setCurrentZoneConfig()` removed
+         - `::getActiveLocales(array $zoneDefinition)` signature changed
+         - `::getLocaleData(array $zoneDefinition, string $locale, string $field, string $keyIdentifier = 'locale')` signature changed
+         - `::getDefaultLocale(array $zoneDefinition)` signature changed
+         - `::getGlobalInfo(array $zoneDefinition)` signature changed
 - Cache runtime variables `i18n.locale`, `i18n.locale` and `i18n.locale` has been removed. You can access them
   via `zone->getContext()` which will return model `I18nContextInterface`
-- `PathGeneratorInterface:getUrl()` signature changed: first parameter `Document` has been removed#
+- `PathGeneratorInterface` changes: 
+     - `::getUrl(I18nZoneInterface $zone, array $options, bool $onlyShowRootLanguages = false)` signature changed
+     - `::configureOptions(OptionsResolver $options)` added
 - `RedirectorBag` Changes:
     - Options `i18nType`, `document`, `documentLocale`, `documentCountry`, `defaultLocale` removed. New `zone` option added.
 - Error Document Changes:

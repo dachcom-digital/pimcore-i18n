@@ -2,41 +2,37 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
-use I18nBundle\Model\I18nSiteInterface;
+use I18nBundle\Model\I18nZoneSiteInterface;
+use I18nBundle\Model\I18nZoneInterface;
 use I18nBundle\Tool\System;
 use Pimcore\Model\Document as PimcoreDocument;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Document extends AbstractPathGenerator
 {
-    protected array $options;
     protected array $cachedUrls = [];
 
     public function configureOptions(OptionsResolver $options): void
     {
         $options
-            ->setDefaults(['document'])
+            ->setDefaults(['document' => null])
             ->setRequired(['document'])
             ->setAllowedTypes('document', [PimcoreDocument::class]);
     }
 
-    public function setOptions(array $options): void
+    public function getUrls(I18nZoneInterface $zone, bool $onlyShowRootLanguages = false): array
     {
-        $this->options = $options;
-    }
-
-    public function getUrls(bool $onlyShowRootLanguages = false): array
-    {
-        $document = $this->options['document'];
+        /** @var PimcoreDocument $document */
+        $document = $zone->getRouteItem()->getEntity();
 
         if (isset($this->cachedUrls[$document->getId()])) {
             return $this->cachedUrls[$document->getId()];
         }
 
-        if ($this->zone->getMode() === 'language') {
-            $urls = $this->documentUrlsFromLanguage($document, $onlyShowRootLanguages);
+        if ($zone->getMode() === 'language') {
+            $urls = $this->documentUrlsFromLanguage($zone, $document, $onlyShowRootLanguages);
         } else {
-            $urls = $this->documentUrlsFromCountry($document, $onlyShowRootLanguages);
+            $urls = $this->documentUrlsFromCountry($zone, $document, $onlyShowRootLanguages);
         }
 
         $this->cachedUrls[$document->getId()] = $urls;
@@ -44,17 +40,17 @@ class Document extends AbstractPathGenerator
         return $urls;
     }
 
-    private function documentUrlsFromLanguage(PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
+    private function documentUrlsFromLanguage(I18nZoneInterface $zone, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
 
         try {
-            $zoneSites = $this->zone->getSites(true);
+            $zoneSites = $zone->getSites(true);
         } catch (\Exception $e) {
             return [];
         }
 
-        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (I18nSiteInterface $site) {
+        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (I18nZoneSiteInterface $site) {
             return $site->getRootId();
         }, $zoneSites), true);
 
@@ -129,17 +125,17 @@ class Document extends AbstractPathGenerator
         return $routes;
     }
 
-    private function documentUrlsFromCountry(PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
+    private function documentUrlsFromCountry(I18nZoneInterface $zone, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
 
         try {
-            $zoneSites = $this->zone->getSites(true);
+            $zoneSites = $zone->getSites(true);
         } catch (\Exception $e) {
             return [];
         }
 
-        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (I18nSiteInterface $site) {
+        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (I18nZoneSiteInterface $site) {
             return $site->getRootId();
         }, $zoneSites), true);
 

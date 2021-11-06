@@ -4,4 +4,4 @@ services:
         autoconfigure: true
         public: false
 
-    I18nBundle\Manager\ZoneManager: ~
+    I18nBundle\Manager\RouteItemManager: ~

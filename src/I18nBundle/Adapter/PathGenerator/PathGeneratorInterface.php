@@ -9,9 +9,5 @@ interface PathGeneratorInterface
 {
     public function configureOptions(OptionsResolver $options): void;
 
-    public function setOptions(array $options): void;
-
-    public function setZone(I18nZoneInterface $zone): void;
-
-    public function getUrls(bool $onlyShowRootLanguages = false): array;
+    public function getUrls(I18nZoneInterface $zone, bool $onlyShowRootLanguages = false): array;
 }

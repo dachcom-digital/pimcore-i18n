@@ -1,0 +1,322 @@
+<?php
+
+namespace I18nBundle\Manager;
+
+use I18nBundle\Builder\ZoneBuilder;
+use I18nBundle\Configuration\Configuration;
+use I18nBundle\Definitions;
+use I18nBundle\Factory\RouteItemFactory;
+use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
+use I18nBundle\Model\I18nLocaleDefinition;
+use I18nBundle\Model\I18nLocaleDefinitionInterface;
+use I18nBundle\Model\I18nZoneSiteInterface;
+use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
+use Pimcore\Db\Connection;
+use Pimcore\Http\Request\Resolver\EditmodeResolver;
+use Pimcore\Http\Request\Resolver\SiteResolver;
+use Pimcore\Http\RequestHelper;
+use Pimcore\Model\DataObject\ClassDefinition\LinkGeneratorInterface;
+use Pimcore\Model\DataObject\Concrete;
+use Pimcore\Model\Document;
+use Pimcore\Tool\Frontend;
+use Symfony\Bundle\FrameworkBundle\Routing\Router as FrameworkRouter;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\CompiledUrlGenerator;
+
+class RouteItemManager
+{
+    protected ?FrameworkRouter $frameworkRouter = null;
+    protected ZoneBuilder $zoneBuilder;
+    protected Connection $db;
+    protected RequestHelper $requestHelper;
+    protected SiteResolver $siteResolver;
+    protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
+    protected Configuration $configuration;
+    protected EditmodeResolver $editModeResolver;
+    protected Document\Service $documentService;
+    protected RouteItemFactory $routeItemFactory;
+    protected array $nearestDocumentTypes;
+
+    public function __construct(
+        ZoneBuilder $zoneBuilder,
+        RequestHelper $requestHelper,
+        SiteResolver $siteResolver,
+        Configuration $configuration,
+        EditmodeResolver $editModeResolver,
+        Document\Service $documentService,
+        PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
+        RouteItemFactory $routeItemFactory
+    ) {
+        $this->zoneBuilder = $zoneBuilder;
+        $this->requestHelper = $requestHelper;
+        $this->siteResolver = $siteResolver;
+        $this->configuration = $configuration;
+        $this->editModeResolver = $editModeResolver;
+        $this->documentService = $documentService;
+        $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
+        $this->routeItemFactory = $routeItemFactory;
+        $this->nearestDocumentTypes = ['page', 'snippet', 'hardlink', 'link', 'folder'];
+    }
+
+    public function setFrameworkRouter(FrameworkRouter $router)
+    {
+        $this->frameworkRouter = $router;
+    }
+
+    public function buildRouteItemByParameters(array $i18nRouteParameters): ?RouteItemInterface
+    {
+        $type = $i18nRouteParameters['type'] ?? '';
+
+        unset($i18nRouteParameters['type']);
+
+        $routeItem = $this->routeItemFactory->createFromArray($type, true, $i18nRouteParameters);
+
+        if ($routeItem->getType() === RouteItemInterface::STATIC_ROUTE) {
+            $this->assertStaticRouteItem($routeItem);
+        } elseif ($routeItem->getType() === RouteItemInterface::SYMFONY_ROUTE) {
+            $this->assertSymfonyRouteItem($routeItem);
+        } elseif ($routeItem->getType() === RouteItemInterface::DOCUMENT_ROUTE) {
+            $this->assertDocumentRouteItem($routeItem);
+        }
+
+        if (!$routeItem->hasLocaleFragment()) {
+            return null;
+        }
+
+        $routeItem->setLocaleDefinition($this->buildLocaleDefinition($routeItem));
+
+        $routeItemZone = $this->zoneBuilder->buildZone([
+            'route_item' => $routeItem
+        ]);
+
+        $routeItem->setI18nZone($routeItemZone);
+
+        $this->assertRouteContext($routeItem, $routeItemZone->getCurrentSite());
+
+        return $routeItem;
+    }
+
+    public function buildRouteItemByRequest(Request $baseRequest, ?Document $baseDocument): ?RouteItemInterface
+    {
+        $site = null;
+        $editMode = $this->editModeResolver->isEditmode($baseRequest);
+
+        if ($editMode === false) {
+            if ($this->siteResolver->isSiteRequest($baseRequest)) {
+                $site = $this->siteResolver->getSite();
+            }
+        } else {
+            // in back end we don't have any site request, we need to fetch it via document
+            $site = \Pimcore\Tool\Frontend::getSiteForDocument($baseDocument);
+        }
+
+        $pimcoreRequestSource = $baseRequest->attributes->get('pimcore_request_source');
+        $routeParameters = $baseRequest->attributes->get('_route_params', []);
+        $currentRouteName = $baseRequest->attributes->get('_route');
+
+        $routeItem = null;
+
+        if ($pimcoreRequestSource === 'staticroute') {
+            $routeItem = $this->routeItemFactory->create(RouteItemInterface::STATIC_ROUTE, false);
+            $routeItem->getRouteAttributesBag()->add($baseRequest->attributes->all());
+        } elseif (str_starts_with($currentRouteName, 'document_')) {
+            $routeItem = $this->routeItemFactory->create(RouteItemInterface::DOCUMENT_ROUTE, false);
+            $routeItem->setEntity($baseDocument);
+            $routeItem->getRouteParametersBag()->set('_locale', $baseDocument->getProperty('language'));
+        } elseif ($baseRequest->attributes->has(Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER)) {
+            $routeItem = $this->routeItemFactory->create(RouteItemInterface::SYMFONY_ROUTE, false);
+            $routeItem->getRouteAttributesBag()->add($baseRequest->attributes->all());
+        }
+
+        if ($routeItem === null) {
+            return null;
+        }
+
+        $routeItem->setRouteName($currentRouteName);
+        $routeItem->getRouteContextBag()->set('site', $site);
+
+        if (isset($routeParameters['_locale']) && !$routeItem->getRouteParametersBag()->has('_locale')) {
+            $routeItem->getRouteParametersBag()->set('_locale', $baseRequest->getLocale());
+        }
+
+        if (!$routeItem->hasLocaleFragment()) {
+            return null;
+        }
+
+        $routeItem->setLocaleDefinition($this->buildLocaleDefinition($routeItem));
+
+        $routeItemZone = $this->zoneBuilder->buildZone([
+            'route_item'                   => $routeItem,
+            'edit_mode'                    => $editMode,
+            'is_frontend_request_by_admin' => $this->requestHelper->isFrontendRequestByAdmin($baseRequest),
+        ]);
+
+        $routeItem->setI18nZone($routeItemZone);
+
+        $this->assertRouteContext($routeItem, $routeItemZone->getCurrentSite());
+
+        return $routeItem;
+    }
+
+    protected function assertStaticRouteItem(RouteItemInterface $routeItem): void
+    {
+        if (!$routeItem->hasRouteName() && !$routeItem->hasEntity()) {
+            throw new \Exception(sprintf('Cannot build static route item. Either route name or entity must be present'));
+        }
+
+        if ($routeItem->hasEntity()) {
+            $this->assertValidLinkGenerator($routeItem);
+        }
+    }
+
+    protected function assertSymfonyRouteItem(RouteItemInterface $routeItem): void
+    {
+        if ($routeItem->getRouteAttributesBag()->has(Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER)) {
+            return;
+        }
+
+        $this->assertValidSymfonyRoute($routeItem);
+    }
+
+    protected function assertDocumentRouteItem(RouteItemInterface $routeItem): void
+    {
+        // this is for DX only
+        if ($routeItem->getRouteContextBag()->get('site') !== null) {
+            throw new \Exception('Forcing a site context if requesting a zone for a document is forbidden (Site can be resolved by given document)');
+        }
+
+        /** @var Document $document */
+        $document = $routeItem->getEntity();
+
+        $routeItem->getRouteParametersBag()->set('_locale', $document->getProperty('language'));
+        $routeItem->getRouteContextBag()->set('site', Frontend::getSiteForDocument($document));
+    }
+
+    protected function assertValidLinkGenerator(RouteItemInterface $routeItem): void
+    {
+        $entity = $routeItem->getEntity();
+
+        if (!$entity instanceof Concrete) {
+            throw new \Exception(sprintf('I18n object zone generation error: Entity needs to be an instance of "%s", "%s" given.', Concrete::class, get_class($entity)));
+        }
+
+        $linkGenerator = $entity->getClass()?->getLinkGenerator();
+        if (!$linkGenerator instanceof LinkGeneratorInterface) {
+            throw new \Exception(
+                sprintf(
+                    'I18n object zone generation error: No link generator for entity "%s" found (If you have declared your link generator as service, make sure it is public)',
+                    get_class($entity)
+                )
+            );
+        }
+
+        if (!$linkGenerator instanceof I18nLinkGeneratorInterface) {
+            throw new \Exception(
+                sprintf(
+                    'I18n object zone generation error: Your link generator "%s" needs to be an instance of %s.',
+                    get_class($linkGenerator),
+                    I18nLinkGeneratorInterface::class
+                )
+            );
+        }
+
+        $routeItem->setRouteName($linkGenerator->getStaticRouteName($entity));
+    }
+
+    protected function assertValidSymfonyRoute(RouteItemInterface $routeItem): void
+    {
+        if ($this->frameworkRouter === null) {
+            throw new \Exception('Symfony RouteItem error: Framework router not found. cannot assert symfony route');
+        }
+
+        $routeName = $routeItem->getRouteName();
+        $locale = $routeItem->getLocaleFragment();
+
+        /** @var CompiledUrlGenerator $generator */
+        $generator = $this->frameworkRouter->getGenerator();
+
+        if (!$generator instanceof CompiledUrlGenerator) {
+            throw new \Exception(
+                sprintf('Symfony RouteItem error: Url generator needs to be instance of "%s", "%s" given.',
+                    CompiledUrlGenerator::class,
+                    get_class($generator)
+                )
+            );
+        }
+
+        /**
+         * Oh lawd. This is terrible.
+         * Can we do that better instead of stealing private properties like this?
+         */
+        $compiledRoutes = \Closure::bind(static function & (CompiledUrlGenerator $generator) {
+            return $generator->compiledRoutes;
+        }, null, $generator)($generator);
+
+        $symfonyRoute = null;
+        if (isset($compiledRoutes[$routeName])) {
+            $symfonyRoute = $compiledRoutes[$routeName];
+        }
+
+        if ($symfonyRoute === null && !empty($locale)) {
+            $localizedRouteName = sprintf('%s.%s', $routeName, $locale);
+            if (isset($compiledRoutes[$localizedRouteName])) {
+                $symfonyRoute = $compiledRoutes[$localizedRouteName];
+            }
+        }
+
+        if ($symfonyRoute === null) {
+            throw new \Exception(sprintf('symfony route "%s" not found', $routeName));
+        }
+
+        $defaults = $symfonyRoute[1];
+
+        if (!isset($defaults[Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER])) {
+            throw new \Exception(sprintf('"%s" symfony route is not configured as i18n route. please add defaults._i18n to your route configuration.', $routeName));
+        }
+
+        $i18nDefaults = $defaults[Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER];
+
+        if (!is_array($i18nDefaults)) {
+            return;
+        }
+
+        if (isset($i18nDefaults['translation_keys'])) {
+            $routeItem->getRouteAttributesBag()->set('_i18n_translation_keys', $i18nDefaults['translation_keys']);
+        }
+    }
+
+    protected function buildLocaleDefinition(RouteItemInterface $routeItem): I18nLocaleDefinitionInterface
+    {
+        $baseLocale = $routeItem->getLocaleFragment();
+
+        $locale = $baseLocale === '' ? null : $baseLocale;
+        $languageIso = $locale;
+        $countryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
+
+        if (str_contains($baseLocale, '_')) {
+            $parts = explode('_', $baseLocale);
+            $languageIso = strtolower($parts[0]);
+            if (isset($parts[1]) && !empty($parts[1])) {
+                $countryIso = strtoupper($parts[1]);
+            }
+        }
+
+        return new I18nLocaleDefinition(
+            $locale,
+            $languageIso,
+            $countryIso
+        );
+    }
+
+    protected function assertRouteContext(RouteItemInterface $routeItem, I18nZoneSiteInterface $site): void
+    {
+        $routeItem->getRouteContextBag()->add([
+            'host'      => $site->getSiteRequestContext()->getHost(),
+            'scheme'    => $site->getSiteRequestContext()->getScheme(),
+            'httpPort'  => $site->getSiteRequestContext()->getHttpPort(),
+            'httpsPort' => $site->getSiteRequestContext()->getHttpsPort(),
+        ]);
+    }
+
+}

@@ -2,9 +2,9 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
-use I18nBundle\Http\ZoneResolverInterface;
-use I18nBundle\Manager\ZoneManager;
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Http\RouteItemResolverInterface;
+use I18nBundle\Manager\RouteItemManager;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Config;
 use Pimcore\Http\Exception\ResponseException;
 use Pimcore\Model\DataObject;
@@ -23,21 +23,21 @@ class ResponseExceptionListener implements EventSubscriberInterface
     use LoggerAwareTrait;
     use PimcoreContextAwareTrait;
 
-    protected ZoneManager $zoneManager;
-    protected ZoneResolverInterface $zoneResolver;
+    protected RouteItemManager $routeItemManager;
+    protected RouteItemResolverInterface $routeItemResolver;
     protected SiteResolver $siteResolver;
     protected Document\Service $documentService;
     protected Config $pimcoreConfig;
 
     public function __construct(
-        ZoneManager $zoneManager,
-        ZoneResolverInterface $zoneResolver,
+        RouteItemManager $routeItemManager,
+        RouteItemResolverInterface $routeItemResolver,
         SiteResolver $siteResolver,
         Document\Service $documentService,
         Config $pimcoreConfig
     ) {
-        $this->zoneManager = $zoneManager;
-        $this->zoneResolver = $zoneResolver;
+        $this->routeItemManager = $routeItemManager;
+        $this->routeItemResolver = $routeItemResolver;
         $this->siteResolver = $siteResolver;
         $this->documentService = $documentService;
         $this->pimcoreConfig = $pimcoreConfig;
@@ -100,13 +100,13 @@ class ResponseExceptionListener implements EventSubscriberInterface
 
         $request->attributes->set('pimcore_request_source', sprintf('document_%d', $document->getId()));
 
-        $zone = $this->zoneManager->buildZoneByRequest($request, $document);
+        $routeItem = $this->routeItemManager->buildRouteItemByRequest($request, $document);
 
-        if (!$zone instanceof I18nZoneInterface) {
+        if (!$routeItem instanceof RouteItemInterface) {
             return;
         }
 
-        $this->zoneResolver->setZone($zone, $request);
+        $this->routeItemResolver->setRouteItem($routeItem, $request);
 
         $this->enablePimcoreContext();
     }

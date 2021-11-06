@@ -3,7 +3,7 @@
 namespace I18nBundle\Adapter\Redirector;
 
 use I18nBundle\Helper\UserHelper;
-use I18nBundle\Model\I18nSiteInterface;
+use I18nBundle\Model\I18nZoneSiteInterface;
 
 class GeoRedirector extends AbstractRedirector
 {
@@ -84,7 +84,7 @@ class GeoRedirector extends AbstractRedirector
             return $a['priority'] - $b['priority'];
         });
 
-        /** @var I18nSiteInterface $zoneSite */
+        /** @var I18nZoneSiteInterface $zoneSite */
         $zoneSite = $prioritisedListQuery[0]['site'];
 
         $this->setDecision([
@@ -103,7 +103,7 @@ class GeoRedirector extends AbstractRedirector
         ?string $countryIso = null,
         bool $countryStrictMode = true,
         bool $languageStrictMode = false
-    ): ?I18nSiteInterface {
+    ): ?I18nZoneSiteInterface {
 
         if (!is_array($zoneSites)) {
             return null;
@@ -113,7 +113,7 @@ class GeoRedirector extends AbstractRedirector
 
         if ($countryIso === null) {
 
-            $indexId = array_search($locale, array_map(static function (I18nSiteInterface $site) {
+            $indexId = array_search($locale, array_map(static function (I18nZoneSiteInterface $site) {
                 return $site->getLocale();
             }, $zoneSites), true);
 
@@ -127,14 +127,14 @@ class GeoRedirector extends AbstractRedirector
 
             $strictLocale = sprintf('%s_%s', $language, $countryIso);
 
-            $indexId = array_search($strictLocale, array_map(static function (I18nSiteInterface $site) {
+            $indexId = array_search($strictLocale, array_map(static function (I18nZoneSiteInterface $site) {
                 return $site->getLocale();
             }, $zoneSites), true);
 
             return $indexId !== false ? $zoneSites[$indexId] : null;
         }
 
-        $indexId = array_search($locale, array_map(static function (I18nSiteInterface $site) {
+        $indexId = array_search($locale, array_map(static function (I18nZoneSiteInterface $site) {
             return $site->getLocale();
         }, $zoneSites), true);
 

@@ -2,8 +2,8 @@
 
 namespace I18nBundle\DataCollector;
 
-use I18nBundle\Http\ZoneResolverInterface;
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Http\RouteItemResolverInterface;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Http\RequestHelper;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,13 +11,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class I18nDataCollector extends AbstractDataCollector
 {
-    protected ZoneResolverInterface $zoneResolver;
+    protected RouteItemResolverInterface $routeItemResolver;
     protected RequestHelper $requestHelper;
     protected bool $isFrontend = true;
 
-    public function __construct(ZoneResolverInterface $zoneResolver, RequestHelper $requestHelper)
+    public function __construct(RouteItemResolverInterface $routeItemResolver, RequestHelper $requestHelper)
     {
-        $this->zoneResolver = $zoneResolver;
+        $this->routeItemResolver = $routeItemResolver;
         $this->requestHelper = $requestHelper;
 
         $this->data = [
@@ -39,11 +39,12 @@ class I18nDataCollector extends AbstractDataCollector
             return;
         }
 
-        $zone = $this->zoneResolver->getZone($request);
-        if (!$zone instanceof I18nZoneInterface) {
+        $routeItem = $this->routeItemResolver->getRouteItem($request);
+        if (!$routeItem instanceof RouteItemInterface) {
             return;
         }
 
+        $zone = $routeItem->getI18nZone();
         $zoneId = $zone->getZoneId();
         $mode = $zone->getMode();
 
@@ -51,16 +52,16 @@ class I18nDataCollector extends AbstractDataCollector
         $currentLanguage = '--';
         $currentCountry = '--';
 
-        if ($zone->getContext()->hasLocale()) {
-            $currentLocale = $zone->getContext()->getLocale();
+        if ($routeItem->getLocaleDefinition()->hasLocale()) {
+            $currentLocale = $routeItem->getLocaleDefinition()->getLocale();
         }
 
-        if ($zone->getContext()->hasCountryIso()) {
-            $currentCountry = $zone->getContext()->getCountryIso();
+        if ($routeItem->getLocaleDefinition()->hasCountryIso()) {
+            $currentCountry = $routeItem->getLocaleDefinition()->getCountryIso();
         }
 
-        if ($zone->getContext()->hasLanguageIso()) {
-            $currentLanguage = $zone->getContext()->getLanguageIso();
+        if ($routeItem->getLocaleDefinition()->hasLanguageIso()) {
+            $currentLanguage = $routeItem->getLocaleDefinition()->getLanguageIso();
         }
 
         $this->data = [
