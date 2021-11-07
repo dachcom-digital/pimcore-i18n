@@ -2,7 +2,7 @@
 
 namespace I18nBundle\Model;
 
-interface I18nZoneSiteInterface
+interface ZoneSiteInterface
 {
     public function getSiteRequestContext(): SiteRequestContext;
 

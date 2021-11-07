@@ -3,34 +3,21 @@
 namespace I18nBundle\Adapter\LocaleProvider;
 
 use I18nBundle\Definitions;
+use I18nBundle\Model\ZoneInterface;
 use Pimcore\Config;
 use Pimcore\Tool;
 
 class SystemLocaleProvider extends AbstractLocaleProvider
 {
-    protected array $validLocales = [];
-
-    public function getDefaultLocale(array $zoneDefinition): ?string
+    public function getDefaultLocale(ZoneInterface $zone): ?string
     {
-        $configDefaultLocale = $zoneDefinition['default_locale'];
+        $config = Config::getSystemConfiguration('general');
 
-        if (!is_null($configDefaultLocale)) {
-            $defaultLocale = $configDefaultLocale;
-        } else {
-            $config = Config::getSystemConfiguration('general');
-            $defaultSystemLocale = $config['default_language'];
-            $defaultLocale = $defaultSystemLocale;
-        }
-
-        return $defaultLocale;
+        return $config['default_language'];
     }
 
-    public function getActiveLocales(array $zoneDefinition): array
+    public function getActiveLocales(ZoneInterface $zone): array
     {
-        if (!empty($this->validLocales)) {
-            return $this->validLocales;
-        }
-
         $validLocales = [];
         $systemLocales = Tool::getValidLanguages();
 
@@ -42,23 +29,10 @@ class SystemLocaleProvider extends AbstractLocaleProvider
             ];
         }
 
-        $this->validLocales = $validLocales;
-
-        return $this->validLocales;
+        return $validLocales;
     }
 
-    public function getLocaleData(array $zoneDefinition, string $locale, string $field, string $keyIdentifier = 'locale'): mixed
-    {
-        $key = array_search($locale, array_column($this->getActiveLocales($zoneDefinition), $keyIdentifier), true);
-
-        if ($key !== false) {
-            return $this->validLocales[$key][$field];
-        }
-
-        return null;
-    }
-
-    public function getGlobalInfo(array $zoneDefinition): array
+    public function getGlobalInfo(ZoneInterface $zone): array
     {
         return [
             'id'      => null,

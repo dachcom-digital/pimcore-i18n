@@ -3,9 +3,9 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Adapter\Redirector\CookieRedirector;
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Helper\RequestValidatorHelper;
-use I18nBundle\Manager\RouteItemManager;
-use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Manager\I18nContextManager;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use I18nBundle\Adapter\Redirector\RedirectorBag;
 use I18nBundle\Registry\RedirectorRegistry;
@@ -24,20 +24,20 @@ use Pimcore\Model\Document;
 class PimcoreRedirectListener implements EventSubscriberInterface
 {
     protected RedirectorRegistry $redirectorRegistry;
-    protected RouteItemManager $routeItemManager;
+    protected I18nContextManager $i18nContextManager;
     protected RedirectHandler $redirectHandler;
     protected SiteResolver $siteResolver;
     protected RequestValidatorHelper $requestValidatorHelper;
 
     public function __construct(
         RedirectorRegistry $redirectorRegistry,
-        RouteItemManager $routeItemManager,
+        I18nContextManager $i18nContextManager,
         RedirectHandler $redirectHandler,
         SiteResolver $siteResolver,
         RequestValidatorHelper $requestValidatorHelper
     ) {
         $this->redirectorRegistry = $redirectorRegistry;
-        $this->routeItemManager = $routeItemManager;
+        $this->i18nContextManager = $i18nContextManager;
         $this->redirectHandler = $redirectHandler;
         $this->siteResolver = $siteResolver;
         $this->requestValidatorHelper = $requestValidatorHelper;
@@ -110,15 +110,15 @@ class PimcoreRedirectListener implements EventSubscriberInterface
             $request->attributes->set('pimcore_request_source', sprintf('document_%d', $document->getId()));
         }
 
-        $routeItem = $this->routeItemManager->buildRouteItemByRequest($request, $document);
+        $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
 
-        if (!$routeItem instanceof RouteItemInterface) {
+        if (!$i18nContext instanceof I18nContextInterface) {
             return $response;
         }
 
         $redirectorBag = new RedirectorBag([
-            'zone'    => $routeItem->getI18nZone(),
-            'request' => $request
+            'i18nContext' => $i18nContext,
+            'request'     => $request
         ]);
 
         foreach ($this->redirectorRegistry->all() as $redirector) {
@@ -143,7 +143,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
             return $response;
         }
 
-        $localizedUrls = $routeItem->getI18nZone()->getLinkedLanguages(false);
+        $localizedUrls = $i18nContext->getLinkedLanguages(false);
 
         if (count($localizedUrls) === 0) {
             $response->setTargetUrl($document->getFullPath());

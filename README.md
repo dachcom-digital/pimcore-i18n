@@ -7,12 +7,16 @@
 
 ![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
 
+## Scheme
+![Untitled Diagram (1)](https://user-images.githubusercontent.com/700119/140643460-3c0da032-93ec-43e3-9984-10b7f29aa9c9.png)
+
 ## Introduction
-Pimcore already comes with some great features to build internationalized websites. But there are some gaps we have to handle by ourselves: search engine guidelines, geo based redirects and a dynamic link handling for internal documents. 
-This Bundle helps you mastering this challenges and gives you the freedom to elaborate complex country based localization strategies.
+Pimcore already comes with some great features to build internationalized websites. 
+But there are some gaps we have to handle by ourselves: search engine guidelines, geo based redirects, dynamic link handling for internal documents and of course: full qualified URLs for and in every context. 
+This bundle helps you to master this challenges and gives you the freedom to elaborate complex URL building and (country) based localization strategies.
+**Please read the read the [I18n overview page](./docs/1_I18n.md) before starting!**
 
 ### Release Plan
-
 | Release | Supported Pimcore Versions        | Supported Symfony Versions | Release Date | Maintained     | Branch     |
 |---------|-----------------------------------|----------------------------|--------------|----------------|------------|
 | **4.x** | `10.1`                            | `5.3`                      | --           | Feature Branch | master     |
@@ -34,11 +38,19 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 - Execute: `$ bin/console doctrine:migrations:migrate --prefix 'I18nBundle\Migrations'`
 
 ## Features
+- Generate fully qualified URLs in any context with symfony's default router
 - Geo redirects (read more about the redirector adapter [here](docs/51_RedirectorAdapter.md))
 - Thanks to the hardlink element you can easily create copies of webpages with additional country information without adding and maintaining duplicate content
 - Manage [href-lang](docs/25_HrefLang.md) tags
 - Domain mapping (`domain.com`) and/or language slug (`/en`) strategies
 - [front page mapping](docs/30_FrontPageMapping.md) for hardlink trees
+
+### Before you start
+When using this bundle, you should:
+- **not** using any router but the default `RouterInterface` object. 
+- **not** using `pimcore_url` or `$staticRoute->assemble()` but using the default `RouterInterface` instead
+- extend your `LinkGeneratorInterface` objects with the `I18nLinkGeneratorInterface` and adjust dem accordingly
+- **read** the [How I18nBundle works](./docs/1_I18n.md) section
 
 ### Preparation
 - If you're using `system` as your `locale_adapter`, which is the default, you need to enable all required locales in pimcore system settings
@@ -47,8 +59,8 @@ This Bundle helps you mastering this challenges and gives you the freedom to ela
 
 ## Further Information
 - [Geo IP/Control](docs/10_GeoControl.md): Enable GeoIP Data Provider.
-- [Zones](docs/20_Zones.md): Learn more about i18n zones and how to manage them.
-  - [Custom Zone Look-Up](docs/21_CustomZoneLookUp.md)] (🔥 New!)
+- [Zone Definitions](docs/20_Zones.md): Learn more about i18n zone definitions and how to manage them.
+  - [Custom I18n Context Look-Up](docs/21_CustomI18nContextLookUp.md)] (🔥 New!)
 - [Href-Lang](docs/25_HrefLang.md): Find out more about the href-lang tag generator.
 - [Language Configuration](docs/26_Languages.md): Configure languages.
 - [Country Configuration](docs/27_Countries.md): Configure countries.

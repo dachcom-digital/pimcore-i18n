@@ -2,9 +2,9 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Definitions;
-use I18nBundle\Http\RouteItemResolverInterface;
-use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Http\I18nContextResolverInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Twig\Extension\Templating\HeadMeta;
@@ -17,14 +17,14 @@ class HeadMetaListener implements EventSubscriberInterface
     use PimcoreContextAwareTrait;
 
     protected HeadMeta $headMeta;
-    protected RouteItemResolverInterface $routeItemResolver;
+    protected I18nContextResolverInterface $i18nContextResolver;
 
     public function __construct(
         HeadMeta $headMeta,
-        RouteItemResolverInterface $routeItemResolver
+        I18nContextResolverInterface $i18nContextResolver
     ) {
         $this->headMeta = $headMeta;
-        $this->routeItemResolver = $routeItemResolver;
+        $this->i18nContextResolver = $i18nContextResolver;
     }
 
     public static function getSubscribedEvents(): array
@@ -51,17 +51,17 @@ class HeadMetaListener implements EventSubscriberInterface
             return;
         }
 
-        $routeItem = $this->routeItemResolver->getRouteItem($request);
+        $i18nContext = $this->i18nContextResolver->getContext($request);
 
-        if (!$routeItem instanceof RouteItemInterface) {
+        if (!$i18nContext instanceof I18nContextInterface) {
             return;
         }
 
-        if ($routeItem->getI18nZone()->getMode() !== 'country') {
+        if ($i18nContext->getZone()->getMode() !== 'country') {
             return;
         }
 
-        $currentCountryIso = $routeItem->getLocaleDefinition()->getCountryIso();
+        $currentCountryIso = $i18nContext->getLocaleDefinition()->getCountryIso();
 
         if (empty($currentCountryIso)) {
             return;

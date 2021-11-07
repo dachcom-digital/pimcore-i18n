@@ -2,31 +2,31 @@
 
 namespace I18nBundle\Adapter\Redirector;
 
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Context\I18nContextInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class RedirectorBag
 {
     protected array $decisionBag = [];
-    protected I18nZoneInterface $zone;
+    protected I18nContextInterface $i18nContext;
     protected Request $request;
 
     public function __construct(array $options)
     {
         $resolver = new OptionsResolver();
         $resolver->setDefaults([
-            'zone'    => null,
-            'request' => null,
+            'i18nContext' => null,
+            'request'     => null,
         ]);
 
-        $resolver->setRequired(['zone', 'request']);
-        $resolver->setAllowedTypes('zone', [I18nZoneInterface::class]);
+        $resolver->setRequired(['i18nContext', 'request']);
+        $resolver->setAllowedTypes('zone', [I18nContextInterface::class]);
         $resolver->setAllowedTypes('request', [Request::class]);
 
         $options = $resolver->resolve($options);
 
-        $this->zone = $options['zone'];
+        $this->i18nContext = $options['i18nContext'];
         $this->request = $options['request'];
     }
 
@@ -43,9 +43,9 @@ class RedirectorBag
         return $this->request;
     }
 
-    public function getZone(): I18nZoneInterface
+    public function getI18nContext(): I18nContextInterface
     {
-        return $this->zone;
+        return $this->i18nContext;
     }
 
     public function getLastRedirectorDecision(): ?array

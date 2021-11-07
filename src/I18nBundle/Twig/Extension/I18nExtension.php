@@ -2,9 +2,9 @@
 
 namespace I18nBundle\Twig\Extension;
 
-use I18nBundle\Http\RouteItemResolverInterface;
-use I18nBundle\Manager\RouteItemManager;
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Http\I18nContextResolverInterface;
+use I18nBundle\Manager\I18nContextManager;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\Document;
@@ -17,35 +17,35 @@ use Twig\TwigFunction;
 class I18nExtension extends AbstractExtension
 {
     protected RequestStack $requestStack;
-    protected RouteItemResolverInterface $routeItemResolver;
-    protected RouteItemManager $routeItemManager;
+    protected I18nContextResolverInterface $i18nContextResolver;
+    protected I18nContextManager $i18nContextManager;
 
     public function __construct(
         RequestStack $requestStack,
-        RouteItemResolverInterface $routeItemResolver,
-        RouteItemManager $routeItemManager
+        I18nContextResolverInterface $i18nContextResolver,
+        I18nContextManager $i18nContextManager
     ) {
         $this->requestStack = $requestStack;
-        $this->routeItemResolver = $routeItemResolver;
-        $this->routeItemManager = $routeItemManager;
+        $this->i18nContextResolver = $i18nContextResolver;
+        $this->i18nContextManager = $i18nContextManager;
     }
 
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('i18n_zone', [$this, 'getI18nZone']),
-            new TwigFunction('i18n_create_zone_by_entity', [$this, 'createI18nZoneByEntity']),
-            new TwigFunction('i18n_create_zone_by_static_route', [$this, 'createI18nZoneByStaticRoute']),
-            new TwigFunction('i18n_create_zone_by_symfony_route', [$this, 'createI18nZoneBySymfonyRoute']),
+            new TwigFunction('i18n_context', [$this, 'getI18nContext']),
+            new TwigFunction('i18n_create_context_by_entity', [$this, 'createI18nContextByEntity']),
+            new TwigFunction('i18n_create_context_by_static_route', [$this, 'createI18nContextByStaticRoute']),
+            new TwigFunction('i18n_create_context_by_symfony_route', [$this, 'createI18nContextBySymfonyRoute']),
         ];
     }
 
-    public function getI18nZone(): ?I18nZoneInterface
+    public function getI18nContext(): ?I18nContextInterface
     {
-        return $this->routeItemResolver->getRouteItem($this->requestStack->getCurrentRequest())->getI18nZone();
+        return $this->i18nContextResolver->getContext($this->requestStack->getCurrentRequest());
     }
 
-    public function createI18nZoneByEntity(ElementInterface $entity, array $routeParameter = [], ?Site $site = null): I18nZoneInterface
+    public function createI18nContextByEntity(ElementInterface $entity, array $routeParameter = [], ?Site $site = null): I18nContextInterface
     {
         $routeItemParameters = [
             'routeParameters' => $routeParameter,
@@ -63,10 +63,10 @@ class I18nExtension extends AbstractExtension
             throw new \Exception('Cannot build zone for entity "%"', get_class($entity));
         }
 
-        return $this->routeItemManager->buildRouteItemByParameters($routeItemParameters)->getI18nZone();
+        return $this->i18nContextManager->buildContextByParameters($routeItemParameters, true);
     }
 
-    public function createI18nZoneByStaticRoute(string $route, array $routeParameter = [], ?Site $site = null): I18nZoneInterface
+    public function createI18nContextByStaticRoute(string $route, array $routeParameter = [], ?Site $site = null): I18nContextInterface
     {
         $routeItemParameters = [
             'type'            => RouteItemInterface::STATIC_ROUTE,
@@ -77,10 +77,10 @@ class I18nExtension extends AbstractExtension
             ]
         ];
 
-        return $this->routeItemManager->buildRouteItemByParameters($routeItemParameters)->getI18nZone();
+        return $this->i18nContextManager->buildContextByParameters($routeItemParameters, true);
     }
 
-    public function createI18nZoneBySymfonyRoute(string $route, array $routeParameter = [], ?Site $site = null): I18nZoneInterface
+    public function createI18nContextBySymfonyRoute(string $route, array $routeParameter = [], ?Site $site = null): I18nContextInterface
     {
         $routeItemParameters = [
             'type'            => RouteItemInterface::SYMFONY_ROUTE,
@@ -91,6 +91,6 @@ class I18nExtension extends AbstractExtension
             ]
         ];
 
-        return $this->routeItemManager->buildRouteItemByParameters($routeItemParameters)->getI18nZone();
+        return $this->i18nContextManager->buildContextByParameters($routeItemParameters, true);
     }
 }

@@ -3,7 +3,7 @@
 namespace I18nBundle\Adapter\Redirector;
 
 use I18nBundle\Helper\UserHelper;
-use I18nBundle\Model\I18nZoneSiteInterface;
+use I18nBundle\Model\ZoneSiteInterface;
 
 class GeoRedirector extends AbstractRedirector
 {
@@ -39,9 +39,9 @@ class GeoRedirector extends AbstractRedirector
         }
 
         $userCountryIso = null;
-        $zoneSites = $redirectorBag->getZone()->getSites(true);
+        $zoneSites = $redirectorBag->getI18nContext()->getZone()->getSites(true);
 
-        if ($redirectorBag->getZone()->getMode() === 'country') {
+        if ($redirectorBag->getI18nContext()->getZone()->getMode() === 'country') {
             $userCountryIso = $this->userHelper->guessCountry();
         }
 
@@ -84,7 +84,7 @@ class GeoRedirector extends AbstractRedirector
             return $a['priority'] - $b['priority'];
         });
 
-        /** @var I18nZoneSiteInterface $zoneSite */
+        /** @var ZoneSiteInterface $zoneSite */
         $zoneSite = $prioritisedListQuery[0]['site'];
 
         $this->setDecision([
@@ -103,7 +103,7 @@ class GeoRedirector extends AbstractRedirector
         ?string $countryIso = null,
         bool $countryStrictMode = true,
         bool $languageStrictMode = false
-    ): ?I18nZoneSiteInterface {
+    ): ?ZoneSiteInterface {
 
         if (!is_array($zoneSites)) {
             return null;
@@ -113,7 +113,7 @@ class GeoRedirector extends AbstractRedirector
 
         if ($countryIso === null) {
 
-            $indexId = array_search($locale, array_map(static function (I18nZoneSiteInterface $site) {
+            $indexId = array_search($locale, array_map(static function (ZoneSiteInterface $site) {
                 return $site->getLocale();
             }, $zoneSites), true);
 
@@ -127,14 +127,14 @@ class GeoRedirector extends AbstractRedirector
 
             $strictLocale = sprintf('%s_%s', $language, $countryIso);
 
-            $indexId = array_search($strictLocale, array_map(static function (I18nZoneSiteInterface $site) {
+            $indexId = array_search($strictLocale, array_map(static function (ZoneSiteInterface $site) {
                 return $site->getLocale();
             }, $zoneSites), true);
 
             return $indexId !== false ? $zoneSites[$indexId] : null;
         }
 
-        $indexId = array_search($locale, array_map(static function (I18nZoneSiteInterface $site) {
+        $indexId = array_search($locale, array_map(static function (ZoneSiteInterface $site) {
             return $site->getLocale();
         }, $zoneSites), true);
 

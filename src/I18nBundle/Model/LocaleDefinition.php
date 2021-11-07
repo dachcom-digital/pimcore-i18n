@@ -2,7 +2,7 @@
 
 namespace I18nBundle\Model;
 
-class I18nLocaleDefinition implements I18nLocaleDefinitionInterface
+class LocaleDefinition implements LocaleDefinitionInterface
 {
     protected ?string $locale;
     protected ?string $languageIso;

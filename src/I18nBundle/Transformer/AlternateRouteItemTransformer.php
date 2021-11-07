@@ -3,7 +3,7 @@
 namespace I18nBundle\Transformer;
 
 use I18nBundle\Definitions;
-use I18nBundle\Model\I18nZoneSiteInterface;
+use I18nBundle\Model\ZoneSiteInterface;
 use I18nBundle\Model\RouteItem\AlternateRouteItem;
 use I18nBundle\Model\RouteItem\AlternateRouteItemInterface;
 use I18nBundle\Model\RouteItem\LinkGeneratorRouteItemInterface;
@@ -14,7 +14,7 @@ class AlternateRouteItemTransformer implements TransformerInterface
     public function transform(RouteItemInterface $routeItem, array $context = []): AlternateRouteItemInterface
     {
         $type = $context['type'] ?? '';
-        /** @var I18nZoneSiteInterface $zoneSite */
+        /** @var ZoneSiteInterface $zoneSite */
         $zoneSite = $context['zoneSite'] ?? '';
         $useZoneSiteLocale = $context['useZoneSiteLocale'] ?? false;
 

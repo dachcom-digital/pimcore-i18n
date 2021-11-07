@@ -2,8 +2,8 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\I18nEvents;
-use I18nBundle\Model\I18nZoneInterface;
 use I18nBundle\Model\RouteItem\AlternateRouteItemInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -13,9 +13,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Symfony extends DynamicRoute
 {
-    protected RouterInterface $router;
-    protected EventDispatcherInterface $eventDispatcher;
-
     public function __construct(
         RouterInterface $router,
         EventDispatcherInterface $eventDispatcher
@@ -32,9 +29,9 @@ class Symfony extends DynamicRoute
             ->setAllowedTypes('_route', ['null', 'string']);
     }
 
-    public function getUrls(I18nZoneInterface $zone, bool $onlyShowRootLanguages = false): array
+    public function getUrls(I18nContextInterface $i18nContext, bool $onlyShowRootLanguages = false): array
     {
-        return $this->buildAlternateRoutesStack($zone, RouteItemInterface::SYMFONY_ROUTE, I18nEvents::PATH_ALTERNATE_SYMFONY_ROUTE);
+        return $this->buildAlternateRoutesStack($i18nContext, RouteItemInterface::SYMFONY_ROUTE, I18nEvents::PATH_ALTERNATE_SYMFONY_ROUTE);
     }
 
     protected function generateLink(AlternateRouteItemInterface $routeItem): string

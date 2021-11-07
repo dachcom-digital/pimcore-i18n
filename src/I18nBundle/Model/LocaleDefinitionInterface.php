@@ -2,7 +2,7 @@
 
 namespace I18nBundle\Model;
 
-interface I18nLocaleDefinitionInterface
+interface LocaleDefinitionInterface
 {
     public function getLocale(): ?string;
 

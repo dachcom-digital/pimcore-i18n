@@ -2,9 +2,9 @@
 
 namespace I18nBundle\EventListener;
 
-use I18nBundle\Http\RouteItemResolverInterface;
-use I18nBundle\Manager\RouteItemManager;
-use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Http\I18nContextResolverInterface;
+use I18nBundle\Manager\I18nContextManager;
 use Pimcore\Model\Site;
 use Pimcore\Tool\Admin;
 use Pimcore\Tool\Authentication;
@@ -24,24 +24,24 @@ class I18nStartupListener implements EventSubscriberInterface
 {
     protected EngineInterface $templating;
     protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
-    protected RouteItemManager $routeItemManager;
+    protected I18nContextManager $i18nContextManager;
     protected EditmodeResolver $editmodeResolver;
-    protected RouteItemResolverInterface $routeItemResolver;
+    protected I18nContextResolverInterface $i18nContextResolver;
     protected RequestValidatorHelper $requestValidatorHelper;
 
     public function __construct(
         EngineInterface $templating,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        RouteItemManager $routeItemManager,
+        I18nContextManager $i18nContextManager,
         EditmodeResolver $editmodeResolver,
-        RouteItemResolverInterface $routeItemResolver,
+        I18nContextResolverInterface $i18nContextResolver,
         RequestValidatorHelper $requestValidatorHelper
     ) {
         $this->templating = $templating;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
-        $this->routeItemManager = $routeItemManager;
+        $this->i18nContextManager = $i18nContextManager;
         $this->editmodeResolver = $editmodeResolver;
-        $this->routeItemResolver = $routeItemResolver;
+        $this->i18nContextResolver = $i18nContextResolver;
         $this->requestValidatorHelper = $requestValidatorHelper;
     }
 
@@ -74,9 +74,9 @@ class I18nStartupListener implements EventSubscriberInterface
             return;
         }
 
-        $routeItem = $this->initializeRouteItem($request, $document);
+        $i18nContext = $this->initializeI18nContext($request, $document);
 
-        if (!$routeItem instanceof RouteItemInterface) {
+        if (!$i18nContext instanceof I18nContextInterface) {
             // @todo: log this?
             return;
         }
@@ -87,23 +87,23 @@ class I18nStartupListener implements EventSubscriberInterface
         }
     }
 
-    protected function initializeRouteItem(Request $request, ?Document $document): ?RouteItemInterface
+    protected function initializeI18nContext(Request $request, ?Document $document): ?I18nContextInterface
     {
         if ($document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
             $document = $document->getSourceDocument();
         }
 
-        $routeItem = $this->routeItemManager->buildRouteItemByRequest($request, $document);
+        $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
 
-        if (!$routeItem instanceof RouteItemInterface) {
+        if (!$i18nContext instanceof I18nContextInterface) {
             return null;
         }
 
-        $this->routeItemResolver->setRouteItem($routeItem, $request);
+        $this->i18nContextResolver->setContext($i18nContext, $request);
 
         $request->attributes->set(Definitions::ATTRIBUTE_I18N_CONTEXT, true);
 
-        return $routeItem;
+        return $i18nContext;
     }
 
     protected function setNotEditableAwareMessage(Document $document, RequestEvent $event): void

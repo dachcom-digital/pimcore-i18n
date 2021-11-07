@@ -2,7 +2,7 @@
 
 namespace I18nBundle\Model;
 
-class I18nZoneSite implements I18nZoneSiteInterface
+class ZoneSite implements ZoneSiteInterface
 {
     protected SiteRequestContext $siteRequestContext;
     protected int $rootId;

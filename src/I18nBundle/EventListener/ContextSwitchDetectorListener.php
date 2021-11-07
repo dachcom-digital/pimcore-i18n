@@ -3,8 +3,8 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Configuration\Configuration;
-use I18nBundle\Http\RouteItemResolverInterface;
-use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Http\I18nContextResolverInterface;
 use Pimcore\Config;
 use Pimcore\Logger;
 use Pimcore\Model\Document;
@@ -23,7 +23,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
 {
     protected EventDispatcherInterface $eventDispatcher;
     protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
-    protected RouteItemResolverInterface $routeItemResolver;
+    protected I18nContextResolverInterface $i18nContextResolver;
     protected RequestValidatorHelper $requestValidatorHelper;
     protected Config $pimcoreConfig;
     protected Configuration $configuration;
@@ -31,14 +31,14 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        RouteItemResolverInterface $routeItemResolver,
+        I18nContextResolverInterface $i18nContextResolver,
         RequestValidatorHelper $requestValidatorHelper,
         Config $pimcoreConfig,
         Configuration $configuration
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
-        $this->routeItemResolver = $routeItemResolver;
+        $this->i18nContextResolver = $i18nContextResolver;
         $this->requestValidatorHelper = $requestValidatorHelper;
         $this->pimcoreConfig = $pimcoreConfig;
         $this->configuration = $configuration;
@@ -87,15 +87,15 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $routeItem = $this->routeItemResolver->getRouteItem($request);
-        if (!$routeItem instanceof RouteItemInterface) {
+        $i18nContext = $this->i18nContextResolver->getContext($request);
+        if (!$i18nContext instanceof I18nContextInterface) {
             return;
         }
 
         // check if zone, language or country has been changed,
         // trigger event for 3th party.
-        $this->detectContextSwitch($routeItem, $request);
-        $this->updateSessionData($routeItem, $request);
+        $this->detectContextSwitch($i18nContext, $request);
+        $this->updateSessionData($i18nContext, $request);
     }
 
     /**
@@ -105,21 +105,21 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
      *
      * @throws \Exception
      */
-    private function detectContextSwitch(RouteItemInterface $routeItem, Request $request): void
+    private function detectContextSwitch(I18nContextInterface $i18nContext, Request $request): void
     {
-        $zone = $routeItem->getI18nZone();
+        $zone = $i18nContext->getZone();
 
         $session = $this->getSessionData($request);
-        $currentZoneId = $zone->getZoneId();
+        $currentZoneId = $zone->getId();
 
         $localeHasSwitched = false;
         $languageHasSwitched = false;
         $countryHasSwitched = false;
         $zoneHasSwitched = false;
 
-        $documentLocale = $routeItem->getLocaleDefinition()->getLocale();
-        $documentLanguage = $routeItem->getLocaleDefinition()->getLanguageIso();
-        $documentCountry = $routeItem->getLocaleDefinition()->getCountryIso();
+        $documentLocale = $i18nContext->getLocaleDefinition()->getLocale();
+        $documentLanguage = $i18nContext->getLocaleDefinition()->getLanguageIso();
+        $documentCountry = $i18nContext->getLocaleDefinition()->getCountryIso();
 
         if (is_null($session['lastLocale']) || ($documentLocale !== $session['lastLocale'])) {
             $localeHasSwitched = true;
@@ -235,12 +235,12 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
     /**
      * @throws \Exception
      */
-    protected function updateSessionData(RouteItemInterface $routeItem, Request $request): void
+    protected function updateSessionData(I18nContextInterface $i18nContext, Request $request): void
     {
-        $documentLocale = $routeItem->getLocaleDefinition()->getLocale();
-        $documentLanguage = $routeItem->getLocaleDefinition()->getLanguageIso();
-        $documentCountry = $routeItem->getLocaleDefinition()->getCountryIso();
-        $currentZoneId = $routeItem->getI18nZone()->getZoneId();
+        $documentLocale = $i18nContext->getLocaleDefinition()->getLocale();
+        $documentLanguage = $i18nContext->getLocaleDefinition()->getLanguageIso();
+        $documentCountry = $i18nContext->getLocaleDefinition()->getCountryIso();
+        $currentZoneId = $i18nContext->getZone()->getId();
 
         /** @var NamespacedAttributeBag $bag */
         $bag = $request->getSession()->getBag('i18n_session');

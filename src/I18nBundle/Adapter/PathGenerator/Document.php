@@ -2,8 +2,9 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
-use I18nBundle\Model\I18nZoneSiteInterface;
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Model\ZoneSiteInterface;
+use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Tool\System;
 use Pimcore\Model\Document as PimcoreDocument;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -20,19 +21,19 @@ class Document extends AbstractPathGenerator
             ->setAllowedTypes('document', [PimcoreDocument::class]);
     }
 
-    public function getUrls(I18nZoneInterface $zone, bool $onlyShowRootLanguages = false): array
+    public function getUrls(I18nContextInterface $i18nContext, bool $onlyShowRootLanguages = false): array
     {
         /** @var PimcoreDocument $document */
-        $document = $zone->getRouteItem()->getEntity();
+        $document = $i18nContext->getRouteItem()->getEntity();
 
         if (isset($this->cachedUrls[$document->getId()])) {
             return $this->cachedUrls[$document->getId()];
         }
 
-        if ($zone->getMode() === 'language') {
-            $urls = $this->documentUrlsFromLanguage($zone, $document, $onlyShowRootLanguages);
+        if ($i18nContext->getZone()->getMode() === 'language') {
+            $urls = $this->documentUrlsFromLanguage($i18nContext->getZone(), $document, $onlyShowRootLanguages);
         } else {
-            $urls = $this->documentUrlsFromCountry($zone, $document, $onlyShowRootLanguages);
+            $urls = $this->documentUrlsFromCountry($i18nContext->getZone(), $document, $onlyShowRootLanguages);
         }
 
         $this->cachedUrls[$document->getId()] = $urls;
@@ -40,7 +41,7 @@ class Document extends AbstractPathGenerator
         return $urls;
     }
 
-    private function documentUrlsFromLanguage(I18nZoneInterface $zone, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
+    private function documentUrlsFromLanguage(ZoneInterface $zone, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
 
@@ -50,7 +51,7 @@ class Document extends AbstractPathGenerator
             return [];
         }
 
-        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (I18nZoneSiteInterface $site) {
+        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (ZoneSiteInterface $site) {
             return $site->getRootId();
         }, $zoneSites), true);
 
@@ -101,7 +102,7 @@ class Document extends AbstractPathGenerator
 
                 if ($this->hasPrettyUrl($document) === true) {
                     $relativePath = $document->getPrettyUrl();
-                    $url = System::joinPath([$zoneSite->getDomainUrl(), $relativePath]);
+                    $url = System::joinPath([$zoneSite->getSiteRequestContext()->getDomainUrl(), $relativePath]);
                 } else {
                     // map paths
                     $documentPath = $document->getRealPath() . $document->getKey();
@@ -125,7 +126,7 @@ class Document extends AbstractPathGenerator
         return $routes;
     }
 
-    private function documentUrlsFromCountry(I18nZoneInterface $zone, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
+    private function documentUrlsFromCountry(ZoneInterface $zone, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
 
@@ -135,7 +136,7 @@ class Document extends AbstractPathGenerator
             return [];
         }
 
-        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (I18nZoneSiteInterface $site) {
+        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (ZoneSiteInterface $site) {
             return $site->getRootId();
         }, $zoneSites), true);
 
@@ -207,7 +208,7 @@ class Document extends AbstractPathGenerator
             if ($this->hasPrettyUrl($document) === true) {
                 $hasPrettyUrl = true;
                 $relativePath = $document->getPrettyUrl();
-                $url = System::joinPath([$zoneSite->getDomainUrl(), $relativePath]);
+                $url = System::joinPath([$zoneSite->getSiteRequestContext()->getDomainUrl(), $relativePath]);
             } else {
                 //map paths
                 $documentPath = $document->getRealPath() . $document->getKey();

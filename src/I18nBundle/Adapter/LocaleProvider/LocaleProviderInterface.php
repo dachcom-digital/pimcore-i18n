@@ -2,13 +2,13 @@
 
 namespace I18nBundle\Adapter\LocaleProvider;
 
+use I18nBundle\Model\ZoneInterface;
+
 interface LocaleProviderInterface
 {
-    public function getActiveLocales(array $zoneDefinition): array;
+    public function getActiveLocales(ZoneInterface $zone): array;
 
-    public function getLocaleData(array $zoneDefinition, string $locale, string $field, string $keyIdentifier = 'locale'): mixed;
+    public function getDefaultLocale(ZoneInterface $zone): ?string;
 
-    public function getDefaultLocale(array $zoneDefinition): ?string;
-
-    public function getGlobalInfo(array $zoneDefinition): array;
+    public function getGlobalInfo(ZoneInterface $zone): array;
 }

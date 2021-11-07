@@ -3,28 +3,30 @@
 namespace I18nBundle\Routing;
 
 use I18nBundle\Configuration\Configuration;
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Definitions;
 use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
-use I18nBundle\Manager\RouteItemManager;
-use I18nBundle\Model\I18nZoneInterface;
+use I18nBundle\Manager\I18nContextManager;
+use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Tool\System;
 use I18nBundle\Transformer\LinkGeneratorRouteItemTransformer;
 use Pimcore\Model\DataObject\Concrete;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\CacheWarmer\WarmableInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouterInterface;
 
-class I18nRouter implements RouterInterface, RequestMatcherInterface
+class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableInterface
 {
     protected RouterInterface $router;
     protected LinkGeneratorRouteItemTransformer $linkGeneratorRouteItemTransformer;
     protected Configuration $configuration;
     protected UrlGeneratorInterface $urlGenerator;
-    protected RouteItemManager $routeItemManager;
+    protected I18nContextManager $i18nContextManager;
     protected ?RequestContext $contextBackup = null;
 
     public function __construct(
@@ -32,13 +34,13 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface
         LinkGeneratorRouteItemTransformer $linkGeneratorRouteItemTransformer,
         Configuration $configuration,
         UrlGeneratorInterface $urlGenerator,
-        RouteItemManager $routeItemManager
+        I18nContextManager $i18nContextManager
     ) {
         $this->router = $router;
         $this->linkGeneratorRouteItemTransformer = $linkGeneratorRouteItemTransformer;
         $this->configuration = $configuration;
         $this->urlGenerator = $urlGenerator;
-        $this->routeItemManager = $routeItemManager;
+        $this->i18nContextManager = $i18nContextManager;
     }
 
     /**
@@ -70,7 +72,11 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface
      */
     public function matchRequest(Request $request)
     {
-        return $this->router->matchRequest($request);
+        if ($this->router instanceof RequestMatcherInterface) {
+            return $this->router->matchRequest($request);
+        }
+
+        return [];
     }
 
     /**
@@ -79,6 +85,18 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface
     public function match($pathinfo)
     {
         return $this->router->match($pathinfo);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function warmUp(string $cacheDir)
+    {
+        if ($this->router instanceof WarmableInterface) {
+            return $this->router->warmUp($cacheDir);
+        }
+
+        return [];
     }
 
     public function generate($name, $parameters = [], $referenceType = self::ABSOLUTE_PATH): string
@@ -95,41 +113,42 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface
             $i18nParameters['routeName'] = $name;
         }
 
-        $routeInfo = $this->routeItemManager->buildRouteItemByParameters($i18nParameters);
+        $i18nContext = $this->i18nContextManager->buildContextByParameters($i18nParameters, false);
 
-        if (!$routeInfo instanceof RouteItemInterface) {
+        if (!$i18nContext instanceof I18nContextInterface) {
             return $this->router->generate($name, $parameters, $referenceType);
         }
 
-        if ($routeInfo->getType() === RouteItemInterface::STATIC_ROUTE) {
-            return $this->generateStaticRoute($routeInfo, $referenceType);
+        if ($i18nContext->getRouteItem()->getType() === RouteItemInterface::STATIC_ROUTE) {
+            return $this->generateStaticRoute($i18nContext, $referenceType);
         }
 
-        if ($routeInfo->getType() === RouteItemInterface::SYMFONY_ROUTE) {
-            return $this->generateSymfonyRoute($routeInfo, $referenceType);
+        if ($i18nContext->getRouteItem()->getType() === RouteItemInterface::SYMFONY_ROUTE) {
+            return $this->generateSymfonyRoute($i18nContext, $referenceType);
         }
 
         throw new RouteNotFoundException(sprintf('None of the chained routers were able to generate route: %s', $name));
     }
 
-    protected function generateStaticRoute(RouteItemInterface $routeItem, int $referenceType): string
+    protected function generateStaticRoute(I18nContextInterface $i18nContext, int $referenceType): string
     {
-        $routeItemEntity = $routeItem->getEntity();
+        $routeItemEntity = $i18nContext->getRouteItem()->getEntity();
+        $routeItem = $i18nContext->getRouteItem();
 
         if ($routeItemEntity instanceof Concrete) {
-            $routeItem = $this->buildLinkGeneratorRouteItem($routeItemEntity, $routeItem);
+            $routeItem = $this->buildLinkGeneratorRouteItem($routeItemEntity, $i18nContext);
         }
 
-        $this->buildContext($routeItem, $referenceType);
+        $this->buildRouteContext($i18nContext, $referenceType);
 
         $path = $this->urlGenerator->generate($routeItem->getRouteName(), $routeItem->getRouteParameters(), $referenceType);
 
-        $this->restoreContext();
+        $this->restoreRouteContext();
 
+        $zone = $i18nContext->getZone();
         $locale = $routeItem->getLocaleFragment();
-        $zone = $routeItem->getI18nZone();
 
-        if (!$zone instanceof I18nZoneInterface) {
+        if (!$zone instanceof ZoneInterface) {
             return $path;
         }
 
@@ -159,24 +178,24 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface
         return $path;
     }
 
-    protected function generateSymfonyRoute(RouteItemInterface $routeItem, int $referenceType): string
+    protected function generateSymfonyRoute(I18nContextInterface $i18nContext, int $referenceType): string
     {
-        if (empty($routeItem->hasLocaleFragment())) {
-            return $this->urlGenerator->generate($routeItem->getRouteName(), $routeItem->getRouteParameters(), $referenceType);
+        if (empty($i18nContext->getRouteItem()->hasLocaleFragment())) {
+            return $this->urlGenerator->generate($i18nContext->getRouteItem()->getRouteName(), $i18nContext->getRouteItem()->getRouteParameters(), $referenceType);
         }
 
-        $locale = $routeItem->getLocaleFragment();
-        $zone = $routeItem->getI18nZone();
+        $locale = $i18nContext->getRouteItem()->getLocaleFragment();
+        $zone = $i18nContext->getZone();
 
-        if (!$zone instanceof I18nZoneInterface) {
-            return $this->urlGenerator->generate($routeItem->getRouteName(), $routeItem->getRouteParameters(), $referenceType);
+        if (!$zone instanceof ZoneInterface) {
+            return $this->urlGenerator->generate($i18nContext->getRouteItem()->getRouteName(), $i18nContext->getRouteItem()->getRouteParameters(), $referenceType);
         }
 
-        $translationKeys = $routeItem->getRouteAttributesBag()->get('_i18n_translation_keys', []);
+        $translationKeys = $i18nContext->getRouteItem()->getRouteAttributesBag()->get('_i18n_translation_keys', []);
 
         $urlMapping = $zone->getLocaleUrlMapping();
         $zoneTranslations = $zone->getTranslations();
-        $routeParametersBag = $routeItem->getRouteParametersBag();
+        $routeParametersBag = $i18nContext->getRouteItem()->getRouteParametersBag();
 
         foreach ($translationKeys as $routeKey => $translationKey) {
 
@@ -201,11 +220,11 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface
             $routeParametersBag->set($routeKey, $translation[$locale]);
         }
 
-        $this->buildContext($routeItem, $referenceType);
+        $this->buildRouteContext($i18nContext, $referenceType);
 
-        $path = $this->urlGenerator->generate($routeItem->getRouteName(), $routeParametersBag->all(), $referenceType);
+        $path = $this->urlGenerator->generate($i18nContext->getRouteItem()->getRouteName(), $routeParametersBag->all(), $referenceType);
 
-        $this->restoreContext();
+        $this->restoreRouteContext();
 
         $validLocaleIso = array_search($locale, $urlMapping, true);
 
@@ -268,7 +287,7 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface
         return $path;
     }
 
-    protected function buildLinkGeneratorRouteItem(Concrete $routeItemEntity, RouteItemInterface $originalRouteItem): RouteItemInterface
+    protected function buildLinkGeneratorRouteItem(Concrete $routeItemEntity, I18nContextInterface $i18nContext): RouteItemInterface
     {
         $linkGenerator = $routeItemEntity->getClass()?->getLinkGenerator();
         if (!$linkGenerator instanceof I18nLinkGeneratorInterface) {
@@ -284,15 +303,15 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface
         $parsedLinkGeneratorRouteItem = $linkGenerator->generateRouteItem(
             $routeItemEntity,
             $this->linkGeneratorRouteItemTransformer->transform(
-                $originalRouteItem,
+                $i18nContext->getRouteItem(),
                 ['staticRouteName' => $linkGenerator->getStaticRouteName($routeItemEntity)]
             )
         );
 
-        return $this->linkGeneratorRouteItemTransformer->reverseTransform($parsedLinkGeneratorRouteItem, ['i18nZone' => $originalRouteItem->getI18nZone()]);
+        return $this->linkGeneratorRouteItemTransformer->reverseTransform($parsedLinkGeneratorRouteItem);
     }
 
-    protected function buildContext(RouteItemInterface $routeItem, int $referenceType): void
+    protected function buildRouteContext(I18nContextInterface $i18nContext, int $referenceType): void
     {
         $allowedKeys = [
             'host',
@@ -308,14 +327,14 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface
         $this->contextBackup = clone $this->getContext();
 
         foreach ($allowedKeys as $allowedKey) {
-            if (!empty($routeItem->getRouteContextBag()->get($allowedKey))) {
+            if (!empty($i18nContext->getRouteItem()->getRouteContextBag()->get($allowedKey))) {
                 $setter = sprintf('set%s', ucfirst($allowedKey));
-                $this->getContext()->$setter($routeItem->getRouteContextBag()->get($allowedKey));
+                $this->getContext()->$setter($i18nContext->getRouteItem()->getRouteContextBag()->get($allowedKey));
             }
         }
     }
 
-    protected function restoreContext(): void
+    protected function restoreRouteContext(): void
     {
         if (!$this->contextBackup instanceof RequestContext) {
             return;

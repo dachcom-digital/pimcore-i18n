@@ -2,9 +2,9 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
-use I18nBundle\Http\RouteItemResolverInterface;
+use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
-use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Config;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
@@ -18,18 +18,18 @@ class HeadLinkListener implements EventSubscriberInterface
     use PimcoreContextAwareTrait;
 
     protected HeadLink $headLink;
-    protected RouteItemResolverInterface $routeItemResolver;
+    protected I18nContextResolverInterface $i18nContextResolver;
     protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
     protected Config $pimcoreConfig;
 
     public function __construct(
         HeadLink $headLink,
-        RouteItemResolverInterface $routeItemResolver,
+        I18nContextResolverInterface $i18nContextResolver,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
         Config $pimcoreConfig
     ) {
         $this->headLink = $headLink;
-        $this->routeItemResolver = $routeItemResolver;
+        $this->i18nContextResolver = $i18nContextResolver;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
         $this->pimcoreConfig = $pimcoreConfig;
     }
@@ -58,16 +58,16 @@ class HeadLinkListener implements EventSubscriberInterface
             return;
         }
 
-        $routeItem = $this->routeItemResolver->getRouteItem($request);
+        $i18nContext = $this->i18nContextResolver->getContext($request);
 
-        if (!$routeItem instanceof RouteItemInterface) {
+        if (!$i18nContext instanceof I18nContextInterface) {
             return;
         }
 
-        $hrefLinks = $routeItem->getI18nZone()->getLinkedLanguages();
+        $hrefLinks = $i18nContext->getLinkedLanguages();
 
         // Add x-default to main page!
-        $xDefaultUrl = $this->getXDefaultLink($routeItem->getI18nZone()->getLocaleProviderDefaultLocale(), $hrefLinks);
+        $xDefaultUrl = $this->getXDefaultLink($i18nContext->getZoneDefaultLocale(), $hrefLinks);
 
         if (!is_null($xDefaultUrl)) {
             $this->headLink->appendAlternate($this->generateHrefLink($xDefaultUrl), false, false, ['hreflang' => 'x-default']);

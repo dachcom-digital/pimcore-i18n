@@ -1,69 +1,36 @@
 <?php
 
-namespace I18nBundle\Model;
+namespace I18nBundle\Context;
 
-use I18nBundle\Adapter\LocaleProvider\LocaleProviderInterface;
 use I18nBundle\Adapter\PathGenerator\PathGeneratorInterface;
 use I18nBundle\Definitions;
+use I18nBundle\Model\LocaleDefinitionInterface;
+use I18nBundle\Model\ZoneInterface;
+use I18nBundle\Model\ZoneSiteInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Model\Translation;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Intl\Languages;
 
-class I18nZone implements I18nZoneInterface
+class I18nContext implements I18nContextInterface
 {
-    protected ?int $zoneId;
-    protected ?string $zoneName;
-    protected string $mode;
-    protected array $zoneDomains;
-    protected array $zoneDefinition;
-    protected array $localeUrlMapping;
     protected RouteItemInterface $routeItem;
-    protected LocaleProviderInterface $localeProvider;
-    protected PathGeneratorInterface $pathGenerator;
-    protected array $sites;
+    protected ZoneInterface $zone;
+    protected LocaleDefinitionInterface $localeDefinition;
+    protected ?PathGeneratorInterface $pathGenerator;
 
     public function __construct(
-        ?int $zoneId,
-        ?string $zoneName,
-        string $mode,
-        array $zoneDomains,
-        array $zoneDefinition,
         RouteItemInterface $routeItem,
-        LocaleProviderInterface $localeProvider,
-        PathGeneratorInterface $pathGenerator,
-        array $sites
+        ZoneInterface $zone,
+        LocaleDefinitionInterface $localeDefinition,
+        ?PathGeneratorInterface $pathGenerator,
     ) {
-        $this->zoneId = $zoneId;
-        $this->zoneName = $zoneName;
-        $this->mode = $mode;
-        $this->zoneDomains = $zoneDomains;
-        $this->zoneDefinition = $zoneDefinition;
         $this->routeItem = $routeItem;
-        $this->localeProvider = $localeProvider;
+        $this->zone = $zone;
         $this->pathGenerator = $pathGenerator;
-        $this->sites = $sites;
-        $this->localeUrlMapping = $this->buildLocaleUrlMappingForCurrentZone($sites);
-    }
+        $this->localeDefinition = $localeDefinition;
 
-    public function getZoneId(): ?int
-    {
-        return $this->zoneId;
-    }
-
-    public function getZoneName(): ?string
-    {
-        return $this->zoneName;
-    }
-
-    public function getZoneDomains(): array
-    {
-        return $this->zoneDomains;
-    }
-
-    public function getMode(): string
-    {
-        return $this->mode;
+        $this->assertRouteContext();
     }
 
     public function getRouteItem(): RouteItemInterface
@@ -71,36 +38,26 @@ class I18nZone implements I18nZoneInterface
         return $this->routeItem;
     }
 
-    public function getTranslations(): array
+    public function getZone(): ZoneInterface
     {
-        return $this->zoneDefinition['translations'];
+        return $this->zone;
     }
 
-    public function getSites(bool $flatten = false): array
+    public function getLocaleDefinition(): LocaleDefinitionInterface
     {
-        return $flatten ? $this->flattenSites($this->sites) : $this->sites;
+        return $this->localeDefinition;
     }
 
-    public function isActiveZone(): bool
+    public function getCurrentZoneSite(): ZoneSiteInterface
     {
-        return $this->zoneId !== null;
-    }
-
-    public function getLocaleUrlMapping(): array
-    {
-        return $this->localeUrlMapping;
-    }
-
-    public function getCurrentSite(): I18nZoneSiteInterface
-    {
-        $sites = $this->getSites(true);
-        $locale = $this->routeItem->getLocaleDefinition()->getLocale();
+        $sites = $this->zone->getSites(true);
+        $locale = $this->localeDefinition->getLocale();
 
         if (empty($locale)) {
             throw new \Exception('I18n: locale for current request not found.');
         }
 
-        $treeIndex = array_search($locale, array_map(static function (I18nZoneSiteInterface $site) {
+        $treeIndex = array_search($locale, array_map(static function (ZoneSiteInterface $site) {
             return $site->getLocale();
         }, $sites), true);
 
@@ -113,12 +70,12 @@ class I18nZone implements I18nZoneInterface
 
     public function getCurrentLocale(): ?string
     {
-        if (!$this->routeItem->getLocaleDefinition()->hasLocale()) {
+        if (!$this->localeDefinition->hasLocale()) {
             return null;
         }
 
         try {
-            $locale = $this->routeItem->getLocaleDefinition()->getLocale();
+            $locale = $this->localeDefinition->getLocale();
         } catch (\Exception $e) {
             return null;
         }
@@ -128,63 +85,67 @@ class I18nZone implements I18nZoneInterface
 
     public function getCurrentLocaleInfo(string $field): mixed
     {
-        if (!$this->routeItem->getLocaleDefinition()->hasLocale()) {
+        if (!$this->localeDefinition->hasLocale()) {
             return null;
         }
 
-        return $this->localeProvider->getLocaleData($this->zoneDefinition, $this->routeItem->getLocaleDefinition()->getLocale(), $field);
+        return $this->getLocaleData($this->localeDefinition->getLocale(), $field);
     }
 
-    public function getLocaleProviderLocaleInfo(string $locale, string $field): mixed
+    public function getLocaleInfo(string $locale, string $field): mixed
     {
-        return $this->localeProvider->getLocaleData($this->zoneDefinition, $locale, $field);
+        return $this->getLocaleData($locale, $field);
     }
 
-    public function getLocaleProviderDefaultLocale(): ?string
+    public function getZoneDefaultLocale(): ?string
     {
-        return $this->localeProvider->getDefaultLocale($this->zoneDefinition);
+        return $this->zone->getDefaultLocale();
     }
 
-    public function getLocaleProviderActiveLocales(): ?array
+    public function getZoneActiveLocales(): ?array
     {
-        return $this->localeProvider->getActiveLocales($this->zoneDefinition);
+        return $this->zone->getActiveLocales();
     }
 
-    public function getLocaleProviderGlobalInfo(): array
+    public function getZoneGlobalInfo(): array
     {
-        return $this->localeProvider->getGlobalInfo($this->zoneDefinition);
+        return $this->zone->getGlobalInfo();
     }
 
     public function getCurrentCountryAndLanguage(bool $returnAsString = true): string|array
     {
-        $currentCountryIso = $this->routeItem->getLocaleDefinition()->getCountryIso();
+        $currentCountryIso = $this->localeDefinition->getCountryIso();
 
         if ($currentCountryIso === Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
             $countryName = Translation::getByKeyLocalized('International', 'messages', true, true);
         } else {
-            $countryName = Countries::getName($currentCountryIso, $this->routeItem->getLocaleDefinition()->getLanguageIso());
+            $countryName = Countries::getName($currentCountryIso, $this->localeDefinition->getLanguageIso());
         }
 
         if ($returnAsString === true) {
-            return $countryName . ' (' . $this->routeItem->getLocaleDefinition()->getLanguageIso() . ')';
+            return $countryName . ' (' . $this->localeDefinition->getLanguageIso() . ')';
         }
 
         return [
             'countryName' => $countryName,
-            'locale'      => $this->routeItem->getLocaleDefinition()->getLanguageIso()
+            'locale'      => $this->localeDefinition->getLanguageIso()
         ];
 
     }
 
     public function getLinkedLanguages(bool $onlyShowRootLanguages = false): array
     {
+        if (!$this->pathGenerator instanceof PathGeneratorInterface) {
+            throw new \Exception('This I18n context has a non booted path generator');
+        }
+
         return $this->pathGenerator->getUrls($this, $onlyShowRootLanguages);
     }
 
     public function getActiveLanguages(): array
     {
         $languages = [];
-        $sites = $this->getSites(true);
+        $sites = $this->zone->getSites(true);
         $linkedLanguages = $this->getLinkedLanguages();
 
         foreach ($sites as $site) {
@@ -195,7 +156,7 @@ class I18nZone implements I18nZoneInterface
 
             $languageData = $this->mapLanguageInfo($site->getLocale(), $site->getUrl());
             $languageData['linkedHref'] = $site->getUrl();
-            $languageData['active'] = $site->getLanguageIso() === $this->routeItem->getLocaleDefinition()->getLanguageIso();
+            $languageData['active'] = $site->getLanguageIso() === $this->localeDefinition->getLanguageIso();
             foreach ($linkedLanguages as $linkedLanguage) {
                 if ($linkedLanguage['languageIso'] === $site->getLanguageIso()) {
                     $languageData['linkedHref'] = $site->getUrl();
@@ -212,14 +173,14 @@ class I18nZone implements I18nZoneInterface
 
     public function getActiveCountries(): array
     {
-        if ($this->getMode() !== 'country') {
+        if ($this->zone->getMode() !== 'country') {
             return [];
         }
 
-        $activeLocales = $this->localeProvider->getActiveLocales($this->zoneDefinition);
+        $activeLocales = $this->zone->getActiveLocales();
 
         $validCountries = [];
-        foreach ($activeLocales as $id => $localeData) {
+        foreach ($activeLocales as $localeData) {
             $extendedCountryData = $localeData;
 
             // override the default locale isoCode,
@@ -258,7 +219,7 @@ class I18nZone implements I18nZoneInterface
                 }
 
                 $countryTitleNative = Countries::getName($countryIso, $countryIso);
-                $countryTitle = Countries::getName($countryIso, $this->routeItem->getLocaleDefinition()->getLanguageIso());
+                $countryTitle = Countries::getName($countryIso, $this->localeDefinition->getLanguageIso());
 
                 $countryData[] = [
                     'country'            => $country,
@@ -270,7 +231,7 @@ class I18nZone implements I18nZoneInterface
         }
 
         $countryData[] = [
-            'country'            => $this->localeProvider->getGlobalInfo($this->zoneDefinition),
+            'country'            => $this->zone->getGlobalInfo(),
             'countryTitleNative' => Translation::getByKeyLocalized('International', 'messages', true, true, $this->getCurrentLocale()),
             'countryTitle'       => Translation::getByKeyLocalized('International', 'messages', true, true, $this->getCurrentLocale()),
             'languages'          => $this->getActiveLanguagesForCountry(Definitions::INTERNATIONAL_COUNTRY_NAMESPACE),
@@ -305,6 +266,19 @@ class I18nZone implements I18nZoneInterface
         return null;
     }
 
+    protected function getLocaleData(string $locale, string $field, string $keyIdentifier = 'locale'): mixed
+    {
+        $activeLocales = $this->zone->getActiveLocales();
+
+        $index = array_search($locale, array_column($activeLocales, $keyIdentifier), true);
+
+        if ($index !== false) {
+            return $activeLocales[$index][$field];
+        }
+
+        return null;
+    }
+
     /**
      * Get languages for Country.
      * Only checks if root document in given country iso is accessible.
@@ -314,18 +288,18 @@ class I18nZone implements I18nZoneInterface
         $languages = [];
 
         if (is_null($countryIso)) {
-            $countryIso = $this->routeItem->getLocaleDefinition()->getCountryIso();
+            $countryIso = $this->localeDefinition->getCountryIso();
         }
 
-        $sites = $this->getSites(true);
+        $sites = $this->zone->getSites(true);
         $linkedLanguages = $this->getLinkedLanguages();
 
         foreach ($sites as $site) {
             if ($site->getCountryIso() === $countryIso) {
                 $languageData = $this->mapLanguageInfo($site->getLocale(), $site->getUrl());
                 $languageData['linkedHref'] = $site->getUrl();
-                $languageData['active'] = $site->getLanguageIso() === $this->routeItem->getLocaleDefinition()->getLanguageIso()
-                    && $site->getCountryIso() === $this->routeItem->getLocaleDefinition()->getCountryIso();
+                $languageData['active'] = $site->getLanguageIso() === $this->localeDefinition->getLanguageIso()
+                    && $site->getCountryIso() === $this->localeDefinition->getCountryIso();
                 foreach ($linkedLanguages as $linkedLanguage) {
                     if ($linkedLanguage['languageIso'] === $site->getLanguageIso() && $countryIso === $linkedLanguage['countryIso']) {
                         $languageData['linkedHref'] = $linkedLanguage['url'];
@@ -341,6 +315,18 @@ class I18nZone implements I18nZoneInterface
         return $languages;
     }
 
+    protected function assertRouteContext(): void
+    {
+        $currentZoneSite = $this->getCurrentZoneSite();
+
+        $this->routeItem->getRouteContextBag()->add([
+            'host'      => $currentZoneSite->getSiteRequestContext()->getHost(),
+            'scheme'    => $currentZoneSite->getSiteRequestContext()->getScheme(),
+            'httpPort'  => $currentZoneSite->getSiteRequestContext()->getHttpPort(),
+            'httpsPort' => $currentZoneSite->getSiteRequestContext()->getHttpsPort(),
+        ]);
+    }
+
     protected function mapLanguageInfo(string $locale, string $href): array
     {
         $iso = explode('_', $locale);
@@ -348,46 +334,8 @@ class I18nZone implements I18nZoneInterface
         return [
             'iso'         => $iso[0],
             'titleNative' => Languages::getName($locale, $iso[0]),
-            'title'       => Languages::getName($locale, $this->routeItem->getLocaleDefinition()->getLanguageIso()),
+            'title'       => Languages::getName($locale, $this->localeDefinition->getLanguageIso()),
             'href'        => $href
         ];
-    }
-
-    protected function buildLocaleUrlMappingForCurrentZone(array $i18nZoneSites = []): array
-    {
-        $localeUrlMapping = [];
-
-        foreach ($this->flattenSites($i18nZoneSites) as $i18nZoneSite) {
-            if (!empty($i18nZoneSite->getLocale())) {
-                $localeUrlMapping[$i18nZoneSite->getLocale()] = $i18nZoneSite->getLocaleUrlMapping();
-            }
-        }
-
-        return $localeUrlMapping;
-    }
-
-    /**
-     * @return array<int, I18nZoneSiteInterface>
-     */
-    protected function flattenSites(array $i18nZoneSites): array
-    {
-        $elements = [];
-        /** @var I18nZoneSiteInterface $i18nZoneSite */
-        foreach ($i18nZoneSites as $i18nZoneSite) {
-
-            if (!empty($i18nZoneSite->getCountryIso()) || !empty($i18nZoneSite->getLanguageIso())) {
-                $elements[] = $i18nZoneSite;
-            }
-
-            if ($i18nZoneSite->hasSubSites()) {
-                foreach ($i18nZoneSite->getSubSites() as $subSite) {
-                    $elements[] = $subSite;
-                }
-            }
-
-            $elements[] = $i18nZoneSite;
-        }
-
-        return $elements;
     }
 }

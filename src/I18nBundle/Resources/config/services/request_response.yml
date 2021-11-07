@@ -5,5 +5,5 @@ services:
         autoconfigure: true
         public: false
 
-    I18nBundle\Http\RouteItemResolverInterface: '@I18nBundle\Http\RouteItemResolver'
-    I18nBundle\Http\RouteItemResolver: ~
+    I18nBundle\Http\I18nContextResolverInterface: '@I18nBundle\Http\I18nContextResolver'
+    I18nBundle\Http\I18nContextResolver: ~

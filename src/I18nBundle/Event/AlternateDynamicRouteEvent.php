@@ -23,14 +23,6 @@ class AlternateDynamicRouteEvent extends Event
         $this->currentRouteItem = $routeItem;
     }
 
-    /**
-     * @deprecated since 4.0.0 and will be removed with 5.0.0, this is not required anymore
-     */
-    public function setRoutes(array $routes): void
-    {
-        // do nothing.
-    }
-
     public function getType(): string
     {
         return $this->type;
@@ -44,16 +36,6 @@ class AlternateDynamicRouteEvent extends Event
     public function getCurrentRouteName(): string
     {
         return $this->currentRouteItem->getRouteName();
-    }
-
-    /**
-     * @return array<int, AlternateRouteItemInterface>
-     *
-     * @deprecated since 4.0.0 and will be removed with 5.0.0, use getAlternateRouteItems() instead
-     */
-    public function getI18nList(): array
-    {
-        return $this->alternateRouteItems;
     }
 
     /**

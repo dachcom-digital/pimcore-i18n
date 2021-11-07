@@ -1,4 +1,4 @@
-# Zones
+# Zone Definitions
 
 ![zone](https://user-images.githubusercontent.com/700119/28177968-0a3e592e-67fd-11e7-99a3-52b8f77683a4.jpg)
 
@@ -39,6 +39,12 @@ i18n:
     # define a default locale - this value is optional
     default_locale: 'en'
 
+    # define scheme
+    request_scheme: 'http'
+    
+    # define port
+    request_port: 80
+    
     # static route translations
     translations: ~
 
@@ -61,9 +67,9 @@ i18n:
         zone2:
             id: 2
             domains:
-                - 'pimcore5-domain4.test'
-                - 'pimcore5-domain5.test'
-                - 'pimcore5-domain6.test'
+                - ['test-domain4.test', 'http', 80]         # defined as array you're able to pass scheme and port
+                - ['test-domain5.test', 'https', 443]       # defined as array you're able to pass scheme and port
+                - 'test-domain6.test'                       # still working, default values (i18n.request_scheme, i18n.request_port) will be selected
             config:
                 mode: country
                 locale_adapter: system

@@ -2,7 +2,6 @@
 
 namespace I18nBundle\Transformer;
 
-use I18nBundle\Model\I18nZoneInterface;
 use I18nBundle\Model\RouteItem\LinkGeneratorRouteItem;
 use I18nBundle\Model\RouteItem\LinkGeneratorRouteItemInterface;
 use I18nBundle\Model\RouteItem\RouteItem;
@@ -33,17 +32,11 @@ class LinkGeneratorRouteItemTransformer implements TransformerInterface
             );
         }
 
-        $i18nZone = $context['i18nZone'] ?? null;
-
         $routeItem = new RouteItem($transformedRouteItem->getType(), $transformedRouteItem->isHeadless());
         $routeItem->setRouteName($transformedRouteItem->getRouteName());
         $routeItem->getRouteAttributesBag()->add($transformedRouteItem->getRouteAttributes());
         $routeItem->getRouteParametersBag()->add($transformedRouteItem->getRouteParameters());
         $routeItem->getRouteContextBag()->add($transformedRouteItem->getRouteContext());
-
-        if ($i18nZone instanceof I18nZoneInterface) {
-            $routeItem->setI18nZone($i18nZone);
-        }
 
         return $routeItem;
     }

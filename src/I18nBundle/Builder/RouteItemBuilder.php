@@ -1,21 +1,14 @@
 <?php
 
-namespace I18nBundle\Manager;
+namespace I18nBundle\Builder;
 
-use I18nBundle\Builder\ZoneBuilder;
-use I18nBundle\Configuration\Configuration;
 use I18nBundle\Definitions;
 use I18nBundle\Factory\RouteItemFactory;
 use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
-use I18nBundle\Model\I18nLocaleDefinition;
-use I18nBundle\Model\I18nLocaleDefinitionInterface;
-use I18nBundle\Model\I18nZoneSiteInterface;
-use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
+use I18nBundle\Model\ZoneSiteInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
-use Pimcore\Db\Connection;
 use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use Pimcore\Http\Request\Resolver\SiteResolver;
-use Pimcore\Http\RequestHelper;
 use Pimcore\Model\DataObject\ClassDefinition\LinkGeneratorInterface;
 use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\Document;
@@ -24,39 +17,21 @@ use Symfony\Bundle\FrameworkBundle\Routing\Router as FrameworkRouter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\CompiledUrlGenerator;
 
-class RouteItemManager
+class RouteItemBuilder
 {
     protected ?FrameworkRouter $frameworkRouter = null;
-    protected ZoneBuilder $zoneBuilder;
-    protected Connection $db;
-    protected RequestHelper $requestHelper;
     protected SiteResolver $siteResolver;
-    protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
-    protected Configuration $configuration;
     protected EditmodeResolver $editModeResolver;
-    protected Document\Service $documentService;
     protected RouteItemFactory $routeItemFactory;
-    protected array $nearestDocumentTypes;
 
     public function __construct(
-        ZoneBuilder $zoneBuilder,
-        RequestHelper $requestHelper,
         SiteResolver $siteResolver,
-        Configuration $configuration,
         EditmodeResolver $editModeResolver,
-        Document\Service $documentService,
-        PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
         RouteItemFactory $routeItemFactory
     ) {
-        $this->zoneBuilder = $zoneBuilder;
-        $this->requestHelper = $requestHelper;
         $this->siteResolver = $siteResolver;
-        $this->configuration = $configuration;
         $this->editModeResolver = $editModeResolver;
-        $this->documentService = $documentService;
-        $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
         $this->routeItemFactory = $routeItemFactory;
-        $this->nearestDocumentTypes = ['page', 'snippet', 'hardlink', 'link', 'folder'];
     }
 
     public function setFrameworkRouter(FrameworkRouter $router)
@@ -64,12 +39,8 @@ class RouteItemManager
         $this->frameworkRouter = $router;
     }
 
-    public function buildRouteItemByParameters(array $i18nRouteParameters): ?RouteItemInterface
+    public function buildRouteItemByParameters(string $type, array $i18nRouteParameters): ?RouteItemInterface
     {
-        $type = $i18nRouteParameters['type'] ?? '';
-
-        unset($i18nRouteParameters['type']);
-
         $routeItem = $this->routeItemFactory->createFromArray($type, true, $i18nRouteParameters);
 
         if ($routeItem->getType() === RouteItemInterface::STATIC_ROUTE) {
@@ -83,16 +54,6 @@ class RouteItemManager
         if (!$routeItem->hasLocaleFragment()) {
             return null;
         }
-
-        $routeItem->setLocaleDefinition($this->buildLocaleDefinition($routeItem));
-
-        $routeItemZone = $this->zoneBuilder->buildZone([
-            'route_item' => $routeItem
-        ]);
-
-        $routeItem->setI18nZone($routeItemZone);
-
-        $this->assertRouteContext($routeItem, $routeItemZone->getCurrentSite());
 
         return $routeItem;
     }
@@ -143,18 +104,6 @@ class RouteItemManager
         if (!$routeItem->hasLocaleFragment()) {
             return null;
         }
-
-        $routeItem->setLocaleDefinition($this->buildLocaleDefinition($routeItem));
-
-        $routeItemZone = $this->zoneBuilder->buildZone([
-            'route_item'                   => $routeItem,
-            'edit_mode'                    => $editMode,
-            'is_frontend_request_by_admin' => $this->requestHelper->isFrontendRequestByAdmin($baseRequest),
-        ]);
-
-        $routeItem->setI18nZone($routeItemZone);
-
-        $this->assertRouteContext($routeItem, $routeItemZone->getCurrentSite());
 
         return $routeItem;
     }
@@ -286,30 +235,7 @@ class RouteItemManager
         }
     }
 
-    protected function buildLocaleDefinition(RouteItemInterface $routeItem): I18nLocaleDefinitionInterface
-    {
-        $baseLocale = $routeItem->getLocaleFragment();
-
-        $locale = $baseLocale === '' ? null : $baseLocale;
-        $languageIso = $locale;
-        $countryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
-
-        if (str_contains($baseLocale, '_')) {
-            $parts = explode('_', $baseLocale);
-            $languageIso = strtolower($parts[0]);
-            if (isset($parts[1]) && !empty($parts[1])) {
-                $countryIso = strtoupper($parts[1]);
-            }
-        }
-
-        return new I18nLocaleDefinition(
-            $locale,
-            $languageIso,
-            $countryIso
-        );
-    }
-
-    protected function assertRouteContext(RouteItemInterface $routeItem, I18nZoneSiteInterface $site): void
+    protected function assertRouteContext(RouteItemInterface $routeItem, ZoneSiteInterface $site): void
     {
         $routeItem->getRouteContextBag()->add([
             'host'      => $site->getSiteRequestContext()->getHost(),

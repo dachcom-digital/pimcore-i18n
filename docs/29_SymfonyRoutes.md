@@ -1,19 +1,26 @@
 # Symfony Routes
 
 ### Routing
-First you need to create a valid route 
+First you need to create a valid route. Read more about the symfony route definitions [here](./1_I18n.md#symfony-routes).
 
 ```yaml
 # config/routes.yaml
+i18n:
+    translations:
+        - key: 'mySymfonyRouteKey'
+          values:
+              de: 'meine-symfony-route'
+              en: 'my-symfony-route'
+              
 i18n_symfony_route:
-    path:
-        en: /en/i18n/my-symfony-route
-        de: /de/i18n/meine-symfony-route
-        de_CH: /de-ch/i18n/meine-symfony-route-guetzli
-    defaults: {
-        _i18n: true,
+    path: /{_locale}/i18n/{matching_route_key}
+    defaults:
+        _i18n:
+            translation_keys:
+                matching_route_key: mySymfonyRouteKey
         _controller: App\Controller\DefaultController::symfonyRouteAction
-    }
+    requirements:
+        matching_route_key: '(%i18n.route.translations.mySymfonyRouteKey%)' ## returns (meine-symfony-route|my-symfony-route)
 ```
 
 Then need to register an alternate listener:
@@ -48,37 +55,27 @@ class I18nRoutesAlternateListener implements EventSubscriberInterface
      public static function getSubscribedEvents(): array
     {
         return [
-            I18nEvents::PATH_ALTERNATE_SYMFONY_ROUTE     => 'checkSymfonyRouteAlternate',
+            I18nEvents::PATH_ALTERNATE_SYMFONY_ROUTE => 'checkSymfonyRouteAlternate',
         ];
     }
         
     public function checkSymfonyRouteAlternate(AlternateDynamicRouteEvent $event): void
     {
-        $attributes = $event->getAttributes();
-        $route = $attributes['_route'] ?? null;
-        $routes = [];
-
-        if ($route !== 'i18n_symfony_route') {
+        if($event->getCurrentRouteName() !== 'i18n_symfony_route') {
             return;
         }
-
-        foreach ($event->getI18nList() as $index => $i18nElement) {
-            $routes[$index] = [
-                'name' => 'i18n_symfony_route',
-                'params' => [
-                    '_locale' => $i18nElement['locale']
-                ]
-            ];
+                
+        foreach ($event->getAlternateRouteItems() as $alternateRouteItem) {
+            $alternateRouteItem->setRouteName('i18n_symfony_route');
         }
-
-        $event->setRoutes($routes);
     }
 }
 ```
 
 ## Creating Symfony in Twig 
-Nothing special here. Just create your url like you know it from the twig standard:
+Just create your url like you know it from the twig standard and pass your parameters via the `_18n` flag:
+I18n will transform your locale fragment, if necessary:
 
 ```twig
-{{ url('i18n_symfony_route', {'_locale': app.request.locale}) }}
+{{ url('i18n_symfony_route', { _i18n: { routeParameters: { _locale: app.request.locale } } }) }}
 ```

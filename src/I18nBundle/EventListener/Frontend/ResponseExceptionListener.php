@@ -2,9 +2,9 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
-use I18nBundle\Http\RouteItemResolverInterface;
-use I18nBundle\Manager\RouteItemManager;
-use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Http\I18nContextResolverInterface;
+use I18nBundle\Manager\I18nContextManager;
 use Pimcore\Config;
 use Pimcore\Http\Exception\ResponseException;
 use Pimcore\Model\DataObject;
@@ -23,21 +23,21 @@ class ResponseExceptionListener implements EventSubscriberInterface
     use LoggerAwareTrait;
     use PimcoreContextAwareTrait;
 
-    protected RouteItemManager $routeItemManager;
-    protected RouteItemResolverInterface $routeItemResolver;
+    protected I18nContextManager $i18nContextManager;
+    protected I18nContextResolverInterface $i18nContextResolver;
     protected SiteResolver $siteResolver;
     protected Document\Service $documentService;
     protected Config $pimcoreConfig;
 
     public function __construct(
-        RouteItemManager $routeItemManager,
-        RouteItemResolverInterface $routeItemResolver,
+        I18nContextManager $i18nContextManager,
+        I18nContextResolverInterface $i18nContextResolver,
         SiteResolver $siteResolver,
         Document\Service $documentService,
         Config $pimcoreConfig
     ) {
-        $this->routeItemManager = $routeItemManager;
-        $this->routeItemResolver = $routeItemResolver;
+        $this->i18nContextManager = $i18nContextManager;
+        $this->i18nContextResolver = $i18nContextResolver;
         $this->siteResolver = $siteResolver;
         $this->documentService = $documentService;
         $this->pimcoreConfig = $pimcoreConfig;
@@ -100,13 +100,13 @@ class ResponseExceptionListener implements EventSubscriberInterface
 
         $request->attributes->set('pimcore_request_source', sprintf('document_%d', $document->getId()));
 
-        $routeItem = $this->routeItemManager->buildRouteItemByRequest($request, $document);
+        $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
 
-        if (!$routeItem instanceof RouteItemInterface) {
+        if (!$i18nContext instanceof I18nContextInterface) {
             return;
         }
 
-        $this->routeItemResolver->setRouteItem($routeItem, $request);
+        $this->i18nContextResolver->setContext($i18nContext, $request);
 
         $this->enablePimcoreContext();
     }

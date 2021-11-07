@@ -2,23 +2,23 @@
 
 namespace I18nBundle\Model\RouteItem;
 
-use I18nBundle\Model\I18nZoneSiteInterface;
+use I18nBundle\Model\ZoneSiteInterface;
 
 class AlternateRouteItem extends BaseRouteItem implements AlternateRouteItemInterface
 {
-    protected I18nZoneSiteInterface $zoneSite;
+    protected ZoneSiteInterface $zoneSite;
 
     public function __construct(
         string $type,
         bool $headless,
-        I18nZoneSiteInterface $zoneSite
+        ZoneSiteInterface $zoneSite
     ) {
         parent::__construct($type, $headless);
 
         $this->zoneSite = $zoneSite;
     }
 
-    public function getZoneSite(): I18nZoneSiteInterface
+    public function getZoneSite(): ZoneSiteInterface
     {
         return $this->zoneSite;
     }

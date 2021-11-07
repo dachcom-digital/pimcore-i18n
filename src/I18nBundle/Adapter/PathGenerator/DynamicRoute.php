@@ -2,24 +2,29 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Event\AlternateDynamicRouteEvent;
-use I18nBundle\Model\I18nZoneInterface;
 use I18nBundle\Model\RouteItem\AlternateRouteItemInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 abstract class DynamicRoute extends AbstractPathGenerator
 {
+    protected RouterInterface $router;
+    protected EventDispatcherInterface $eventDispatcher;
+
     abstract protected function generateLink(AlternateRouteItemInterface $routeItem): string;
 
-    protected function buildAlternateRoutesStack(I18nZoneInterface $zone, string $type, string $eventName): array
+    protected function buildAlternateRoutesStack(I18nContextInterface $i18nContext, string $type, string $eventName): array
     {
         $alternateRouteItems = [];
         $routes = [];
 
         //create custom list for event ($i18nList) - do not include all the zone config stuff.
-        foreach ($zone->getSites(true) as $zoneSite) {
+        foreach ($i18nContext->getZone()->getSites(true) as $zoneSite) {
             if (!empty($zoneSite->getLanguageIso())) {
                 $alternateRouteItems[] = $this->alternateRouteItemTransformer->transform(
-                    $zone->getRouteItem(),
+                    $i18nContext->getRouteItem(),
                     [
                         'type'              => $type,
                         'zoneSite'          => $zoneSite,
@@ -29,7 +34,7 @@ abstract class DynamicRoute extends AbstractPathGenerator
             }
         }
 
-        $event = new AlternateDynamicRouteEvent($type, $alternateRouteItems, $zone->getRouteItem());
+        $event = new AlternateDynamicRouteEvent($type, $alternateRouteItems, $i18nContext->getRouteItem());
 
         $this->eventDispatcher->dispatch($event, $eventName);
 

@@ -2,11 +2,11 @@
 
 namespace I18nBundle\Model\RouteItem;
 
-use I18nBundle\Model\I18nZoneSiteInterface;
+use I18nBundle\Model\ZoneSiteInterface;
 
 interface AlternateRouteItemInterface extends BaseRouteItemInterface
 {
-    public function getZoneSite(): I18nZoneSiteInterface;
+    public function getZoneSite(): ZoneSiteInterface;
 
     public function isValidAlternateRoute(): bool;
 }
