@@ -62,7 +62,7 @@ class I18nContext implements I18nContextInterface
         }, $sites), true);
 
         if ($treeIndex === false) {
-            throw new \Exception(sprintf('I18n: no valid site for locale "%s" found.', $locale));
+            throw new \Exception(sprintf('I18n: no valid zone site for locale "%s" found.', $locale));
         }
 
         return $sites[$treeIndex];

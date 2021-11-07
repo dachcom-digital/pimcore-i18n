@@ -156,8 +156,6 @@ class Zone implements ZoneInterface
                     $elements[] = $subSite;
                 }
             }
-
-            $elements[] = $i18nZoneSite;
         }
 
         return $elements;

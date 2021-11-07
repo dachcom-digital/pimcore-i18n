@@ -34,8 +34,12 @@ class ZoneSitesBuilder
 
         //it's a simple page, no sites: create a default one
         if (count($availableSites) === 0) {
+
+            $hostUrl = !empty($this->generalDomain) && $this->generalDomain !== 'localhost' ? $this->generalDomain : \Pimcore\Tool::getHostUrl();
+            $realHostUrl = parse_url($hostUrl, PHP_URL_HOST);
+
             $availableSites[] = [
-                'mainDomain' => !empty($this->generalDomain) && $this->generalDomain !== 'localhost' ? $this->generalDomain : \Pimcore\Tool::getHostUrl(),
+                'mainDomain' => $realHostUrl,
                 'rootId'     => 1
             ];
         }

@@ -5,7 +5,6 @@ namespace I18nBundle\EventListener;
 use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Manager\I18nContextManager;
-use Pimcore\Model\Site;
 use Pimcore\Tool\Admin;
 use Pimcore\Tool\Authentication;
 use Pimcore\Http\Request\Resolver\EditmodeResolver;
@@ -64,8 +63,8 @@ class I18nStartupListener implements EventSubscriberInterface
         }
 
         $request = $event->getRequest();
-
         $document = $this->pimcoreDocumentResolver->getDocument($request);
+
         if (!$document instanceof Document) {
             return;
         }
@@ -74,65 +73,69 @@ class I18nStartupListener implements EventSubscriberInterface
             return;
         }
 
-        $i18nContext = $this->initializeI18nContext($request, $document);
+        $exception = null;
 
-        if (!$i18nContext instanceof I18nContextInterface) {
-            // @todo: log this?
-            return;
+        try {
+            $this->initializeI18nContext($request, $document);
+        } catch (\Throwable $e) {
+            $exception = $e;
         }
 
-        // request may contains valid locale (default is "en") so we need to check against given document!
-        if (empty($document->getProperty('language'))) {
-            $this->setNotEditableAwareMessage($document, $event);
+        if ($exception !== null || empty($document->getProperty('language'))) {
+            $this->setNotEditableAwareMessage($exception, $event);
         }
+
     }
 
-    protected function initializeI18nContext(Request $request, ?Document $document): ?I18nContextInterface
+    protected function initializeI18nContext(Request $request, ?Document $document): void
     {
         if ($document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            $document = $document->getSourceDocument();
+            $originalLocale = $document->getProperty('language');
+            $request->setLocale($originalLocale);
+            $document->setProperty('language', 'text', $originalLocale);
         }
 
         $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
 
         if (!$i18nContext instanceof I18nContextInterface) {
-            return null;
+            return;
         }
 
         $this->i18nContextResolver->setContext($i18nContext, $request);
 
         $request->attributes->set(Definitions::ATTRIBUTE_I18N_CONTEXT, true);
-
-        return $i18nContext;
     }
 
-    protected function setNotEditableAwareMessage(Document $document, RequestEvent $event): void
+    protected function setNotEditableAwareMessage(?\Throwable $previousException, RequestEvent $event): void
     {
-        //if document is root, no language tag is required
-        if ($this->editmodeResolver->isEditmode()) {
-            $response = new Response();
-            $language = 'en';
-            if ($user = Admin::getCurrentUser()) {
-                $language = $user->getLanguage();
-            } elseif ($user = Authentication::authenticateSession($event->getRequest())) {
-                $language = $user->getLanguage();
+        $exceptionMessage = $previousException instanceof \Throwable ? $previousException->getMessage() : null;
+
+        if (!$this->editmodeResolver->isEditmode()) {
+
+            if (!$previousException instanceof \Throwable) {
+                return;
             }
 
-            $response->setContent($this->templating->render('@I18n/not_editable_aware_message.html.twig', ['adminLocale' => $language]));
-            $event->setResponse($response);
-
-            return;
+            throw $previousException;
         }
 
-        $siteId = 1;
-        if (Site::isSiteRequest() === true) {
-            $site = Site::getCurrentSite();
-            $siteId = $site->getRootId();
+        $response = new Response();
+        $language = 'en';
+        if ($user = Admin::getCurrentUser()) {
+            $language = $user->getLanguage();
+        } elseif ($user = Authentication::authenticateSession($event->getRequest())) {
+            $language = $user->getLanguage();
         }
 
-        //if document is root, no language tag is required
-        if ($document->getId() !== $siteId) {
-            throw new \Exception(sprintf('%s (%d) does not have a valid language property!', get_class($document), $document->getId()));
-        }
+        $response->setContent($this->templating->render(
+            '@I18n/not_editable_aware_message.html.twig',
+            [
+                'adminLocale'      => $language,
+                'exceptionMessage' => $exceptionMessage
+            ]
+        )
+        );
+
+        $event->setResponse($response);
     }
 }

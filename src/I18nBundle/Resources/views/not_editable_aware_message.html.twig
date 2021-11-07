@@ -13,4 +13,7 @@
 </style>
 <div class="i18n-alert-info">
     {{ 'i18n.not_editable_aware_message'|trans({}, 'admin', adminLocale) }}
+    {% if exceptionMessage is not null %}
+        <em>{{ exceptionMessage }}</em>
+    {% endif %}
 </div>
