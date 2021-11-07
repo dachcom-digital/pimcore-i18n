@@ -44,24 +44,17 @@ abstract class DynamicRoute extends AbstractPathGenerator
                 continue;
             }
 
-            $alternateUrl = $this->generateLink($alternateRouteItem);
-
-            if ($alternateUrl === null) {
-                continue;
-            }
-
             $routes[] = [
                 'languageIso'      => $alternateRouteItem->getZoneSite()->getLanguageIso(),
                 'countryIso'       => $alternateRouteItem->getZoneSite()->getCountryIso(),
                 'locale'           => $alternateRouteItem->getZoneSite()->getLocale(),
                 'hrefLang'         => $alternateRouteItem->getZoneSite()->getHrefLang(),
                 'localeUrlMapping' => $alternateRouteItem->getZoneSite()->getLocaleUrlMapping(),
-                'url'              => $alternateUrl
+                'url'              => $this->generateLink($alternateRouteItem)
             ];
         }
 
         return $routes;
-
     }
 }
 

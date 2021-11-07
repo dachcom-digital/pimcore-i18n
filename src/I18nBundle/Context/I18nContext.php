@@ -317,6 +317,10 @@ class I18nContext implements I18nContextInterface
 
     protected function assertRouteContext(): void
     {
+        if(!$this->localeDefinition->hasLocale()) {
+            return;
+        }
+
         $currentZoneSite = $this->getCurrentZoneSite();
 
         $this->routeItem->getRouteContextBag()->add([

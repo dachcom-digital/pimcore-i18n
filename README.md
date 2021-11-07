@@ -8,7 +8,7 @@
 ![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
 
 ## Scheme
-![Untitled Diagram (1)](https://user-images.githubusercontent.com/700119/140643460-3c0da032-93ec-43e3-9984-10b7f29aa9c9.png)
+![i18n scheme](https://user-images.githubusercontent.com/700119/140646548-fcf6433d-1fa0-4323-98e2-9cc49550e5ee.png)
 
 ## Introduction
 Pimcore already comes with some great features to build internationalized websites. 

@@ -21,7 +21,7 @@ class RedirectorBag
         ]);
 
         $resolver->setRequired(['i18nContext', 'request']);
-        $resolver->setAllowedTypes('zone', [I18nContextInterface::class]);
+        $resolver->setAllowedTypes('i18nContext', [I18nContextInterface::class]);
         $resolver->setAllowedTypes('request', [Request::class]);
 
         $options = $resolver->resolve($options);
