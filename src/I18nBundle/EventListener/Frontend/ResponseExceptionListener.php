@@ -98,7 +98,9 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $request->setLocale($documentLocale);
         }
 
-        $request->attributes->set('pimcore_request_source', sprintf('document_%d', $document->getId()));
+        if (!$request->attributes->has('_route')) {
+            $request->attributes->set('_route', sprintf('document_%d', $document->getId()));
+        }
 
         $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
 

@@ -11,6 +11,7 @@ use I18nBundle\Adapter\Redirector\RedirectorBag;
 use I18nBundle\Registry\RedirectorRegistry;
 use Pimcore\Model\Site;
 use Pimcore\Routing\RedirectHandler;
+use Pimcore\Tool\Frontend;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -73,8 +74,6 @@ class PimcoreRedirectListener implements EventSubscriberInterface
             return;
         }
 
-        $this->resolveSite($event->getRequest());
-
         $response = $this->checkI18nPimcoreRedirects($event->getRequest(), true);
 
         if ($response !== null) {
@@ -106,8 +105,13 @@ class PimcoreRedirectListener implements EventSubscriberInterface
             return $response;
         }
 
-        if (!$request->attributes->has('pimcore_request_source')) {
-            $request->attributes->set('pimcore_request_source', sprintf('document_%d', $document->getId()));
+        // we need to determinate if destination document is in a site context because:
+        // - redirector bag needs to be in specific context to provide right redirect decision
+        // - otherwise zone builder will throw an exception, if site is required (because of configured zone definitions)
+        $this->resolveDestinationDocumentSite($document, $request);
+
+        if (!$request->attributes->has('_route')) {
+            $request->attributes->set('_route', sprintf('document_%d', $document->getId()));
         }
 
         $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
@@ -175,19 +179,13 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         return $response;
     }
 
-    protected function resolveSite(Request $request): string
+    protected function resolveDestinationDocumentSite(Document $document, Request $request): void
     {
         $path = urldecode($request->getPathInfo());
-
-        if ($this->requestValidatorHelper->isFrontendRequestByAdmin($request)) {
-            return $path;
-        }
-
-        $host = $request->getHost();
-        $site = Site::getByDomain($host);
+        $site = Frontend::getSiteForDocument($document);
 
         if (!$site instanceof Site) {
-            return $path;
+            return;
         }
 
         $path = $site->getRootPath() . $path;
@@ -196,7 +194,5 @@ class PimcoreRedirectListener implements EventSubscriberInterface
 
         $this->siteResolver->setSite($request, $site);
         $this->siteResolver->setSitePath($request, $path);
-
-        return $path;
     }
 }
