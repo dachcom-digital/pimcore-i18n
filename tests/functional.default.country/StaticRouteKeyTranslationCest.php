@@ -4,6 +4,7 @@ namespace DachcomBundle\Test\FunctionalDefaultCountry;
 
 use DachcomBundle\Test\FunctionalTester;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Exception\ZoneSiteNotFoundException;
 
 class StaticRouteKeyTranslationCest
 {
@@ -49,7 +50,7 @@ class StaticRouteKeyTranslationCest
     /**
      * @param FunctionalTester $I
      */
-    public function testLocalizedStaticRouteWithNotAvailableLocale(FunctionalTester $I)
+    public function testLocalizedStaticRouteZoneSiteException(FunctionalTester $I)
     {
         $I->haveAPageDocument('en', [], 'en');
 
@@ -60,8 +61,8 @@ class StaticRouteKeyTranslationCest
             'variables' => '_locale,entry',
         ]);
 
-        $exception = 'Exception';
-        $exceptionMessage = 'I18n: no valid zone site for locale "en_GB" found.';
+        $exception = ZoneSiteNotFoundException::class;
+        $exceptionMessage = 'No zone site for locale "en_GB" found. Available zone (Id: 0) site locales: en';
 
         $I->seeException($exception, $exceptionMessage, function () use ($I, $staticRoute) {
             $I->amOnStaticRoute($staticRoute->getName(), [

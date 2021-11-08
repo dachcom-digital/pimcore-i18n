@@ -68,6 +68,8 @@ class FrontPageMapperListener implements EventSubscriberInterface
             return;
         }
 
+        // this comes after I18nStartupListener
+        // we just need to flip the document
         $request->attributes->set(ElementListener::FORCE_ALLOW_PROCESSING_UNPUBLISHED_ELEMENTS, true);
         $request->attributes->set(Definitions::FRONT_PAGE_MAP, ['id' => $document->getId(), 'key' => $document->getKey()]);
         $this->documentResolver->setDocument($request, $mapDocument);

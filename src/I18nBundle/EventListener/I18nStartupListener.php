@@ -2,7 +2,6 @@
 
 namespace I18nBundle\EventListener;
 
-use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Manager\I18nContextManager;
 use Pimcore\Tool\Admin;
@@ -54,7 +53,7 @@ class I18nStartupListener implements EventSubscriberInterface
     }
 
     /**
-     * Apply this method after the pimcore context resolver.
+     * @throws \Throwable
      */
     public function onKernelRequest(RequestEvent $event): void
     {
@@ -73,50 +72,53 @@ class I18nStartupListener implements EventSubscriberInterface
             return;
         }
 
-        $exception = null;
-
         try {
             $this->initializeI18nContext($request, $document);
         } catch (\Throwable $e) {
-            $exception = $e;
-        }
-
-        if ($exception !== null || empty($document->getProperty('language'))) {
-            $this->setNotEditableAwareMessage($exception, $event);
-        }
-
-    }
-
-    protected function initializeI18nContext(Request $request, ?Document $document): void
-    {
-        if ($document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
-            $originalLocale = $document->getProperty('language');
-            $request->setLocale($originalLocale);
-            $document->setProperty('language', 'text', $originalLocale);
-        }
-
-        $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
-
-        if (!$i18nContext instanceof I18nContextInterface) {
+            $this->handleContextException($e, $event);
             return;
         }
+
+        if ($document->getProperty('language') === null) {
+            $this->buildEditModeResponse($event);
+        }
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    protected function initializeI18nContext(Request $request, ?Document $document): void
+    {
+        $documentLocale = $document?->getProperty('language');
+
+        // we need to assert requests locale against the documents one
+        // symfony will use the _route key from requests attributes
+        // which can be wrong (e.g. en-us instead of en_US)
+        $request->setLocale($documentLocale ?? '');
+
+        $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
 
         $this->i18nContextResolver->setContext($i18nContext, $request);
 
         $request->attributes->set(Definitions::ATTRIBUTE_I18N_CONTEXT, true);
     }
 
-    protected function setNotEditableAwareMessage(?\Throwable $previousException, RequestEvent $event): void
+    /**
+     * @throws \Throwable
+     */
+    protected function handleContextException(\Throwable $exception, RequestEvent $event): void
     {
-        $exceptionMessage = $previousException instanceof \Throwable ? $previousException->getMessage() : null;
-
         if (!$this->editmodeResolver->isEditmode()) {
+            throw $exception;
+        }
 
-            if (!$previousException instanceof \Throwable) {
-                return;
-            }
+        $this->buildEditModeResponse($event, $exception->getMessage());
+    }
 
-            throw $previousException;
+    protected function buildEditModeResponse(RequestEvent $event, ?string $message = null): void
+    {
+        if (!$this->editmodeResolver->isEditmode()) {
+            return;
         }
 
         $response = new Response();
@@ -131,9 +133,8 @@ class I18nStartupListener implements EventSubscriberInterface
             '@I18n/not_editable_aware_message.html.twig',
             [
                 'adminLocale'      => $language,
-                'exceptionMessage' => $exceptionMessage
-            ]
-        )
+                'exceptionMessage' => $message
+            ])
         );
 
         $event->setResponse($response);

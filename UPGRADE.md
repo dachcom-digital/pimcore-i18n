@@ -32,7 +32,9 @@ i18n:
 ```
 
 ### Global Changes
-- Every PIMCORE LinkGenerator needs to implement the `I18nLinkGeneratorInterface`
+- `$staticRoute->assemble()` is **not** supported anymore, you always need to call `$router->generate()`:
+    - Every PIMCORE LinkGenerator needs to implement the `I18nLinkGeneratorInterface`
+    - You need to pass the `_18n => [ type = RouteItemInterface::TYPE, routeParameters => [] ]` block via `$router->generate()` 
 - Context Adapter and Manager have been removed (All corresponding information are available via `I18nContextInterface` directly)
 - PHP8 return type declarations added: you may have to adjust your extensions accordingly
 - `LocaleProviderInterface` changes:

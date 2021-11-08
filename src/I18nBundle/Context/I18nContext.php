@@ -4,6 +4,7 @@ namespace I18nBundle\Context;
 
 use I18nBundle\Adapter\PathGenerator\PathGeneratorInterface;
 use I18nBundle\Definitions;
+use I18nBundle\Exception\ZoneSiteNotFoundException;
 use I18nBundle\Model\LocaleDefinitionInterface;
 use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Model\ZoneSiteInterface;
@@ -19,6 +20,9 @@ class I18nContext implements I18nContextInterface
     protected LocaleDefinitionInterface $localeDefinition;
     protected ?PathGeneratorInterface $pathGenerator;
 
+    /**
+     * @throws ZoneSiteNotFoundException
+     */
     public function __construct(
         RouteItemInterface $routeItem,
         ZoneInterface $zone,
@@ -52,17 +56,31 @@ class I18nContext implements I18nContextInterface
     {
         $sites = $this->zone->getSites(true);
         $locale = $this->localeDefinition->getLocale();
+        $zoneIdentifier = $this->zone->getId() ?? 0;
 
         if (empty($locale)) {
-            throw new \Exception('I18n: locale for current request not found.');
+            throw new ZoneSiteNotFoundException(
+                sprintf(
+                    'Cannot determinate current site with empty locale in zone %d',
+                    $zoneIdentifier
+                )
+            );
         }
 
-        $treeIndex = array_search($locale, array_map(static function (ZoneSiteInterface $site) {
+        $availableZoneSiteLocales = array_map(static function (ZoneSiteInterface $site) {
             return $site->getLocale();
-        }, $sites), true);
+        }, $sites);
+
+        $treeIndex = array_search($locale, $availableZoneSiteLocales, true);
 
         if ($treeIndex === false) {
-            throw new \Exception(sprintf('I18n: no valid zone site for locale "%s" found.', $locale));
+            throw new ZoneSiteNotFoundException(
+                sprintf(
+                    'No zone site for locale "%s" found. Available zone (Id: %d) site locales: %s',
+                    $locale,
+                    $zoneIdentifier,
+                    implode(', ', $availableZoneSiteLocales))
+            );
         }
 
         return $sites[$treeIndex];
@@ -315,9 +333,12 @@ class I18nContext implements I18nContextInterface
         return $languages;
     }
 
+    /**
+     * @throws ZoneSiteNotFoundException
+     */
     protected function assertRouteContext(): void
     {
-        if(!$this->localeDefinition->hasLocale()) {
+        if (!$this->localeDefinition->hasLocale()) {
             return;
         }
 

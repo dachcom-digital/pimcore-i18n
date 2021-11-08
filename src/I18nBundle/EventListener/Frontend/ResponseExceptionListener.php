@@ -2,7 +2,8 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
-use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Exception\RouteItemException;
+use I18nBundle\Exception\ZoneSiteNotFoundException;
 use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Manager\I18nContextManager;
 use Pimcore\Config;
@@ -50,6 +51,10 @@ class ResponseExceptionListener implements EventSubscriberInterface
         ];
     }
 
+    /**
+     * @throws RouteItemException
+     * @throws ZoneSiteNotFoundException
+     */
     public function onKernelException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
@@ -74,6 +79,10 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $this->handleErrorPage($event);
     }
 
+    /**
+     * @throws RouteItemException
+     * @throws ZoneSiteNotFoundException
+     */
     protected function handleErrorPage(ExceptionEvent $event): void
     {
         if (\Pimcore::inDebugMode()) {
@@ -103,10 +112,6 @@ class ResponseExceptionListener implements EventSubscriberInterface
         }
 
         $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
-
-        if (!$i18nContext instanceof I18nContextInterface) {
-            return;
-        }
 
         $this->i18nContextResolver->setContext($i18nContext, $request);
 

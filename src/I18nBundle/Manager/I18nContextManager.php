@@ -9,6 +9,8 @@ use I18nBundle\Builder\ZoneSitesBuilder;
 use I18nBundle\Context\I18nContext;
 use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Definitions;
+use I18nBundle\Exception\RouteItemException;
+use I18nBundle\Exception\ZoneSiteNotFoundException;
 use I18nBundle\Model\LocaleDefinition;
 use I18nBundle\Model\LocaleDefinitionInterface;
 use I18nBundle\Model\Zone;
@@ -46,18 +48,17 @@ class I18nContextManager
         $this->pathGeneratorRegistry = $pathGeneratorRegistry;
     }
 
-    public function buildContextByParameters(array $i18nRouteParameters, bool $bootPathGenerator = false): ?I18nContextInterface
+    /**
+     * @throws ZoneSiteNotFoundException
+     * @throws RouteItemException
+     */
+    public function buildContextByParameters(array $i18nRouteParameters, bool $bootPathGenerator = false): I18nContextInterface
     {
         $type = $i18nRouteParameters['type'] ?? '';
 
         unset($i18nRouteParameters['type']);
 
         $routeItem = $this->routeItemBuilder->buildRouteItemByParameters($type, $i18nRouteParameters);
-
-        // @todo: Exception?
-        if (!$routeItem instanceof RouteItemInterface) {
-            return null;
-        }
 
         $zone = $this->setupZone($routeItem, false);
         $pathGenerator = $this->setupPathGenerator($routeItem, $bootPathGenerator);
@@ -66,14 +67,13 @@ class I18nContextManager
         return new I18nContext($routeItem, $zone, $localeDefinition, $pathGenerator);
     }
 
-    public function buildContextByRequest(Request $baseRequest, ?Document $baseDocument, bool $bootPathGenerator = false): ?I18nContextInterface
+    /**
+     * @throws ZoneSiteNotFoundException
+     * @throws RouteItemException
+     */
+    public function buildContextByRequest(Request $baseRequest, ?Document $baseDocument, bool $bootPathGenerator = false): I18nContextInterface
     {
         $routeItem = $this->routeItemBuilder->buildRouteItemByRequest($baseRequest, $baseDocument);
-
-        // @todo: Exception?
-        if (!$routeItem instanceof RouteItemInterface) {
-            return null;
-        }
 
         $zone = $this->setupZone($routeItem, $this->requestHelper->isFrontendRequestByAdmin($baseRequest));
         $pathGenerator = $this->setupPathGenerator($routeItem, $bootPathGenerator);

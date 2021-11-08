@@ -3,6 +3,7 @@
 namespace I18nBundle\Builder;
 
 use I18nBundle\Definitions;
+use I18nBundle\Exception\RouteItemException;
 use I18nBundle\Factory\RouteItemFactory;
 use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
 use I18nBundle\Model\ZoneSiteInterface;
@@ -39,7 +40,7 @@ class RouteItemBuilder
         $this->frameworkRouter = $router;
     }
 
-    public function buildRouteItemByParameters(string $type, array $i18nRouteParameters): ?RouteItemInterface
+    public function buildRouteItemByParameters(string $type, array $i18nRouteParameters): RouteItemInterface
     {
         $routeItem = $this->routeItemFactory->createFromArray($type, true, $i18nRouteParameters);
 
@@ -52,13 +53,21 @@ class RouteItemBuilder
         }
 
         if (!$routeItem->hasLocaleFragment()) {
-            return null;
+            throw new RouteItemException(
+                sprintf(
+                    'Cannot build route item for type "%s" because locale fragment is missing',
+                    $routeItem->getType()
+                )
+            );
         }
 
         return $routeItem;
     }
 
-    public function buildRouteItemByRequest(Request $baseRequest, ?Document $baseDocument): ?RouteItemInterface
+    /**
+     * @throws RouteItemException
+     */
+    public function buildRouteItemByRequest(Request $baseRequest, ?Document $baseDocument): RouteItemInterface
     {
         $site = null;
         $editMode = $this->editModeResolver->isEditmode($baseRequest);
@@ -77,7 +86,6 @@ class RouteItemBuilder
         $currentRouteName = $baseRequest->attributes->get('_route');
 
         $routeItem = null;
-
         if ($pimcoreRequestSource === 'staticroute') {
             $routeItem = $this->routeItemFactory->create(RouteItemInterface::STATIC_ROUTE, false);
             $routeItem->getRouteAttributesBag()->add($baseRequest->attributes->all());
@@ -91,7 +99,7 @@ class RouteItemBuilder
         }
 
         if ($routeItem === null) {
-            return null;
+            throw new RouteItemException('Cannot build route item for type because request route type cannot be detected');
         }
 
         $routeItem->setRouteName($currentRouteName);
@@ -102,7 +110,12 @@ class RouteItemBuilder
         }
 
         if (!$routeItem->hasLocaleFragment()) {
-            return null;
+            throw new RouteItemException(
+                sprintf(
+                    'Cannot build route item for type "%s" because locale fragment is missing',
+                    $routeItem->getType()
+                )
+            );
         }
 
         return $routeItem;

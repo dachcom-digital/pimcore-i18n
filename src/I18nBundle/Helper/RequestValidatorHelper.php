@@ -31,6 +31,10 @@ class RequestValidatorHelper
             return false;
         }
 
+        if ($request->attributes->get('_route') === 'fos_js_routing_js') {
+            return false;
+        }
+
         if ($allowFrontendRequestByAdmin === false && $this->requestHelper->isFrontendRequestByAdmin($request)) {
             return false;
         }

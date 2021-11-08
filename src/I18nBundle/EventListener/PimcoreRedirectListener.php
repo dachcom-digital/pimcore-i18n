@@ -3,7 +3,8 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Adapter\Redirector\CookieRedirector;
-use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Exception\RouteItemException;
+use I18nBundle\Exception\ZoneSiteNotFoundException;
 use I18nBundle\Helper\RequestValidatorHelper;
 use I18nBundle\Manager\I18nContextManager;
 use Pimcore\Http\Request\Resolver\SiteResolver;
@@ -52,6 +53,10 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         ];
     }
 
+    /**
+     * @throws RouteItemException
+     * @throws ZoneSiteNotFoundException
+     */
     public function onKernelRedirectException(ExceptionEvent $event): void
     {
         if (!$event->getThrowable() instanceof NotFoundHttpException) {
@@ -64,6 +69,10 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         }
     }
 
+    /**
+     * @throws RouteItemException
+     * @throws ZoneSiteNotFoundException
+     */
     public function onKernelRedirectRequest(RequestEvent $event): void
     {
         if ($event->isMainRequest() === false) {
@@ -81,6 +90,10 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         }
     }
 
+    /**
+     * @throws RouteItemException
+     * @throws ZoneSiteNotFoundException
+     */
     protected function checkI18nPimcoreRedirects(Request $request, bool $override = false): ?Response
     {
         $response = $this->redirectHandler->checkForRedirect($request, $override);
@@ -115,10 +128,6 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         }
 
         $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
-
-        if (!$i18nContext instanceof I18nContextInterface) {
-            return $response;
-        }
 
         $redirectorBag = new RedirectorBag([
             'i18nContext' => $i18nContext,

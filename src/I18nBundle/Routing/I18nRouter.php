@@ -5,6 +5,7 @@ namespace I18nBundle\Routing;
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Definitions;
+use I18nBundle\Exception\MissingTranslationRouteSlugException;
 use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
 use I18nBundle\Manager\I18nContextManager;
 use I18nBundle\Model\ZoneInterface;
@@ -152,24 +153,16 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
             return $path;
         }
 
-        $urlMapping = $zone->getLocaleUrlMapping();
-        $zoneTranslations = $zone->getTranslations();
-
-        $validLocaleIso = array_search($locale, $urlMapping, true);
-
-        if ($validLocaleIso !== false) {
-            $locale = $validLocaleIso;
-        }
 
         $path = preg_replace_callback(
             '/@((?:(?![\/|?]).)*)/',
-            function ($matches) use ($locale, $zoneTranslations) {
-                return $this->translateStaticRouteKey($matches[1], $locale, $zoneTranslations);
+            function ($matches) use ($zone, $locale) {
+                return $this->translateDynamicRouteKey($zone, $matches[1], $locale);
             },
             $path
         );
 
-        $path = $this->parseLocaleUrlMapping($path, $locale, $urlMapping);
+        $path = $this->parseLocaleUrlMapping($zone, $path, $locale);
 
         if (str_ends_with($path, '?')) {
             $path = substr($path, 0, -1);
@@ -192,9 +185,6 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
         }
 
         $translationKeys = $i18nContext->getRouteItem()->getRouteAttributesBag()->get('_i18n_translation_keys', []);
-
-        $urlMapping = $zone->getLocaleUrlMapping();
-        $zoneTranslations = $zone->getTranslations();
         $routeParametersBag = $i18nContext->getRouteItem()->getRouteParametersBag();
 
         foreach ($translationKeys as $routeKey => $translationKey) {
@@ -203,21 +193,7 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
                 continue;
             }
 
-            $translationIndex = array_search($translationKey, array_column($zoneTranslations, 'key'), true);
-
-            if ($translationIndex === false) {
-                // throw no route found exception?
-                continue;
-            }
-
-            $translation = $zoneTranslations[$translationIndex]['values'];
-
-            if (!isset($translation[$locale])) {
-                // throw no route found exception?
-                continue;
-            }
-
-            $routeParametersBag->set($routeKey, $translation[$locale]);
+            $routeParametersBag->set($routeKey, $this->translateDynamicRouteKey($zone, $translationKey, $locale));
         }
 
         $this->buildRouteContext($i18nContext, $referenceType);
@@ -226,47 +202,51 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
 
         $this->restoreRouteContext();
 
-        $validLocaleIso = array_search($locale, $urlMapping, true);
-
-        if ($validLocaleIso !== false) {
-            $locale = $validLocaleIso;
-        }
-
-        return $this->parseLocaleUrlMapping($path, $locale, $urlMapping);
+        return $this->parseLocaleUrlMapping($zone, $path, $locale);
     }
 
-    protected function translateStaticRouteKey(string $key, string $locale, array $zoneTranslations): string
+    protected function translateDynamicRouteKey(ZoneInterface $zone, string $key, string $locale): string
     {
-        $throw = false;
-        $keyIndex = false;
+        $zoneTranslations = $zone->getTranslations();
+        $zoneIdentifier = $zone->getId() ?? 0;
+
+        $exceptionMessage = null;
+        $routeKey = null;
 
         if (empty($zoneTranslations)) {
-            $throw = true;
+            $exceptionMessage = sprintf('No translations for zone [Id: %d] found', $zoneIdentifier);
         } else {
-            $keyIndex = array_search($key, array_column($zoneTranslations, 'key'), true);
-            if ($keyIndex === false || !isset($zoneTranslations[$keyIndex]['values'][$locale])) {
-                $throw = true;
-            }
-        }
 
-        if ($throw === true) {
-            if (\Pimcore\Tool::isFrontendRequestByAdmin()) {
-                return $key;
+            $translationIndex = array_search($key, array_column($zoneTranslations, 'key'), true);
+
+            if ($translationIndex === false) {
+                $exceptionMessage = sprintf('No translation key for "%s" in zone [Id: %d] found', $key, $zoneIdentifier);
             }
 
-            throw new \Exception(sprintf(
-                'i18n static route translation error: no valid translation key for "%s" in locale "%s" found. please add it to your i18n translation config',
-                $key,
-                $locale
-            ));
+            $translation = $zoneTranslations[$translationIndex]['values'];
+
+            if (!isset($translation[$locale])) {
+                $exceptionMessage = sprintf('No translation key for "%s" with locale "%s" in zone [Id: %d] found', $key, $locale, $zoneIdentifier);
+            }
+
+            $routeKey = $translation[$locale];
         }
 
-        return $zoneTranslations[$keyIndex]['values'][$locale];
+        if ($routeKey !== null) {
+            return $routeKey;
+        }
+
+        if (\Pimcore\Tool::isFrontendRequestByAdmin()) {
+            return $key;
+        }
+
+        throw new MissingTranslationRouteSlugException($exceptionMessage);
     }
 
-    protected function parseLocaleUrlMapping(string $path, string $locale, array $urlMapping): string
+    protected function parseLocaleUrlMapping(ZoneInterface $zone, string $path, string $locale): string
     {
         //transform locale style to given url mapping - if existing
+        $urlMapping = $zone->getLocaleUrlMapping();
 
         if (!array_key_exists($locale, $urlMapping)) {
             return $path;
