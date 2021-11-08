@@ -2,28 +2,20 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
-use I18nBundle\Helper\DocumentHelper;
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Transformer\AlternateRouteItemTransformer;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 abstract class AbstractPathGenerator implements PathGeneratorInterface
 {
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
+    protected AlternateRouteItemTransformer $alternateRouteItemTransformer;
 
-    /**
-     * @var DocumentHelper
-     */
-    protected $documentHelper;
-
-    /**
-     * @param ZoneManager    $zoneManager
-     * @param DocumentHelper $documentHelper
-     */
-    public function __construct(ZoneManager $zoneManager, DocumentHelper $documentHelper)
+    public function setAlternateRouteItemTransformer(AlternateRouteItemTransformer $alternateRouteItemTransformer): void
     {
-        $this->zoneManager = $zoneManager;
-        $this->documentHelper = $documentHelper;
+        $this->alternateRouteItemTransformer = $alternateRouteItemTransformer;
+    }
+
+    public function configureOptions(OptionsResolver $options): void
+    {
+        // overwritten by actual path generator, if required.
     }
 }

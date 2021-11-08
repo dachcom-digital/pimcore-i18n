@@ -3,6 +3,8 @@
 namespace DachcomBundle\Test\FunctionalDefaultCountry;
 
 use DachcomBundle\Test\FunctionalTester;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Exception\ZoneSiteNotFoundException;
 
 class StaticRouteKeyTranslationCest
 {
@@ -11,43 +13,67 @@ class StaticRouteKeyTranslationCest
      */
     public function testLocalizedStaticRoute(FunctionalTester $I)
     {
-        $srParams = [
-            'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/	',
+        $I->haveAPageDocument('en', [], 'en');
+        $I->haveAPageDocument('it', [], 'it');
+
+        $staticRoute = $I->haveAStaticRoute('test_route', [
+            'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
             'reverse'   => '/{%_locale}/@testKey/%testProperty',
-            'action'    => 'default',
+            'action'    => 'defaultAction',
             'variables' => '_locale,entry',
-        ];
+        ]);
 
-        $staticRoute = $I->haveAStaticRoute('test_route', $srParams);
+        $I->amOnStaticRoute($staticRoute->getName(), [
+            '_i18n' => [
+                'type' => RouteItemInterface::STATIC_ROUTE,
+                'routeParameters' => [
+                    '_locale' => 'en',
+                    'testProperty' => 'universe'
+                ]
+            ]
+        ]);
 
-        $I->amOnStaticRoute($staticRoute->getName(), ['_locale' => 'en', 'testProperty' => 'universe']);
         $I->seeCurrentUrlEquals('/en/news/universe');
 
-        $I->amOnStaticRoute($staticRoute->getName(), ['_locale' => 'it', 'testProperty' => 'universe']);
+        $I->amOnStaticRoute($staticRoute->getName(), [
+            '_i18n' => [
+                'type' => RouteItemInterface::STATIC_ROUTE,
+                'routeParameters' => [
+                    '_locale' => 'it',
+                    'testProperty' => 'universe'
+                ]
+            ]
+        ]);
         $I->seeCurrentUrlEquals('/it/notizia/universe');
     }
 
     /**
      * @param FunctionalTester $I
      */
-    public function testLocalizedStaticRouteWithNotAvailableLocale(FunctionalTester $I)
+    public function testLocalizedStaticRouteZoneSiteException(FunctionalTester $I)
     {
-        $srParams = [
-            'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/	',
+        $I->haveAPageDocument('en', [], 'en');
+
+        $staticRoute = $I->haveAStaticRoute('test_route', [
+            'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
             'reverse'   => '/{%_locale}/@testKey/%testProperty',
-            'action'    => 'default',
+            'action'    => 'defaultAction',
             'variables' => '_locale,entry',
-        ];
+        ]);
 
-        $staticRoute = $I->haveAStaticRoute('test_route', $srParams);
-
-        $exception = 'Exception';
-        $exceptionMessage = 'i18n static route translation error: ';
-        $exceptionMessage .= 'no valid translation key for "testKey" in locale "en_GB" found. ';
-        $exceptionMessage .= 'please add it to your i18n translation config';
+        $exception = ZoneSiteNotFoundException::class;
+        $exceptionMessage = 'No zone site for locale "en_GB" found. Available zone (Id: 0) site locales: en';
 
         $I->seeException($exception, $exceptionMessage, function () use ($I, $staticRoute) {
-            $I->amOnStaticRoute($staticRoute->getName(), ['_locale' => 'en_GB', 'testProperty' => 'universe']);
+            $I->amOnStaticRoute($staticRoute->getName(), [
+                '_i18n' => [
+                    'type' => RouteItemInterface::STATIC_ROUTE,
+                    'routeParameters' => [
+                        '_locale' => 'en_GB',
+                        'testProperty' => 'universe'
+                    ]
+                ]
+            ]);
         });
     }
 }

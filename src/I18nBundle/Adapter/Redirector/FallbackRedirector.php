@@ -2,91 +2,58 @@
 
 namespace I18nBundle\Adapter\Redirector;
 
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Model\ZoneSiteInterface;
 
 class FallbackRedirector extends AbstractRedirector
 {
-    /**
-     * @var null|string
-     */
-    protected $guessedLocale;
+    protected ?string $guessedLocale = null;
+    protected ?string $guessedLanguage = null;
+    protected ?string $guessedCountry = null;
 
-    /**
-     * @var null|string
-     */
-    protected $guessedLanguage;
-
-    /**
-     * @var null|string
-     */
-    protected $guessedCountry;
-
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @param ZoneManager $zoneManager
-     */
-    public function __construct(ZoneManager $zoneManager)
-    {
-        $this->zoneManager = $zoneManager;
-    }
-
-    /**
-     * @param RedirectorBag $redirectorBag
-     */
-    public function makeDecision(RedirectorBag $redirectorBag)
+    public function makeDecision(RedirectorBag $redirectorBag): void
     {
         if ($this->lastRedirectorWasSuccessful($redirectorBag) === true) {
             return;
         }
 
-        $userCountryIso = null;
-        $url = null;
+        $zoneSite = $this->findZoneSite($redirectorBag);
 
-        $url = $this->findUrlInZoneTree($redirectorBag->getDefaultLocale());
-        $valid = !empty($url);
+        if (!$zoneSite instanceof ZoneSiteInterface) {
+            $this->setDecision(['valid' => false]);
+            return;
+        }
 
         $this->setDecision([
-            'valid'    => $valid,
-            'locale'   => is_string($this->guessedLocale) ? $this->guessedLocale : null,
-            'country'  => is_string($this->guessedCountry) ? $this->guessedCountry : null,
-            'language' => is_string($this->guessedLanguage) ? $this->guessedLanguage : null,
-            'url'      => is_string($url) ? $url : null
+            'valid'    => true,
+            'locale'   => $zoneSite->getLocale(),
+            'country'  => $zoneSite->getCountryIso(),
+            'language' => $zoneSite->getLanguageIso(),
+            'url'      => $zoneSite->getHomeUrl()
         ]);
     }
 
-    /**
-     * @param string|null $fallBackLocale
-     *
-     * @return bool|string
-     */
-    public function findUrlInZoneTree($fallBackLocale = null)
+    protected function findZoneSite(RedirectorBag $redirectorBag): ?ZoneSiteInterface
     {
+        $fallbackLocale = $redirectorBag->getI18nContext()->getZoneDefaultLocale();
+
         try {
-            $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+            $zoneSites = $redirectorBag->getI18nContext()->getZone()->getSites(true);
         } catch (\Exception $e) {
-            return false;
+            return null;
         }
 
-        if (!is_array($zoneDomains)) {
-            return false;
+        if (!is_array($zoneSites)) {
+            return null;
         }
 
-        $indexId = array_search($fallBackLocale, array_column($zoneDomains, 'locale'));
+        $indexId = array_search($fallbackLocale, array_map(static function (ZoneSiteInterface $site) {
+            return $site->getLocale();
+        }, $zoneSites), true);
 
         if ($indexId === false) {
-            return false;
+            return null;
         }
 
-        $docData = $zoneDomains[$indexId];
-
-        $this->guessedLocale = $docData['locale'];
-        $this->guessedLanguage = $docData['languageIso'];
-        $this->guessedCountry = $docData['countryIso'];
-
-        return $docData['homeUrl'];
+        return $zoneSites[$indexId];
     }
 }

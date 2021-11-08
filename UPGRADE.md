@@ -1,55 +1,87 @@
 # Upgrade Notes
-![upgrade](https://user-images.githubusercontent.com/700119/31535145-3c01a264-affa-11e7-8d86-f04c33571f65.png)  
+
+## Migrating from Version 3.x to Version 4.0
+
+⚠️ If you're still on version `2.x` or `< 3.2.8`, you need to update to `3.2.8` first, then [migrate](https://github.com/dachcom-digital/pimcore-i18n/blob/3.x/UPGRADE.md) to `3.3`. 
+After that, you're able to update to `^4.0`.
+
+> 💀 I18n has changed fundamentally! Please be careful while migrating!
+
+Please read the [How I18n Works](./docs/1_I18n.md) section before start migrating!
 
 ***
 
-After every update you should check the pimcore extension manager. 
-Just click the "update" button or execute the migration command to finish the bundle update.
+### New default properties
+You need to define the default scheme and port on every environment
 
-#### Update from Version 3.2.6 to Version 3.2.7
-- **[ENHANCEMENT]**: Allow to reinitialize Zones at any time (`$this->zoneManager->reinitializeZones()`)
+```yaml
+i18n:
+    request_scheme: 'http'
+    request_port: 80
+```
 
-#### Update from Version 3.2.5 to Version 3.2.6
-- **[BUGFIX]**: Remove Hardlink Context Listener [@75](https://github.com/dachcom-digital/pimcore-i18n/pull/75).
+### New zone properties
+```yaml
+i18n:
+    zones:
+        zone1:
+            id: 1
+            domains:
+                - ['www.test-domain2.test', 'https', 443]   # defined as array you're able to pass scheme and port
+                - 'test-domain3.test'                       # still working, default values (i18n.request_scheme, i18n.request_port) will be selected
+```
 
-#### Update from Version 3.2.4 to Version 3.2.5
-- **[BUGFIX]**: Improve redirects when country code is not set in user languages [@pascalmoser](https://github.com/dachcom-digital/pimcore-i18n/pull/68).
+### Global Changes
+- `$staticRoute->assemble()` is **not** supported anymore, you always need to call `$router->generate()`:
+    - Every PIMCORE LinkGenerator needs to implement the `I18nLinkGeneratorInterface`
+    - You need to pass the `_18n => [ type = RouteItemInterface::TYPE, routeParameters => [] ]` block via `$router->generate()` 
+- Context Adapter and Manager have been removed (All corresponding information are available via `I18nContextInterface` directly)
+- PHP8 return type declarations added: you may have to adjust your extensions accordingly
+- `LocaleProviderInterface` changes:
+    - Namespace changed from `I18nBundle\Adapter\Locale` to `I18nBundle\Adapter\LocaleProvider`
+    - `LocaleProviderInterface` signatures changed:
+         - `::setCurrentZoneConfig()` removed
+         - `::getLocaleData()` removed
+         - `::getActiveLocales(ZoneInterface $zone)` signature changed
+         - `::getDefaultLocale(ZoneInterface $zone)` signature changed
+         - `::getGlobalInfo(ZoneInterface $zone)` signature changed
+- `PathGeneratorInterface` changes: 
+     - `::getUrl(I18nZoneInterface $zone, bool $onlyShowRootLanguages = false)` signature changed
+     - `::configureOptions(OptionsResolver $options)` added
+- `RedirectorBag` Changes:
+    - Options `i18nType`, `document`, `documentLocale`, `documentCountry`, `defaultLocale` removed. New `zone` option added.
+- Cache runtime variables `i18n.locale`, `i18n.locale` and `i18n.locale` has been removed. You can access them via `$i18nContext->getLocaleDefinition()` which will return model `LocaleDefinitionInterface`
+- Error Document Changes:
+    - PIMCORE X is supporting localized error documents [by default](https://github.com/pimcore/pimcore/pull/9270) now, so there
+      is no need to add custom logic anymore. Make sure that your error documents are defined in site configuration and/or system settings.
+- Context Switch Detector:
+    - This Listener is now disabled by default and can be enabled by setting configuration node `i18n.enable_context_switch_detector: true`
 
-#### Update from Version 3.2.3 to Version 3.2.4
-- **[BUGFIX]**: Don't add documents to i18n tree, if not available in other context [@66](https://github.com/dachcom-digital/pimcore-i18n/pull/66).
-- **[BUGFIX]**: Use root language if Accept-Language locale does not exist as pimcore language [@BlackbitNeueMedien](https://github.com/dachcom-digital/pimcore-i18n/pull/63).
+### Event Changes
+- `AlternateStaticRouteEvent` Event has been renamed to `AlternateDynamicRouteEvent` which also allows symfony routes now
+    - Argument Changes:
+        - `::getI18nList()` has been removed. Use ``::getAlternateRouteItems()`` instead
+        - `::setRoutes()` has been removed. Not required anymore
+        - `::getRequestAttributes()` has been removed. use `::getCurrentRouteAttributes()` instead (returns simple array)
+        - `::getCurrentStaticRoute()` has been removed. use `::getCurrentRouteName()` instead
+        - `::getCurrentDocument()` has been removed
+        - `::getCurrentLanguage()` has been removed
+        - `::getCurrentCountry()` has been removed
+        - `::getType()` has been added
+        - `::getCurrentLocale()` has been added
+        - `::isCurrentRouteHeadless()` has been added
+        - `::getCurrentRouteName()` has been added
+        - `::getCurrentRouteAttributes()` has been added
+        - `::getCurrentRouteParameters()` has been added
 
-#### Update from Version 3.2.2 to Version 3.2.3
-- **[BUGFIX]**: Fix wrong request listener [#dd2102](https://github.com/dachcom-digital/pimcore-i18n/commit/dd2102)
+### Bugfixes
+- DetectorListener: Skip redirecting if request is frontend request by admin [@lorextera](https://github.com/dachcom-digital/pimcore-i18n/pull/83)
 
-#### Update from Version 3.2.1 to Version 3.2.2
-- **[ENHANCEMENT]**: Log http exception to `http_error_log` table [@59](https://github.com/dachcom-digital/pimcore-i18n/pull/59).
-
-#### Update from Version 3.2.0 to Version 3.2.1
-- **[ENHANCEMENT]**: Pimcore 6.6.0 ready
-- **[ENHANCEMENT]**: Remove empty attributes from alternate links (`link href="http://pimcore.test/de" rel="alternate" type="" title="" hreflang="de"` becomes `link href="http://pimcore.test/de" rel="alternate" hreflang="de"`)
-- **[ENHANCEMENT]**: Allow changing [redirect status code](https://github.com/dachcom-digital/pimcore-i18n/blob/master/docs/51_RedirectorAdapter.md#define-redirect-status-code)
-- **[ENHANCEMENT]**: Localized error document when main domain of a site has www. subdomain [@BlackbitNeueMedien](https://github.com/dachcom-digital/pimcore-i18n/pull/56)
-- **[ENHANCEMENT]**: Redirect based on Accept-Language HTTP header [@BlackbitNeueMedien](https://github.com/dachcom-digital/pimcore-i18n/pull/57)
-
-#### Update from Version 3.1.x to Version 3.2.0
-- **[ENHANCEMENT]**: Pimcore 6.5.0 ready
-- **[ENHANCEMENT]**: PHP 7.4 Support
-- **[IMPORTANT]**: Because of unfixed major issues within Pimcore 6.4.x, we're unable to support this version. We recommend to directly upgrade to pimcore 6.5!
-- **[IMPORTANT]**: GeoLite Database is not available automatically due new download restrictions by maxmind. Read more about it [here](./docs/10_GeoControl.md), [here](https://github.com/pimcore/pimcore/issues/5512) and [here](https://blog.maxmind.com/2019/12/18/significant-changes-to-accessing-and-using-geolite2-databases/) 
-
-#### Update from Version 3.1.0 to Version 3.1.1
-- **[ENHANCEMENT]**: Use locale instead of languageIso in [Document PathGenerator](https://github.com/dachcom-digital/pimcore-i18n/issues/41)
-- **[NEW FEATURE]**: Respect [LinkGenerator](https://github.com/dachcom-digital/pimcore-i18n/issues/15)
-
-#### Update from Version 3.0.0 to Version 3.1.0
-- **[NEW FEATURE]**: Allow [pimcore redirect modification](https://github.com/dachcom-digital/pimcore-i18n/issues/33).
-- **[BUGFIX]**: Disable context switch event if [pimcore full page cache](https://github.com/dachcom-digital/pimcore-i18n/issues/18) is enabled
-- **[BUGFIX]**: Fix context on [xliff export](https://github.com/dachcom-digital/pimcore-i18n/issues/28)
-
-#### Version 3.0.0
-- **[NEW FEATURE]**: Pimcore 6.0.0 ready
+### Additional new Features
+- Check Akamai CDN header [@florian25686](https://github.com/dachcom-digital/pimcore-i18n/pull/76/files)
+- Allow different I18nContext look-ups [#70](https://github.com/dachcom-digital/pimcore-i18n/issues/70), read more about it [here](./docs/21_CustomI18nContextLookUp.md)
+- Allow symfony routes [#65](https://github.com/dachcom-digital/pimcore-i18n/issues/65)
 
 ***
 
-Upgrade History for 2.x: [Click here](https://github.com/dachcom-digital/pimcore-i18n/blob/2.4/UPGRADE.md).
+I18nBundle 3.x Upgrade Notes: https://github.com/dachcom-digital/pimcore-i18n/blob/3.x/UPGRADE.md

@@ -9,36 +9,22 @@ use Symfony\Component\HttpFoundation\Request;
 
 class System
 {
-    /**
-     * @param Request $request
-     *
-     * @return bool
-     */
-    public static function isInBackend(Request $request)
+    public static function isInBackend(Request $request): bool
     {
         $editMode = $request->attributes->get(EditmodeResolver::ATTRIBUTE_EDITMODE);
 
         return Tool::isFrontend($request) === false || $editMode === true;
     }
 
-    /**
-     * @return bool
-     */
-    public static function isInCliMode()
+    public static function isInCliMode(): bool
     {
-        return php_sapi_name() === 'cli' && Config::getEnvironment() !== 'test';
+        return PHP_SAPI === 'cli' && Config::getEnvironment() !== 'test';
     }
 
-    /**
-     * @param array $fragments
-     * @param bool  $addStartSlash
-     *
-     * @return string
-     */
-    public static function joinPath($fragments, $addStartSlash = false)
+    public static function joinPath(array $fragments, bool $addStartSlash = false): string
     {
         $f = [];
-        $addStartSlash = $addStartSlash === true || substr($fragments[0], 0, 1) === DIRECTORY_SEPARATOR;
+        $addStartSlash = $addStartSlash === true || str_starts_with($fragments[0], DIRECTORY_SEPARATOR);
         foreach ($fragments as $fragment) {
             if (empty($fragment)) {
                 continue;
@@ -46,6 +32,6 @@ class System
             $f[] = trim($fragment, DIRECTORY_SEPARATOR);
         }
 
-        return ($addStartSlash ? DIRECTORY_SEPARATOR : '') . join(DIRECTORY_SEPARATOR, $f);
+        return ($addStartSlash ? DIRECTORY_SEPARATOR : '') . implode(DIRECTORY_SEPARATOR, $f);
     }
 }

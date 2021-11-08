@@ -8,10 +8,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class SessionConfigurator implements SessionConfiguratorInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function configure(SessionInterface $session)
+    public function configure(SessionInterface $session): void
     {
         $bag = new NamespacedAttributeBag('_i18n_session');
         $bag->setName('i18n_session');

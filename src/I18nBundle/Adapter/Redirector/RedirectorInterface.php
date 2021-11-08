@@ -4,49 +4,19 @@ namespace I18nBundle\Adapter\Redirector;
 
 interface RedirectorInterface
 {
-    /**
-     * @return bool
-     */
-    public function isEnabled();
+    public function isEnabled(): bool;
 
-    /**
-     * @param bool $enabled
-     */
-    public function setEnabled($enabled);
+    public function setEnabled(bool $enabled): void;
 
-    /**
-     * @return string
-     */
-    public function getName();
+    public function getName(): string;
 
-    /**
-     * @param string $name
-     */
-    public function setName($name);
+    public function setName(string $name): void;
 
-    /**
-     * @param array $decision
-     *
-     * @return mixed
-     */
-    public function setDecision(array $decision);
+    public function setDecision(array $decision): void;
 
-    /**
-     * @return mixed
-     */
-    public function getDecision();
+    public function getDecision(): array;
 
-    /**
-     * @param RedirectorBag $redirectorBag
-     *
-     * @return mixed
-     */
-    public function lastRedirectorWasSuccessful(RedirectorBag $redirectorBag);
+    public function lastRedirectorWasSuccessful(RedirectorBag $redirectorBag): bool;
 
-    /**
-     * @param RedirectorBag $redirectorBag
-     *
-     * @return mixed
-     */
-    public function makeDecision(RedirectorBag $redirectorBag);
+    public function makeDecision(RedirectorBag $redirectorBag): void;
 }

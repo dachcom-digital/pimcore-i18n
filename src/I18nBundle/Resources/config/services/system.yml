@@ -18,3 +18,8 @@ services:
     I18nBundle\Session\SessionConfigurator:
         tags:
             - { name: pimcore.session.configurator }
+
+    I18nBundle\Routing\I18nRouter:
+        decorates: 'router'
+        arguments:
+            $router: '@I18nBundle\Routing\I18nRouter.inner'

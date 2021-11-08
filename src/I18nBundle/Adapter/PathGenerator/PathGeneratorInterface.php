@@ -2,15 +2,12 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
-use Pimcore\Model\Document as PimcoreDocument;
+use I18nBundle\Context\I18nContextInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 interface PathGeneratorInterface
 {
-    /**
-     * @param PimcoreDocument $currentDocument
-     * @param bool            $onlyShowRootLanguages
-     *
-     * @return array
-     */
-    public function getUrls(PimcoreDocument $currentDocument, $onlyShowRootLanguages = false);
+    public function configureOptions(OptionsResolver $options): void;
+
+    public function getUrls(I18nContextInterface $i18nContext, bool $onlyShowRootLanguages = false): array;
 }

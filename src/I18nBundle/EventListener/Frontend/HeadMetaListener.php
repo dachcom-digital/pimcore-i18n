@@ -2,74 +2,44 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Definitions;
-use I18nBundle\Manager\ContextManager;
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Http\I18nContextResolverInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
-use Pimcore\Templating\Helper\HeadMeta;
+use Pimcore\Twig\Extension\Templating\HeadMeta;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-/**
- * Adds Meta Data entries of document to HeadMeta view helper.
- */
 class HeadMetaListener implements EventSubscriberInterface
 {
     use PimcoreContextAwareTrait;
 
-    /**
-     * @var HeadMeta
-     */
-    protected $headMeta;
+    protected HeadMeta $headMeta;
+    protected I18nContextResolverInterface $i18nContextResolver;
 
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @var ContextManager
-     */
-    protected $contextManager;
-
-    /**
-     * @param HeadMeta       $headMeta
-     * @param ZoneManager    $zoneManager
-     * @param ContextManager $contextManager
-     */
     public function __construct(
         HeadMeta $headMeta,
-        ZoneManager $zoneManager,
-        ContextManager $contextManager
+        I18nContextResolverInterface $i18nContextResolver
     ) {
         $this->headMeta = $headMeta;
-        $this->zoneManager = $zoneManager;
-        $this->contextManager = $contextManager;
+        $this->i18nContextResolver = $i18nContextResolver;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::REQUEST => ['onKernelRequest']
         ];
     }
 
-    /**
-     * @param GetResponseEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
 
         // just add meta data on master request
-        if (!$event->isMasterRequest()) {
+        if (!$event->isMainRequest()) {
             return;
         }
 
@@ -77,11 +47,22 @@ class HeadMetaListener implements EventSubscriberInterface
             return;
         }
 
-        if ($this->zoneManager->getCurrentZoneInfo('mode') !== 'country') {
+        if ($request->attributes->get('_route') === 'fos_js_routing_js') {
             return;
         }
 
-        $currentCountryIso = $this->contextManager->getCountryContext()->getCurrentCountryIso();
+        $i18nContext = $this->i18nContextResolver->getContext($request);
+
+        if (!$i18nContext instanceof I18nContextInterface) {
+            return;
+        }
+
+        if ($i18nContext->getZone()->getMode() !== 'country') {
+            return;
+        }
+
+        $currentCountryIso = $i18nContext->getLocaleDefinition()->getCountryIso();
+
         if (empty($currentCountryIso)) {
             return;
         }

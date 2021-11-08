@@ -2,37 +2,22 @@
 
 namespace I18nBundle\DataCollector;
 
-use I18nBundle\Manager\ZoneManager;
-use Pimcore\Cache\Runtime;
+use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Http\I18nContextResolverInterface;
 use Pimcore\Http\RequestHelper;
+use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 
-class I18nDataCollector extends DataCollector
+class I18nDataCollector extends AbstractDataCollector
 {
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
+    protected I18nContextResolverInterface $i18nContextResolver;
+    protected RequestHelper $requestHelper;
+    protected bool $isFrontend = true;
 
-    /**
-     * @var RequestHelper
-     */
-    private $requestHelper;
-
-    /**
-     * @var ZoneManager
-     */
-    protected $isFrontend = true;
-
-    /**
-     * @param ZoneManager   $zoneManager
-     * @param RequestHelper $requestHelper
-     */
-    public function __construct(ZoneManager $zoneManager, RequestHelper $requestHelper)
+    public function __construct(I18nContextResolverInterface $i18nContextResolver, RequestHelper $requestHelper)
     {
-        $this->zoneManager = $zoneManager;
+        $this->i18nContextResolver = $i18nContextResolver;
         $this->requestHelper = $requestHelper;
 
         $this->data = [
@@ -40,10 +25,7 @@ class I18nDataCollector extends DataCollector
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function collect(Request $request, Response $response, \Exception $exception = null)
+    public function collect(Request $request, Response $response, \Throwable $exception = null): void
     {
         //only track current valid routes.
         if ($response->getStatusCode() !== 200) {
@@ -57,81 +39,82 @@ class I18nDataCollector extends DataCollector
             return;
         }
 
-        $zoneId = $this->zoneManager->getCurrentZoneInfo('zone_id');
-        $mode = $this->zoneManager->getCurrentZoneInfo('mode');
+        $i18nContext = $this->i18nContextResolver->getContext($request);
+        if (!$i18nContext instanceof I18nContextInterface) {
+            return;
+        }
 
+        $zone = $i18nContext->getZone();
+        $zoneId = $zone->getId();
+        $mode = $zone->getMode();
+
+        $currentLocale = '--';
         $currentLanguage = '--';
         $currentCountry = '--';
 
-        if (Runtime::isRegistered('i18n.countryIso')) {
-            $currentCountry = Runtime::get('i18n.countryIso');
+        if ($i18nContext->getLocaleDefinition()->hasLocale()) {
+            $currentLocale = $i18nContext->getLocaleDefinition()->getLocale();
         }
 
-        if (Runtime::isRegistered('i18n.languageIso')) {
-            $currentLanguage = Runtime::get('i18n.languageIso');
+        if ($i18nContext->getLocaleDefinition()->hasCountryIso()) {
+            $currentCountry = $i18nContext->getLocaleDefinition()->getCountryIso();
+        }
+
+        if ($i18nContext->getLocaleDefinition()->hasLanguageIso()) {
+            $currentLanguage = $i18nContext->getLocaleDefinition()->getLanguageIso();
         }
 
         $this->data = [
             'isFrontend'      => true,
-            'zoneId'          => empty($zoneId) ? 'none' : $zoneId,
+            'zoneId'          => $zoneId ?? 'None',
             'i18nMode'        => $mode,
+            'currentLocale'   => $currentLocale,
             'currentLanguage' => $currentLanguage,
             'currentCountry'  => $currentCountry
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isFrontend()
+    public static function getTemplate(): string
+    {
+        return '@I18n/profiler/data_collector.html.twig';
+    }
+
+    public function isFrontend(): bool
     {
         return $this->data['isFrontend'];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
+    public function getName(): string
     {
         return 'i18n.data_collector';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function reset()
+    public function reset(): void
     {
         $this->data = [];
     }
 
-    /**
-     * @return string|null
-     */
-    public function getI18nMode()
+    public function getI18nMode(): ?string
     {
         return $this->data['i18nMode'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function getLanguage()
+    public function getLocale(): ?string
+    {
+        return $this->data['currentLocale'];
+    }
+
+    public function getLanguage(): ?string
     {
         return $this->data['currentLanguage'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function getCountry()
+    public function getCountry(): ?string
     {
         return $this->data['currentCountry'];
     }
 
-    /**
-     * @return string|null
-     */
-    public function getZoneId()
+    public function getZoneId(): string|int|null
     {
         return $this->data['zoneId'];
     }

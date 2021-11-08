@@ -1,75 +1,66 @@
 services:
-    # adapter: locale
-    I18nBundle\Adapter\Locale\AbstractLocale:
+
+    #
+    # Adapter: LocaleProvider
+
+    I18nBundle\Adapter\LocaleProvider\AbstractLocaleProvider:
         abstract: true
-        public: false
         autowire: true
 
-    I18nBundle\Adapter\Locale\System:
-        parent: I18nBundle\Adapter\Locale\AbstractLocale
-        public: false
+    I18nBundle\Adapter\LocaleProvider\SystemLocaleProvider:
+        parent: I18nBundle\Adapter\LocaleProvider\AbstractLocaleProvider
         tags:
             - { name: i18n.adapter.locale, alias: system }
 
-    # adapter: pathGenerator
+
+    #
+    # Adapter: PathGenerator
+
     I18nBundle\Adapter\PathGenerator\AbstractPathGenerator:
         abstract: true
-        public: false
         autowire: true
+        calls:
+            - [setAlternateRouteItemTransformer, ['@I18nBundle\Transformer\AlternateRouteItemTransformer']]
 
     I18nBundle\Adapter\PathGenerator\StaticRoute:
         parent: I18nBundle\Adapter\PathGenerator\AbstractPathGenerator
-        public: false
+        arguments:
+            - '@router'
+            - '@event_dispatcher'
         tags:
             - { name: i18n.adapter.path.generator, alias: static_route }
-        calls:
-            - ['setUrlGenerator', ['@router']]
-            - ['setRequest', ['@request_stack']]
+
+    I18nBundle\Adapter\PathGenerator\Symfony:
+        parent: I18nBundle\Adapter\PathGenerator\AbstractPathGenerator
+        arguments:
+            - '@router'
+        tags:
+            - { name: i18n.adapter.path.generator, alias: symfony }
 
     I18nBundle\Adapter\PathGenerator\Document:
         parent: I18nBundle\Adapter\PathGenerator\AbstractPathGenerator
-        public: false
         tags:
             - { name: i18n.adapter.path.generator, alias: document }
 
-    # adapter: context
-    I18nBundle\Adapter\Context\AbstractContext:
-        abstract: true
-        public: false
-        autowire: true
 
-    I18nBundle\Adapter\Context\Country:
-        parent: I18nBundle\Adapter\Context\AbstractContext
-        public: false
-        tags:
-            - { name: i18n.adapter.context, alias: country }
+    #
+    # Adapter: ReDirector
 
-    I18nBundle\Adapter\Context\Language:
-        parent: I18nBundle\Adapter\Context\AbstractContext
-        public: false
-        tags:
-            - { name: i18n.adapter.context, alias: language }
-
-    # adapter: redirector
     I18nBundle\Adapter\Redirector\AbstractRedirector:
         abstract: true
-        public: false
         autowire: true
 
     I18nBundle\Adapter\Redirector\CookieRedirector:
         parent: I18nBundle\Adapter\Redirector\AbstractRedirector
-        public: false
         tags:
             - { name: i18n.adapter.redirector, alias: cookie, priority: 300 }
 
     I18nBundle\Adapter\Redirector\GeoRedirector:
         parent: I18nBundle\Adapter\Redirector\AbstractRedirector
-        public: false
         tags:
             - { name: i18n.adapter.redirector, alias: geo, priority: 200 }
 
     I18nBundle\Adapter\Redirector\FallbackRedirector:
         parent: I18nBundle\Adapter\Redirector\AbstractRedirector
-        public: false
         tags:
             - { name: i18n.adapter.redirector, alias: fallback, priority: 100 }

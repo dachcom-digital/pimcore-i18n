@@ -2,78 +2,35 @@
 
 namespace I18nBundle\Adapter\Redirector;
 
+use I18nBundle\Context\I18nContextInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class RedirectorBag
 {
-    /**
-     * @var array
-     */
-    protected $decisionBag = [];
+    protected array $decisionBag = [];
+    protected I18nContextInterface $i18nContext;
+    protected Request $request;
 
-    /**
-     * @var string
-     */
-    protected $i18nMode;
-
-    /**
-     * @var Request
-     */
-    protected $request;
-
-    /**
-     * @var \Pimcore\Model\Document
-     */
-    protected $document;
-
-    /**
-     * @var string
-     */
-    protected $documentLocale;
-
-    /**
-     * @var string
-     */
-    protected $documentCountry;
-
-    /**
-     * @var string
-     */
-    protected $defaultLocale;
-
-    /**
-     * @param array $options
-     */
     public function __construct(array $options)
     {
         $resolver = new OptionsResolver();
         $resolver->setDefaults([
-            'i18nType'        => null,
-            'request'         => null,
-            'document'        => null,
-            'documentLocale'  => null,
-            'documentCountry' => null,
-            'defaultLocale'   => null,
+            'i18nContext' => null,
+            'request'     => null,
         ]);
 
-        $resolver->setRequired(['i18nType', 'request', 'document']);
+        $resolver->setRequired(['i18nContext', 'request']);
+        $resolver->setAllowedTypes('i18nContext', [I18nContextInterface::class]);
+        $resolver->setAllowedTypes('request', [Request::class]);
 
         $options = $resolver->resolve($options);
 
-        $this->i18nMode = $options['i18nType'];
+        $this->i18nContext = $options['i18nContext'];
         $this->request = $options['request'];
-        $this->document = $options['document'];
-        $this->documentLocale = $options['documentLocale'];
-        $this->documentCountry = $options['documentCountry'];
-        $this->defaultLocale = $options['defaultLocale'];
     }
 
-    /**
-     * @param string $name
-     * @param array  $decision
-     */
-    public function addRedirectorDecisionToBag(string $name, array $decision)
+    public function addRedirectorDecisionToBag(string $name, array $decision): void
     {
         $this->decisionBag[] = [
             'name'     => $name,
@@ -81,36 +38,22 @@ class RedirectorBag
         ];
     }
 
-    /**
-     * @return Request
-     */
-    public function getRequest()
+    public function getRequest(): Request
     {
         return $this->request;
     }
 
-    /**
-     * @return string
-     */
-    public function getI18nMode()
+    public function getI18nContext(): I18nContextInterface
     {
-        return $this->i18nMode;
+        return $this->i18nContext;
     }
 
-    /**
-     * @return null|array
-     */
-    public function getLastRedirectorDecision()
+    public function getLastRedirectorDecision(): ?array
     {
-        $last = array_values(array_slice($this->decisionBag, -1))[0];
-
-        return $last;
+        return array_values(array_slice($this->decisionBag, -1))[0];
     }
 
-    /**
-     * @return null|array
-     */
-    public function getLastValidRedirectorDecision()
+    public function getLastValidRedirectorDecision(): ?array
     {
         $lastValidBag = null;
         foreach (array_reverse($this->decisionBag) as $bag) {
@@ -124,16 +67,8 @@ class RedirectorBag
         return $lastValidBag;
     }
 
-    /**
-     * @return array
-     */
-    public function getRedirectorDecisionBag()
+    public function getRedirectorDecisionBag(): array
     {
         return $this->decisionBag;
-    }
-
-    public function getDefaultLocale()
-    {
-        return $this->defaultLocale;
     }
 }

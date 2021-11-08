@@ -1,11 +1,12 @@
 i18n:
+    enable_context_switch_detector: true
     mode: language
     locale_adapter: system
     default_locale: 'en'
+    request_scheme: 'http'
+    request_port: 80
     translations: ~
 
 pimcore:
     full_page_cache:
-        enabled: true
-    cache:
         enabled: true

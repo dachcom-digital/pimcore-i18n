@@ -9,6 +9,5 @@ services:
         tags:
             -
                 name:     data_collector
-                template: 'I18nBundle:Profiler:data_collector.html.twig'
                 id:       'i18n.data_collector'
                 priority: 500

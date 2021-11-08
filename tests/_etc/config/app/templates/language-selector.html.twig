@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page for I18n</title>
+    {{ pimcore_head_meta() }}
+    {{ pimcore_head_link() }}
+</head>
+<body>
+    <div id="site">
+        {% set i18n_context = i18n_context() %}
+        {% if i18n_context is not null %}
+            {% set languages = i18n_context.activeLanguages %}
+            {% if languages is iterable %}
+                <nav id="i18n-language-selector">
+                    <select>
+                        {% for language in languages %}
+                            <option {{ language.active ? 'selected' : '' }} value="{{ language.linkedHref }}">{{ language.iso|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </nav>
+            {% endif %}
+        {% endif %}
+
+        <div class="navigation">
+            {% set menu = pimcore_build_nav({
+                active: document,
+                root: document,
+                cache: app.request.locale
+            }) %}
+
+            {{ pimcore_render_nav(menu, 'menu', 'renderMenu', {
+                maxDepth: 10,
+                ulClass: 'nav navbar-nav'
+            }) }}
+        </div>
+        <div class="content">
+            {% if document is defined %}
+                <span id="page-id">{{ document.id }}</span>
+            {% endif %}
+        </div>
+        {% block content %}
+            {{ pimcore_areablock('dachcomBundleTest') }}
+        {% endblock %}
+    </div>
+</body>
+</html>

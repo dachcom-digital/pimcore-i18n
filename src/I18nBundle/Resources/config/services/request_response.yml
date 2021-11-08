@@ -1,0 +1,9 @@
+services:
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    I18nBundle\Http\I18nContextResolverInterface: '@I18nBundle\Http\I18nContextResolver'
+    I18nBundle\Http\I18nContextResolver: ~

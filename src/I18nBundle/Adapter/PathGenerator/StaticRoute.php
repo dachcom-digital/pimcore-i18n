@@ -2,194 +2,47 @@
 
 namespace I18nBundle\Adapter\PathGenerator;
 
-use I18nBundle\Definitions;
-use I18nBundle\Event\AlternateStaticRouteEvent;
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\I18nEvents;
-use I18nBundle\Tool\System;
-use Pimcore\Model\DataObject\ClassDefinition\LinkGeneratorInterface;
-use Pimcore\Model\DataObject\Concrete;
-use Pimcore\Model\Document as PimcoreDocument;
-use Pimcore\Model\Staticroute as PimcoreStaticRoute;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
+use I18nBundle\Model\RouteItem\AlternateRouteItemInterface;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-class StaticRoute extends AbstractPathGenerator
+class StaticRoute extends DynamicRoute
 {
-    /**
-     * @var array
-     */
-    protected $cachedUrls = [];
-
-    /**
-     * @var RequestStack
-     */
-    protected $requestStack;
-
-    /**
-     * @var UrlGeneratorInterface
-     */
-    protected $urlGenerator;
-
-    /**
-     * @param RequestStack $requestStack
-     */
-    public function setRequest(RequestStack $requestStack)
-    {
-        $this->requestStack = $requestStack;
+    public function __construct(
+        RouterInterface $router,
+        EventDispatcherInterface $eventDispatcher
+    ) {
+        $this->router = $router;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
-    /**
-     * @param UrlGeneratorInterface $urlGenerator
-     */
-    public function setUrlGenerator(UrlGeneratorInterface $urlGenerator)
+    public function configureOptions(OptionsResolver $options): void
     {
-        $this->urlGenerator = $urlGenerator;
+        $options
+            ->setDefaults(['_route' => null])
+            ->setRequired(['_route'])
+            ->setAllowedTypes('_route', ['null', 'string']);
     }
 
-    /**
-     * @param PimcoreDocument|null $currentDocument
-     * @param bool                 $onlyShowRootLanguages
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    public function getUrls(PimcoreDocument $currentDocument = null, $onlyShowRootLanguages = false)
+    public function getUrls(I18nContextInterface $i18nContext, bool $onlyShowRootLanguages = false): array
     {
-        if (isset($this->cachedUrls[$currentDocument->getId()])) {
-            return $this->cachedUrls[$currentDocument->getId()];
-        }
-
-        $i18nList = [];
-        $routes = [];
-
-        if (!$this->urlGenerator instanceof UrlGeneratorInterface) {
-            throw new \Exception('PathGenerator StaticRoute needs a valid UrlGeneratorInterface to work.');
-        }
-
-        if (!$this->requestStack->getMasterRequest() instanceof Request) {
-            throw new \Exception('PathGenerator StaticRoute needs a valid Request to work.');
-        }
-
-        $currentLanguage = $currentDocument->getProperty('language');
-        $currentCountry = null;
-
-        if ($this->zoneManager->getCurrentZoneInfo('mode') === 'country') {
-            $currentCountry = strtolower(Definitions::INTERNATIONAL_COUNTRY_NAMESPACE);
-        }
-
-        if (strpos($currentLanguage, '_') !== false) {
-            $parts = explode('_', $currentLanguage);
-            if (isset($parts[1]) && !empty($parts[1])) {
-                $currentCountry = strtolower($parts[1]);
-            }
-        }
-
-        $route = PimcoreStaticRoute::getCurrentRoute();
-
-        if (!$route instanceof PimcoreStaticRoute) {
-            return [];
-        }
-
-        $tree = $this->zoneManager->getCurrentZoneDomains(true);
-
-        //create custom list for event ($i18nList) - do not include all the zone config stuff.
-        foreach ($tree as $pageInfo) {
-            if (!empty($pageInfo['languageIso'])) {
-                $i18nList[] = [
-                    'locale'           => $pageInfo['locale'],
-                    'languageIso'      => $pageInfo['languageIso'],
-                    'countryIso'       => $pageInfo['countryIso'],
-                    'hrefLang'         => $pageInfo['hrefLang'],
-                    'localeUrlMapping' => $pageInfo['localeUrlMapping'],
-                    'url'              => $pageInfo['url'],
-                    'domainUrl'        => $pageInfo['domainUrl']
-                ];
-            }
-        }
-
-        $event = new AlternateStaticRouteEvent([
-            'i18nList'           => $i18nList,
-            'currentDocument'    => $currentDocument,
-            'currentLanguage'    => $currentLanguage,
-            'currentCountry'     => $currentCountry,
-            'currentStaticRoute' => $route,
-            'requestAttributes'  => $this->requestStack->getMasterRequest()->attributes
-        ]);
-
-        \Pimcore::getEventDispatcher()->dispatch(
-            I18nEvents::PATH_ALTERNATE_STATIC_ROUTE,
-            $event
-        );
-
-        $routeData = $event->getRoutes();
-        if (empty($routeData)) {
-            return $routes;
-        }
-
-        foreach ($i18nList as $key => $routeInfo) {
-            if (!isset($routeData[$key])) {
-                continue;
-            }
-
-            $staticRouteData = $routeData[$key];
-
-            $link = $this->generateLink($staticRouteData);
-
-            if ($link === null) {
-                continue;
-            }
-
-            // use domainUrl element since $link already comes with the locale part!
-            $url = strpos($link, 'http') !== false ? $link : System::joinPath([$routeInfo['domainUrl'], $link]);
-
-            $finalStoreData = [
-                'languageIso'      => $routeInfo['languageIso'],
-                'countryIso'       => $routeInfo['countryIso'],
-                'locale'           => $routeInfo['locale'],
-                'hrefLang'         => $routeInfo['hrefLang'],
-                'localeUrlMapping' => $routeInfo['localeUrlMapping'],
-                'url'              => $url
-            ];
-
-            $routes[] = $finalStoreData;
-        }
-
-        $this->cachedUrls[$currentDocument->getId()] = $routes;
-
-        return $routes;
+        return $this->buildAlternateRoutesStack($i18nContext, RouteItemInterface::STATIC_ROUTE, I18nEvents::PATH_ALTERNATE_STATIC_ROUTE);
     }
 
-    /**
-     * @param array $staticRouteData
-     *
-     * @return string|null
-     */
-    protected function generateLink($staticRouteData)
+    protected function generateLink(AlternateRouteItemInterface $routeItem): string
     {
-        $staticRouteParams = $staticRouteData['params'];
+        $routeParameters = $this->alternateRouteItemTransformer->reverseTransformToArray($routeItem, ['type' => RouteItemInterface::STATIC_ROUTE]);
 
-        if (!is_array($staticRouteParams)) {
-            $staticRouteParams = [];
+        if ($routeItem->getRouteName() === null && $routeItem->getEntity() === null) {
+            throw new \Exception('cannot create static route url. object or route name is missing');
         }
 
-        if (isset($staticRouteData['name']) && is_string($staticRouteData['name'])) {
-            return $this->urlGenerator->generate($staticRouteData['name'], $staticRouteParams);
-        }
-
-        if (!isset($staticRouteData['object']) || !$staticRouteData['object'] instanceof Concrete) {
-            return null;
-        }
-
-        /** @var Concrete $object */
-        $object = $staticRouteData['object'];
-        $linkGenerator = $object->getClass()->getLinkGenerator();
-
-        if (!$linkGenerator instanceof LinkGeneratorInterface) {
-            return null;
-        }
-
-        return $linkGenerator->generate($object, $staticRouteParams);
+        return $this->router->generate($routeItem->getRouteName() ?? '', $routeParameters, UrlGeneratorInterface::ABSOLUTE_URL);
     }
 }
+

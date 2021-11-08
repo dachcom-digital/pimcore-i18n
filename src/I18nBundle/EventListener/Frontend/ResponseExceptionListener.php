@@ -2,104 +2,49 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
-use I18nBundle\Definitions;
-use I18nBundle\Manager\ContextManager;
-use I18nBundle\Manager\PathGeneratorManager;
-use I18nBundle\Manager\ZoneManager;
-use Pimcore\Cache;
-use Pimcore\Db\ConnectionInterface;
+use I18nBundle\Exception\RouteItemException;
+use I18nBundle\Exception\ZoneSiteNotFoundException;
+use I18nBundle\Http\I18nContextResolverInterface;
+use I18nBundle\Manager\I18nContextManager;
+use Pimcore\Config;
 use Pimcore\Http\Exception\ResponseException;
 use Pimcore\Model\DataObject;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Model\Document;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
-use Pimcore\Templating\Renderer\ActionRenderer;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class ResponseExceptionListener implements EventSubscriberInterface
 {
+    use LoggerAwareTrait;
     use PimcoreContextAwareTrait;
 
-    /**
-     * @var ActionRenderer
-     */
-    protected $actionRenderer;
+    protected I18nContextManager $i18nContextManager;
+    protected I18nContextResolverInterface $i18nContextResolver;
+    protected SiteResolver $siteResolver;
+    protected Document\Service $documentService;
+    protected Config $pimcoreConfig;
 
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @var ContextManager
-     */
-    protected $contextManager;
-
-    /**
-     * @var PathGeneratorManager
-     */
-    protected $pathGeneratorManager;
-
-    /**
-     * @var SiteResolver
-     */
-    protected $siteResolver;
-
-    /**
-     * @var Document\Service
-     */
-    protected $documentService;
-
-    /**
-     * @var array
-     */
-    protected $pimcoreConfig;
-
-    /**
-     * @var ConnectionInterface
-     */
-    protected $db;
-
-    /**
-     * @param ActionRenderer       $actionRenderer
-     * @param ZoneManager          $zoneManager
-     * @param ContextManager       $contextManager
-     * @param PathGeneratorManager $pathGeneratorManager
-     * @param SiteResolver         $siteResolver
-     * @param Document\Service     $documentService
-     * @param ConnectionInterface  $db
-     * @param array                $pimcoreConfig
-     */
     public function __construct(
-        ActionRenderer $actionRenderer,
-        ZoneManager $zoneManager,
-        ContextManager $contextManager,
-        PathGeneratorManager $pathGeneratorManager,
+        I18nContextManager $i18nContextManager,
+        I18nContextResolverInterface $i18nContextResolver,
         SiteResolver $siteResolver,
         Document\Service $documentService,
-        ConnectionInterface $db,
-        array $pimcoreConfig
+        Config $pimcoreConfig
     ) {
-        $this->actionRenderer = $actionRenderer;
-        $this->zoneManager = $zoneManager;
-        $this->contextManager = $contextManager;
-        $this->pathGeneratorManager = $pathGeneratorManager;
+        $this->i18nContextManager = $i18nContextManager;
+        $this->i18nContextResolver = $i18nContextResolver;
         $this->siteResolver = $siteResolver;
         $this->documentService = $documentService;
-        $this->db = $db;
         $this->pimcoreConfig = $pimcoreConfig;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::EXCEPTION => ['onKernelException', 10]
@@ -107,227 +52,129 @@ class ResponseExceptionListener implements EventSubscriberInterface
     }
 
     /**
-     * @param GetResponseForExceptionEvent $event
-     *
-     * @throws \Exception
+     * @throws RouteItemException
+     * @throws ZoneSiteNotFoundException
      */
-    public function onKernelException(GetResponseForExceptionEvent $event)
+    public function onKernelException(ExceptionEvent $event): void
     {
-        $exception = $event->getException();
+        $exception = $event->getThrowable();
         $renderErrorPage = $this->pimcoreConfig['error_handling']['render_error_document'];
 
         // handle ResponseException (can be used from any context)
         if ($exception instanceof ResponseException) {
             $event->setResponse($exception->getResponse());
 
+            // a response was explicitly set -> do not continue to error page
             return;
         }
 
-        $request = $event->getRequest();
-        if ($renderErrorPage === true && $this->matchesPimcoreContext($request, PimcoreContextResolver::CONTEXT_DEFAULT)) {
-            $this->handleErrorPage($event);
+        if ($renderErrorPage === false) {
+            return;
         }
+
+        if (!$this->matchesPimcoreContext($event->getRequest(), PimcoreContextResolver::CONTEXT_DEFAULT)) {
+            return;
+        }
+
+        $this->handleErrorPage($event);
     }
 
     /**
-     * @param GetResponseForExceptionEvent $event
-     *
-     * @throws \Exception
+     * @throws RouteItemException
+     * @throws ZoneSiteNotFoundException
      */
-    protected function handleErrorPage(GetResponseForExceptionEvent $event)
+    protected function handleErrorPage(ExceptionEvent $event): void
     {
         if (\Pimcore::inDebugMode()) {
             return;
         }
 
-        // re-init zones since we're in a kernelException.
-        $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
+        $request = $event->getRequest();
 
-        $exception = $event->getException();
-        $document = $this->detectDocument($event, $zoneDomains);
+        /**
+         * This is basically the same as in pimcore's ResponseExceptionListener
+         * We need a document to initialize a valid zone!
+         */
+        $document = $this->determineErrorDocument($event->getRequest());
 
-        $this->setRuntime($event->getRequest(), $document->getProperty('language'));
-        $this->contextManager->getContext()->setDocument($document);
-
-        try {
-            $response = $this->actionRenderer->render($document);
-        } catch (\Exception $e) {
-            // we are even not able to render the error page, so we send the client a unicorn
-            $response = 'Page not found (' . $e->getMessage() . ') 🦄';
+        if (!$document instanceof Document) {
+            return;
         }
 
-        $statusCode = 500;
-        $headers = [];
+        $documentLocale = $document->getProperty('language');
 
-        if ($exception instanceof HttpExceptionInterface) {
-            $statusCode = $exception->getStatusCode();
-            $headers = $exception->getHeaders();
+        if (!empty($documentLocale)) {
+            $request->setLocale($documentLocale);
         }
 
-        $this->logToHttpErrorLog($event->getRequest(), $statusCode);
+        if (!$request->attributes->has('_route')) {
+            $request->attributes->set('_route', sprintf('document_%d', $document->getId()));
+        }
 
-        $event->setResponse(new Response($response, $statusCode, $headers));
+        $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
+
+        $this->i18nContextResolver->setContext($i18nContext, $request);
+
+        $this->enablePimcoreContext();
     }
 
-    /**
-     * @param GetResponseForExceptionEvent $event
-     * @param array                        $zoneDomains
-     *
-     * @return Document
-     */
-    protected function detectDocument(GetResponseForExceptionEvent $event, array $zoneDomains)
+    private function determineErrorDocument(Request $request): ?Document
     {
-        $defaultErrorDocument = null;
-        $localizedErrorDocument = null;
-        $nearestDocumentLocale = null;
-        $document = null;
+        $errorPath = null;
 
-        $host = preg_replace('/^www./', '', $event->getRequest()->getHost());
-
-        // 1. get default system error page ($defaultErrorPath)
-        $defaultErrorPath = $this->pimcoreConfig['documents']['error_pages']['default'];
-
-        if ($this->siteResolver->isSiteRequest($event->getRequest())) {
-            $path = $this->siteResolver->getSitePath($event->getRequest());
-            // 2. get site error page
-            $siteErrorPath = $this->siteResolver->getSite()->getErrorDocument();
-            if (!empty($siteErrorPath)) {
-                $defaultErrorPath = $siteErrorPath;
-            }
+        if ($this->siteResolver->isSiteRequest($request)) {
+            $site = $this->siteResolver->getSite($request);
+            $path = $this->siteResolver->getSitePath($request);
+            $localizedErrorDocumentsPaths = $site?->getLocalizedErrorDocuments() ?: [];
+            $defaultErrorDocumentPath = $site?->getErrorDocument();
         } else {
-            $path = urldecode($event->getRequest()->getPathInfo());
+            $path = urldecode($request->getPathInfo());
+            $localizedErrorDocumentsPaths = $this->pimcoreConfig['documents']['error_pages']['localized'] ?: [];
+            $defaultErrorDocumentPath = $this->pimcoreConfig['documents']['error_pages']['default'];
         }
 
-        if (!empty($defaultErrorPath)) {
-            $defaultErrorDocument = Document::getByPath($defaultErrorPath);
+        // Find the nearest document by path
+        $document = $this->documentService->getNearestDocumentByPath(
+            $path,
+            false,
+            ['page', 'snippet', 'hardlink', 'link', 'folder']
+        );
+
+        if ($document && $document->getFullPath() !== '/' && $document->getProperty('language')) {
+            $locale = $document->getProperty('language');
         }
 
-        $nearestDocument = $this->documentService->getNearestDocumentByPath($path, true, ['page', 'hardlink']);
-
-        // 3. find localized error from current path
-        if ($nearestDocument instanceof Document) {
-            $nearestDocumentLocale = $nearestDocument->getProperty('language');
-
-            $validElements = array_keys(array_filter(
-                $zoneDomains,
-                function ($v) use ($host, $nearestDocumentLocale) {
-                    return $v['realHost'] === $host && $v['locale'] === $nearestDocumentLocale;
-                }
-            ));
-
-            //if we have a default error page, try to use same name.
-            $guessedErrorPath = 'error';
-            if ($defaultErrorDocument instanceof Document) {
-                $guessedErrorPath = $defaultErrorDocument->getKey();
-            }
-
-            if (!empty($validElements)) {
-                $validElement = $validElements[0];
-                $localizedPath = $zoneDomains[$validElement]['fullPath'] . DIRECTORY_SEPARATOR . $guessedErrorPath;
-                if (Document\Service::pathExists($localizedPath)) {
-                    $localizedErrorDocument = Document::getByPath($localizedPath);
-                }
-            }
-
-            // 4. find localized error page from source if path is in hard link context
-            if (!$localizedErrorDocument instanceof Document) {
-                if ($nearestDocument instanceof Document\Hardlink) {
-                    $nearestSourceDocument = $nearestDocument->getSourceDocument();
-                    $nearestSourceDocumentLocale = $nearestSourceDocument->getProperty('language');
-
-                    $validSourceElements = array_keys(array_filter(
-                        $zoneDomains,
-                        function ($v) use ($host, $nearestSourceDocumentLocale) {
-                            return $v['realHost'] === $host && $v['locale'] === $nearestSourceDocumentLocale;
-                        }
-                    ));
-
-                    if (!empty($validSourceElements)) {
-                        $validSourceElement = $validSourceElements[0];
-                        $localizedSourcePath = $zoneDomains[$validSourceElement]['fullPath'] . DIRECTORY_SEPARATOR . $guessedErrorPath;
-                        if (Document\Service::pathExists($localizedSourcePath)) {
-                            $localizedErrorDocument = Document::getByPath($localizedSourcePath);
-                        }
-                    }
-                }
-            }
-        }
-
-        if ($localizedErrorDocument instanceof Document) {
-            $document = $localizedErrorDocument;
-        } elseif ($defaultErrorDocument instanceof Document) {
-            $document = $defaultErrorDocument;
+        if (!empty($locale) && array_key_exists($locale, $localizedErrorDocumentsPaths)) {
+            $errorPath = $localizedErrorDocumentsPaths[$locale];
         } else {
-            $document = Document::getById(1);
+            // If locale can't be determined check if error page is defined for any of user-agent preferences
+            foreach ($request->getLanguages() as $requestLocale) {
+                if (!empty($localizedErrorDocumentsPaths[$requestLocale])) {
+                    $errorPath = $this->pimcoreConfig['documents']['error_pages']['localized'][$requestLocale];
+
+                    break;
+                }
+            }
         }
 
-        $locale = $document->getProperty('language');
-
-        if (!empty($nearestDocumentLocale)) {
-            $locale = $nearestDocumentLocale;
+        if (empty($errorPath)) {
+            $errorPath = $defaultErrorDocumentPath;
         }
 
-        if (empty($locale)) {
-            $locale = 'en';
+        if (!empty($errorPath)) {
+            return Document::getByPath($errorPath);
         }
 
-        $document->setProperty('language', 'text', $locale);
-
-        return $document;
+        return null;
     }
 
-    /**
-     * @param Request $request
-     * @param string  $locale
-     */
-    private function setRuntime(Request $request, string $locale)
+    private function enablePimcoreContext(): void
     {
-        // Pimcore does not initialize context in exception.
+        // Pimcore does not initialize context in exception context
+
         Document::setHideUnpublished(true);
         DataObject\AbstractObject::setHideUnpublished(true);
         DataObject\AbstractObject::setGetInheritedValues(true);
         DataObject\Localizedfield::setGetFallbackValues(true);
-
-        $request->attributes->set('_locale', $locale);
-        $request->setLocale($locale);
-        $request->setDefaultLocale($locale);
-
-        $docLang = explode('_', $locale);
-        $countryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
-
-        if (count($docLang) > 1) {
-            $countryIso = $docLang[1];
-        }
-
-        //fix i18n language / country context.
-        Cache\Runtime::set('i18n.locale', $locale);
-        Cache\Runtime::set('i18n.languageIso', strtolower($docLang[0]));
-        Cache\Runtime::set('i18n.countryIso', $countryIso);
-    }
-
-    /**
-     * @param Request $request
-     * @param int     $statusCode
-     */
-    protected function logToHttpErrorLog(Request $request, $statusCode)
-    {
-        $uri = $request->getUri();
-        $exists = $this->db->fetchOne('SELECT `date` FROM http_error_log WHERE uri = ?', $uri);
-
-        if ($exists !== false) {
-            $this->db->executeQuery('UPDATE http_error_log SET `count` = `count` + 1, `date` = ? WHERE uri = ?', [time(), $uri]);
-            return;
-        }
-
-        $this->db->insert('http_error_log', [
-            'uri'            => $uri,
-            'code'           => (int) $statusCode,
-            'parametersGet'  => serialize($request->query->all()),
-            'parametersPost' => serialize($request->request->all()),
-            'cookies'        => serialize($request->cookies->all()),
-            'serverVars'     => serialize($request->server->all()),
-            'date'           => time(),
-            'count'          => 1
-        ]);
     }
 }

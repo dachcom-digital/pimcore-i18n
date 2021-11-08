@@ -8,42 +8,30 @@ use Pimcore\Model\Document\Hardlink\Wrapper;
 use Pimcore\Model\Staticroute;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class CanonicalListener implements EventSubscriberInterface
 {
     use PimcoreContextAwareTrait;
 
-    /**
-     * @var PimcoreDocumentResolverInterface
-     */
-    protected $pimcoreDocumentResolver;
+    protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
 
-    /**
-     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
-     */
     public function __construct(PimcoreDocumentResolverInterface $pimcoreDocumentResolver)
     {
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::RESPONSE => 'onKernelResponse'
         ];
     }
 
-    /**
-     * @param FilterResponseEvent $event
-     */
-    public function onKernelResponse(FilterResponseEvent $event)
+    public function onKernelResponse(ResponseEvent $event): void
     {
-        if (!$event->isMasterRequest()) {
+        if (!$event->isMainRequest()) {
             return;
         }
 
@@ -61,10 +49,8 @@ class CanonicalListener implements EventSubscriberInterface
             return;
         }
 
-        /** @var Wrapper $wrapperDocument */
-        $wrapperDocument = $document;
         //only remove canonical link if hardlink source is the country wrapper
-        if ($wrapperDocument->getHardLinkSource()->getPath() === '/') {
+        if ($document->getHardLinkSource()->getPath() === '/') {
             $event->getResponse()->headers->remove('Link');
         }
     }

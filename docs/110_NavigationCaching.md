@@ -6,5 +6,5 @@ If you're using this bundle, your navigation links may change the url structure 
 
 So, always bind your navigation cache key to the current locale:
 ```twig
-{% set menu = pimcore_build_nav(page.getDocument(), page.getDocument(), null, app.request.locale) %}
+{% set menu = pimcore_build_nav(page.document, page.document, null, app.request.locale) %}
 ```

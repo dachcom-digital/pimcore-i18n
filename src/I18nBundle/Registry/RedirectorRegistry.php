@@ -2,27 +2,19 @@
 
 namespace I18nBundle\Registry;
 
+use I18nBundle\Adapter\Redirector\RedirectorInterface;
+
 class RedirectorRegistry
 {
-    /**
-     * @var array
-     */
-    protected $adapter;
+    protected array $adapter = [];
+    private string $interface;
 
-    /**
-     * @var string
-     */
-    private $interface;
-
-    /**
-     * @param string $interface
-     */
-    public function __construct($interface)
+    public function __construct(string $interface)
     {
         $this->interface = $interface;
     }
 
-    public function register($service, $alias)
+    public function register(mixed $service, string $alias): void
     {
         if (empty($alias)) {
             throw new \InvalidArgumentException(sprintf('%s does not have a valid alias.', get_class($service)));
@@ -37,21 +29,24 @@ class RedirectorRegistry
         $this->adapter[$alias] = $service;
     }
 
-    public function has($alias)
+    public function has(string $alias): bool
     {
         return isset($this->adapter[$alias]);
     }
 
-    public function get($alias)
+    public function get(string $alias): RedirectorInterface
     {
         if (!$this->has($alias)) {
-            throw new \Exception('"' . $alias . '" Redirector Identifier does not exist');
+            throw new \Exception('"' . $alias . '" redirector identifier does not exist');
         }
 
         return $this->adapter[$alias];
     }
 
-    public function all()
+    /**
+     * @return array<int, RedirectorInterface>
+     */
+    public function all(): array
     {
         $list = [];
         foreach ($this->adapter as $adapter) {

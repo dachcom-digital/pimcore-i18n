@@ -2,99 +2,51 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
-use I18nBundle\Manager\ContextManager;
-use I18nBundle\Manager\PathGeneratorManager;
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
+use Pimcore\Config;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
-use Pimcore\Templating\Helper\HeadLink;
+use Pimcore\Twig\Extension\Templating\HeadLink;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-/**
- * Adds Meta Data entries of document to HeadMeta view helper.
- */
 class HeadLinkListener implements EventSubscriberInterface
 {
     use PimcoreContextAwareTrait;
 
-    /**
-     * @var HeadLink
-     */
-    protected $headLink;
+    protected HeadLink $headLink;
+    protected I18nContextResolverInterface $i18nContextResolver;
+    protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
+    protected Config $pimcoreConfig;
 
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
-
-    /**
-     * @var ContextManager
-     */
-    protected $contextManager;
-
-    /**
-     * @var PathGeneratorManager
-     */
-    protected $pathGeneratorManager;
-
-    /**
-     * @var PimcoreDocumentResolverInterface
-     */
-    protected $pimcoreDocumentResolver;
-
-    /**
-     * @var array
-     */
-    protected $pimcoreConfig;
-
-    /**
-     * @param HeadLink                         $headLink
-     * @param ZoneManager                      $zoneManager
-     * @param ContextManager                   $contextManager
-     * @param PathGeneratorManager             $pathGeneratorManager
-     * @param PimcoreDocumentResolverInterface $pimcoreDocumentResolver
-     * @param array                            $pimcoreConfig
-     */
     public function __construct(
         HeadLink $headLink,
-        ZoneManager $zoneManager,
-        ContextManager $contextManager,
-        PathGeneratorManager $pathGeneratorManager,
+        I18nContextResolverInterface $i18nContextResolver,
         PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        array $pimcoreConfig
+        Config $pimcoreConfig
     ) {
         $this->headLink = $headLink;
-        $this->zoneManager = $zoneManager;
-        $this->contextManager = $contextManager;
-        $this->pathGeneratorManager = $pathGeneratorManager;
+        $this->i18nContextResolver = $i18nContextResolver;
         $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
         $this->pimcoreConfig = $pimcoreConfig;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::REQUEST => ['onKernelRequest']
         ];
     }
 
-    /**
-     * @param GetResponseEvent $event
-     *
-     * @throws \Exception
-     */
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
         $request = $event->getRequest();
 
         // just add metadata on master request
-        if (!$event->isMasterRequest()) {
+        if (!$event->isMainRequest()) {
             return;
         }
 
@@ -102,11 +54,20 @@ class HeadLinkListener implements EventSubscriberInterface
             return;
         }
 
-        $document = $this->pimcoreDocumentResolver->getDocument($request);
-        $hrefLinks = $this->pathGeneratorManager->getPathGenerator()->getUrls($document);
+        if ($request->attributes->get('_route') === 'fos_js_routing_js') {
+            return;
+        }
+
+        $i18nContext = $this->i18nContextResolver->getContext($request);
+
+        if (!$i18nContext instanceof I18nContextInterface) {
+            return;
+        }
+
+        $hrefLinks = $i18nContext->getLinkedLanguages();
 
         // Add x-default to main page!
-        $xDefaultUrl = $this->getXDefaultLink($hrefLinks);
+        $xDefaultUrl = $this->getXDefaultLink($i18nContext->getZoneDefaultLocale(), $hrefLinks);
 
         if (!is_null($xDefaultUrl)) {
             $this->headLink->appendAlternate($this->generateHrefLink($xDefaultUrl), false, false, ['hreflang' => 'x-default']);
@@ -131,21 +92,15 @@ class HeadLinkListener implements EventSubscriberInterface
      * country mode: get global page and default language from default/system settings
      * language mode: get page with default language from default/system settings.
      *
-     * @param array $hrefLinks
-     *
-     * @return string
      * @throws \Exception
      */
-    private function getXDefaultLink($hrefLinks = [])
+    private function getXDefaultLink(?string $defaultLocale, array $hrefLinks = []): ?string
     {
         $hrefUrl = null;
 
         if (empty($hrefLinks)) {
-            return $hrefUrl;
+            return null;
         }
-
-        $defaultCountry = null;
-        $defaultLocale = $this->zoneManager->getCurrentZoneLocaleAdapter()->getDefaultLocale();
 
         foreach ($hrefLinks as $link) {
             if ($link['locale'] === $defaultLocale) {
@@ -159,18 +114,15 @@ class HeadLinkListener implements EventSubscriberInterface
     }
 
     /**
-     * @param string $path
-     *
-     * @return string
      * @throws \Exception
      */
-    private function generateHrefLink($path)
+    private function generateHrefLink(string $path): string
     {
         $allowTrailingSlash = $this->pimcoreConfig['documents']['allow_trailing_slash'];
 
         $endPath = rtrim($path, '/');
         if ($allowTrailingSlash !== 'no') {
-            $endPath = $endPath . '/';
+            $endPath .= '/';
         }
 
         return $endPath;

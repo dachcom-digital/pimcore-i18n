@@ -6,13 +6,13 @@ If you're using complex zones, however, you may want to deliver different data f
 ### 1. Create a Service
 
 ```yaml
-# in app/config/services.yml
-AppBundle\Services\I18nBundle\LocaleAdapter\Special:
-    parent: I18nBundle\Adapter\Context\Locale\AbstractLocale
-    decorates: I18nBundle\Adapter\Locale\System # use a decorator
+# config/services.yaml
+App\Services\I18nBundle\LocaleAdapter\SpecialLocaleProvider:
+    parent: I18nBundle\Adapter\LocaleProvider\AbstractLocale
+    decorates: I18nBundle\Adapter\LocaleProvider\SystemLocaleProvider # use a decorator
     public: false
     arguments:
-        - '@AppBundle\Services\I18nBundle\LocaleAdapter\Website.inner'
+        - '@App\Services\I18nBundle\LocaleAdapter\SpecialLocaleProvider.inner'
     tags:
         - { name: i18n.adapter.locale, alias: special }
 ```
@@ -20,7 +20,7 @@ AppBundle\Services\I18nBundle\LocaleAdapter\Special:
 ### 2. Set Locale Adapter in your Configuration
 
 ```yaml
-# in app/config/config.yml
+# config/config.yaml
 i18n:
     mode: country
     locale_adapter: special
@@ -30,41 +30,34 @@ i18n:
 
 Create a class, extend it from `AbstractLocale`.
 In this example, we'll remove some locales if we're in a different zone (example code below).
-We're also using the `system` adapter as a decorator so we don't have to implement all methods again.
+We're also using the `system` adapter as a decorator, so we don't have to implement all methods again.
 
 ```php
 <?php
 
-namespace AppBundle\Services\I18nBundle\LocaleAdapter;
+namespace App\Services\I18nBundle\LocaleAdapter;
 
-use I18nBundle\Adapter\Locale\AbstractLocale;
+use I18nBundle\Adapter\LocaleProvider\AbstractLocaleProvider;
+use I18nBundle\Adapter\LocaleProvider\SystemLocaleProvider;
 
-class Special extends AbstractLocale
+class SpecialLocaleProvider extends AbstractLocale
 {
-    /**
-     * @var System
-     */
-    protected $system;
+    protected SystemLocaleProvider $systemLocaleProvider;
 
-    /**
-     * @var null
-     */
-    protected $validLocales = null;
-
-    public function __construct(System $system)
+    public function __construct(SystemLocaleProvider $systemLocaleProvider)
     {
-        $this->system = $system;
+        $this->systemLocaleProvider = $systemLocaleProvider;
     }
 
-    public function getDefaultLocale()
+    public function getDefaultLocale(array $zoneDefinition): ?string
     {
-        return $this->system->getDefaultLocale();
+        return $this->systemLocaleProvider->getDefaultLocale($zoneDefinition);
     }
 
-    public function getActiveLocales(): array
+    public function getActiveLocales(array $zoneDefinition): array
     {
         // get default locales
-        $validLocales = $this->system->getActiveLocales();
+        $validLocales = $this->systemLocaleProvider->getActiveLocales($zoneDefinition);
 
         // remove some locales in zone 4
         if ($this->currentZoneId === 4) {
@@ -75,14 +68,14 @@ class Special extends AbstractLocale
         return $validLocales;
     }
 
-    public function getLocaleData($isoCode = '', $field = null, $keyIdentifier = 'locale')
+    public function getLocaleData(array $zoneDefinition, $locale = '', $field = null, $keyIdentifier = 'locale'): mixed
     {
-        return $this->system->getLocaleData($isoCode, $field, $keyIdentifier);
+        return $this->systemLocaleProvider->getLocaleData($zoneDefinition, $locale, $field, $keyIdentifier);
     }
 
-    public function getGlobalInfo()
+    public function getGlobalInfo(array $zoneDefinition): array
     {
-        return $this->system->getGlobalInfo();
+        return $this->systemLocaleProvider->getGlobalInfo($zoneDefinition);
     }
 }
 ```

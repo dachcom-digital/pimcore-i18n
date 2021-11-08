@@ -4,13 +4,4 @@ services:
         autoconfigure: true
         public: false
 
-    # manager: zone
-    I18nBundle\Manager\ZoneManager:
-        arguments:
-            $generalDomain: '%router.request_context.host%'
-
-    # manager: path_generator
-    I18nBundle\Manager\PathGeneratorManager: ~
-
-    # manager: context
-    I18nBundle\Manager\ContextManager: ~
+    I18nBundle\Manager\I18nContextManager: ~

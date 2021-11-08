@@ -27,7 +27,7 @@ Please be sure that all translation keys are also available in the pattern secti
 Now we'll add some configuration to translate this fragment:
 
 ```yaml
-# app/config/config.yml
+# app/config/config.yaml
 i18n:
 
     mode: country
@@ -43,6 +43,23 @@ i18n:
                 en: 'news'
                 en_AU: 'news'
                 fr: 'nouvelles'
+
+# example static route
+pimcore:
+    staticroutes:
+        definitions:
+            60f02a5d-eb8f-4fb2-859a-0a3c77b472f9:
+                name: my_static_route
+                pattern: '/([a-zA-Z0-9-_]*)\/(?:%i18n.route.translations.news%)\/(.*?)$/' ## returns (artikel|news|nouvelles)
+                reverse: '/{%%_locale}/@news/%%entry'
+                controller: App\Controller\DefaultController::staticRouteAction
+                variables: '_locale,entry'
+                defaults: null
+                siteId: null
+                methods: null
+                priority: 1
+                creationDate: 1634472684
+                modificationDate: 1634472684
 ```
 
 > **Info:** Why not using the default pimcore translation service you may asking? We also thought about that. 
@@ -59,7 +76,7 @@ Pimcore allows [optional placeholders](https://pimcore.com/docs/5.0.x/MVC/Routin
 If no locale has been found in your request url the fragment now gets excluded.
 
 ## href-lang Generator
-Now let's create a event listener to generate valid alternate links for our news entries:
+Now let's create an event listener to generate valid alternate links for our news entries:
 
 ```html
 <link href="https://www.domain.com/de/artikel/news-mit-headline" rel="alternate" hreflang="de" />
@@ -70,42 +87,66 @@ Now let's create a event listener to generate valid alternate links for our news
 
 First you need to register a service:
 ```yaml
-AppBundle\EventListener\StaticRoutesAlternateListener:
+App\EventListener\I18nRoutesAlternateListener:
     autowire: true
-    public: false
     tags:
-        - { name: kernel.event_listener, event: i18n.path.static_route.alternate, method: checkAlternate }
+        - { name: kernel.event_subscriber }
 ```
 
 Now implement the event listener itself:
 ```php
 <?php
 
-namespace AppBundle\EventListener;
+namespace App\EventListener;
 
-use I18nBundle\Event\AlternateStaticRouteEvent;
+use I18nBundle\Event\AlternateDynamicRouteEvent;
 use Pimcore\Model\DataObject;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class StaticRoutesAlternateListener
+class I18nRoutesAlternateListener implements EventSubscriberInterface
 {
-    public function checkAlternate(AlternateStaticRouteEvent $event)
-    {
-        $route = $event->getCurrentStaticRoute();
-        $requestAttributes = $event->getRequestAttributes();
-        $routes = [];
+
+    /**
+    *   ATTENTION!
+    *   Do not rely on request stack in this event listener!
+    *   This event can be called at any state during different states
+    *   Always check/pass your dynamic data via attributes! 
+    */
     
-        if ($route->getName() !== 'my_news_route') {
+    
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            I18nEvents::PATH_ALTERNATE_STATIC_ROUTE => 'checkStaticRouteAlternate'
+        ];
+    }
+        
+    public function checkStaticRouteAlternate(AlternateDynamicRouteEvent $event): void
+    {
+    
+        // be careful here! Alternate requests are able to resolve two states:
+        // I. non-headless: generate alternate links for a given request (mostly the current one) which will pass the request attributes
+        //   => you'll find your mapped data in $event->getCurrentRouteAttributes()
+        // II. headless: requested by a standalone zone entity which passes will pass route parameters
+        //   => you'll find your mapped data in $event->getCurrentRouteParameters()
+
+        $attributes = $event->isCurrentRouteHeadless() ? $event->getCurrentRouteParameters() : $event->getCurrentRouteAttributes();
+        
+        $route = $attributes['_route'] ?? null;
+    
+        // depending on given route, you may want to build different alternate route items
+        if($event->getCurrentRouteName() !== 'test_route') {
             return;
         }
 
-        $entryId = $requestAttributes->get('entry');
-        $news = DataObject\NewsEntry::getByLocalizedfields('detailUrl', $entryId, $requestAttributes->get('_locale'), ['limit' => 1]);
+        $entryId = $attributes->get('entry');
+        $news = DataObject\NewsEntry::getByLocalizedfields('detailUrl', $entryId, $event->getCurrentLocale(), ['limit' => 1]);
 
         if (!$news instanceof DataObject\NewsEntry) {
             return;
         }
 
-        foreach ($event->getI18nList() as $index => $i18nElement) {
+        foreach ($event->getAlternateRouteItems() as $alternateRouteItem) {
 
             $locale = $i18nElement['locale'];
             $newsName = $news->getName($locale);
@@ -118,28 +159,17 @@ class StaticRoutesAlternateListener
             //  Default static route generation
             //  ######################################################
 
-            $routes[$index] = [ // <= Do NOT forget the index value!
-                'params' => [
-                    '_locale' => $locale,
-                    'entry'   => $news->getDetailurl($locale),
-                ],
-                //set the static route name (in this case it depends on the entry type.
-                'name'   => $news->getEntryType() === 'news' ? 'news_detail' : 'blog_detail'
-            ];
-    
+            //set the static route name (in this case it depends on the entry type.
+            $alternateRouteItem->setRouteName($news->getEntryType() === 'news' ? 'news_detail' : 'blog_detail');
+            $alternateRouteItem->getRouteParametersBag()->add([
+                'entry' => $news->getDetailurl($locale)
+            ]);
+          
             //  Strategy II. #########################################
             //  Use link generator, only pass "object".
             //  ######################################################
-
-            $routes[$index] = [ // <= Do NOT forget the index value!
-                    'params' => [
-                    '_locale' => $locale
-                ],
-                'object' => $news
-            ];
+            $alternateRouteItem->setEntity($object);
         }
-    
-        $event->setRoutes($routes);
     }
 }
 ```
@@ -151,7 +181,7 @@ So your i18n urls should look like this, otherwise symfony will not recognize th
 - `www.domain.com/de_CH/artikel/mein-artikel`
 - `www.domain.com/en_US/news/my-news`
 
-This looks quite ugly, right? We want some nice looking urls:
+This looks quite ugly. We want some nice looking urls:
 - `www.domain.com/de/artikel/mein-artikel`
 - `www.domain.com/de-ch/artikel/mein-artikel`
 - `www.domain.com/en-us/news/my-news`
@@ -159,12 +189,12 @@ This looks quite ugly, right? We want some nice looking urls:
 Yea - that's also possible. Just create your [country element](27_Countries.md) like described and set the document key to `en-us` instead of `en_US` for example.
 This Bundle will automatically transform your static routes locale fragment into valid ones.
 
-> **Note:** Of course it's still possible to use iso code formatted url structures if you really want to do that. ;)
+> **Note:** Of course it's still possible to use iso code formatted url structures if you really want to do that. :)
 
 ## Creating Static Routes in Twig 
-Nothing special here. Just create your url like you know it from the twig standard.
-I18nBundle will transform your locale fragment, if necessary:
+Nothing special here. Just create your url like you know it from the twig standard and pass your parameters via the `_18n` flag.
+I18n will transform your locale fragment, if necessary:
 
 ```twig
-{{ url('your_static_route', {'_locale': app.request.locale, 'param1': param1}) }}
+{{ url('your_static_route', { _i18n: { routeParameters: { _locale: app.request.locale, param1: param1 } } }) }}
 ```

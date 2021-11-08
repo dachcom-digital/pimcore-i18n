@@ -9,18 +9,15 @@ use Symfony\Component\DependencyInjection\Reference;
 
 final class RedirectorAdapterPass implements CompilerPassInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         $services = [];
         $definition = $container->getDefinition(RedirectorRegistry::class);
         $registryAvailability = $container->getParameter('i18n.registry_availability');
 
         foreach ($container->findTaggedServiceIds('i18n.adapter.redirector', true) as $serviceId => $attributes) {
-            $priority = isset($attributes[0]['priority']) ? $attributes[0]['priority'] : 0;
-            $alias = isset($attributes[0]['alias']) ? $attributes[0]['alias'] : null;
+            $priority = $attributes[0]['priority'] ?? 0;
+            $alias = $attributes[0]['alias'] ?? null;
             $serviceDefinition = $container->getDefinition($serviceId);
             $services[$priority][] = [
                 'reference'  => new Reference($serviceId),

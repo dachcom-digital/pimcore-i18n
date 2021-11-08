@@ -9,20 +9,9 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class UserHelper
 {
-    /**
-     * @var RequestStack
-     */
-    protected $requestStack;
+    protected RequestStack $requestStack;
+    protected string $geoIpDbPath;
 
-    /**
-     * @var string
-     */
-    protected $geoIpDbPath;
-
-    /**
-     * @param RequestStack $requestStack
-     * @param string       $geoIpDbPath
-     */
     public function __construct(
         RequestStack $requestStack,
         string $geoIpDbPath
@@ -31,12 +20,9 @@ class UserHelper
         $this->geoIpDbPath = $geoIpDbPath;
     }
 
-    /**
-     * @return string[]
-     */
-    public function getLanguagesAcceptedByUser()
+    public function getLanguagesAcceptedByUser(): array
     {
-        $masterRequest = $this->requestStack->getMasterRequest();
+        $masterRequest = $this->requestStack->getMainRequest();
         if (!$masterRequest instanceof Request) {
             return [];
         }
@@ -64,27 +50,26 @@ class UserHelper
         return array_unique($guessedLanguages);
     }
 
-    /**
-     * @return bool|string
-     */
-    public function guessCountry()
+    public function guessCountry(): ?string
     {
-        $record = null;
         $country = null;
-        $userCountry = false;
-        $masterRequest = $this->requestStack->getMasterRequest();
+        $userCountry = null;
+        $mainRequest = $this->requestStack->getMainRequest();
 
         if (file_exists($this->geoIpDbPath)) {
             try {
                 $reader = new Reader($this->geoIpDbPath);
-                if ($masterRequest->server->has('HTTP_CLIENT_IP') &&
-                    !empty($masterRequest->server->get('HTTP_CLIENT_IP'))) {
-                    $ip = $masterRequest->server->get('HTTP_CLIENT_IP');
-                } elseif ($masterRequest->server->has('HTTP_X_FORWARDED_FOR') &&
-                    !empty($masterRequest->server->get('HTTP_X_FORWARDED_FOR'))) {
-                    $ip = $masterRequest->server->get('HTTP_X_FORWARDED_FOR');
+                if ($mainRequest->server->has('HTTP_CLIENT_IP') &&
+                    !empty($mainRequest->server->get('HTTP_CLIENT_IP'))) {
+                    $ip = $mainRequest->server->get('HTTP_CLIENT_IP');
+                } elseif ($mainRequest->server->has('HTTP_TRUE_CLIENT_IP') &&
+                    !empty($mainRequest->server->get('HTTP_TRUE_CLIENT_IP'))) {
+                    $ip = $mainRequest->server->get('HTTP_TRUE_CLIENT_IP');
+                } elseif ($mainRequest->server->has('HTTP_X_FORWARDED_FOR') &&
+                    !empty($mainRequest->server->get('HTTP_X_FORWARDED_FOR'))) {
+                    $ip = $mainRequest->server->get('HTTP_X_FORWARDED_FOR');
                 } else {
-                    $ip = $masterRequest->server->get('REMOTE_ADDR');
+                    $ip = $mainRequest->server->get('REMOTE_ADDR');
                 }
 
                 $record = $reader->city($ip);
@@ -94,7 +79,7 @@ class UserHelper
             }
         }
 
-        if ($country !== false && !empty($country)) {
+        if (!empty($country)) {
             $userCountry = strtoupper($country);
         }
 

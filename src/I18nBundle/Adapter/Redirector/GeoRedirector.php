@@ -3,36 +3,18 @@
 namespace I18nBundle\Adapter\Redirector;
 
 use I18nBundle\Helper\UserHelper;
-use I18nBundle\Manager\ZoneManager;
+use I18nBundle\Model\ZoneSiteInterface;
 
 class GeoRedirector extends AbstractRedirector
 {
-    /**
-     * @var ZoneManager
-     */
-    protected $zoneManager;
+    protected UserHelper $userHelper;
 
-    /**
-     * @var UserHelper
-     */
-    protected $userHelper;
-
-    /**
-     * @param ZoneManager $zoneManager
-     * @param UserHelper  $userHelper
-     */
-    public function __construct(
-        ZoneManager $zoneManager,
-        UserHelper $userHelper
-    ) {
-        $this->zoneManager = $zoneManager;
+    public function __construct(UserHelper $userHelper)
+    {
         $this->userHelper = $userHelper;
     }
 
-    /**
-     * @param RedirectorBag $redirectorBag
-     */
-    public function makeDecision(RedirectorBag $redirectorBag)
+    public function makeDecision(RedirectorBag $redirectorBag): void
     {
         if ($this->lastRedirectorWasSuccessful($redirectorBag) === true) {
             return;
@@ -57,7 +39,9 @@ class GeoRedirector extends AbstractRedirector
         }
 
         $userCountryIso = null;
-        if ($redirectorBag->getI18nMode() === 'country') {
+        $zoneSites = $redirectorBag->getI18nContext()->getZone()->getSites(true);
+
+        if ($redirectorBag->getI18nContext()->getZone()->getMode() === 'country') {
             $userCountryIso = $this->userHelper->guessCountry();
         }
 
@@ -80,10 +64,10 @@ class GeoRedirector extends AbstractRedirector
                 $countryStrictMode = $list['countryStrictMode'];
                 $languageStrictMode = $list['languageStrictMode'];
 
-                if (null !== $zoneData = $this->findUrlInZoneTree($userLocale, $country, $countryStrictMode, $languageStrictMode)) {
+                if (null !== $zoneSite = $this->findZoneSite($zoneSites, $userLocale, $country, $countryStrictMode, $languageStrictMode)) {
                     $prioritisedListQuery[] = [
                         'priority' => $index === 0 ? -1 : $priority,
-                        'data'     => $zoneData
+                        'site'     => $zoneSite
                     ];
                     break;
                 }
@@ -96,64 +80,64 @@ class GeoRedirector extends AbstractRedirector
             return;
         }
 
-        usort($prioritisedListQuery, function ($a, $b) {
+        usort($prioritisedListQuery, static function ($a, $b) {
             return $a['priority'] - $b['priority'];
         });
 
-        $zoneData = $prioritisedListQuery[0]['data'];
+        /** @var ZoneSiteInterface $zoneSite */
+        $zoneSite = $prioritisedListQuery[0]['site'];
 
         $this->setDecision([
             'valid'             => true,
-            'locale'            => is_string($zoneData['locale']) ? $zoneData['locale'] : null,
-            'country'           => is_string($zoneData['countryIso']) ? $zoneData['countryIso'] : null,
-            'language'          => is_string($zoneData['languageIso']) ? $zoneData['languageIso'] : null,
-            'url'               => is_string($zoneData['homeUrl']) ? $zoneData['homeUrl'] : null,
+            'locale'            => $zoneSite->getLocale(),
+            'country'           => $zoneSite->getCountryIso(),
+            'language'          => $zoneSite->getLanguageIso(),
+            'url'               => $zoneSite->getHomeUrl(),
             'redirectorOptions' => $redirectorOptions
         ]);
-
     }
 
-    /**
-     * @param string      $locale
-     * @param string|null $countryIso
-     * @param bool        $countryStrictMode
-     * @param bool        $languageStrictMode
-     *
-     * @return bool|mixed|null
-     */
-    public function findUrlInZoneTree($locale, $countryIso = null, bool $countryStrictMode = true, $languageStrictMode = false)
-    {
-        try {
-            $zoneDomains = $this->zoneManager->getCurrentZoneDomains(true);
-        } catch (\Exception $e) {
-            return false;
-        }
+    protected function findZoneSite(
+        array $zoneSites,
+        string $locale,
+        ?string $countryIso = null,
+        bool $countryStrictMode = true,
+        bool $languageStrictMode = false
+    ): ?ZoneSiteInterface {
 
-        if (!is_array($zoneDomains)) {
-            return false;
+        if (!is_array($zoneSites)) {
+            return null;
         }
 
         $locale = $languageStrictMode ? substr($locale, 0, 2) : $locale;
 
         if ($countryIso === null) {
-            $indexId = array_search($locale, array_column($zoneDomains, 'locale'));
-            return $indexId !== false ? $zoneDomains[$indexId] : null;
+
+            $indexId = array_search($locale, array_map(static function (ZoneSiteInterface $site) {
+                return $site->getLocale();
+            }, $zoneSites), true);
+
+            return $indexId !== false ? $zoneSites[$indexId] : null;
         }
 
         if ($countryStrictMode === true) {
-
             // first try to find language iso + guessed country
             // we need to overrule users accepted region fragment by our guessed country
-            $language = strpos($locale, '_') !== false ? substr($locale, 0, 2) : $locale;
+            $language = str_contains($locale, '_') ? substr($locale, 0, 2) : $locale;
 
             $strictLocale = sprintf('%s_%s', $language, $countryIso);
-            $indexId = array_search($strictLocale, array_column($zoneDomains, 'locale'));
 
-            return $indexId !== false ? $zoneDomains[$indexId] : null;
+            $indexId = array_search($strictLocale, array_map(static function (ZoneSiteInterface $site) {
+                return $site->getLocale();
+            }, $zoneSites), true);
+
+            return $indexId !== false ? $zoneSites[$indexId] : null;
         }
 
-        $indexId = array_search($locale, array_column($zoneDomains, 'locale'));
+        $indexId = array_search($locale, array_map(static function (ZoneSiteInterface $site) {
+            return $site->getLocale();
+        }, $zoneSites), true);
 
-        return $indexId !== false ? $zoneDomains[$indexId] : null;
+        return $indexId !== false ? $zoneSites[$indexId] : null;
     }
 }
