@@ -7,8 +7,8 @@ In some cases, you want to retrieve all available links for a specific document 
 {{ dump(document_context) }}
 {{ dump(document_context.linkedLanguages) }}
 <hr>
-<h4>I18n Context Look-Up (object)</h4>
-{% set object_context = i18n_create_context_by_entity(pimcore_object(16), { _locale: 'en', object_id: 16 }) %}
+<h4>I18n Context Look-Up (object [will call correspondig link generator])</h4>
+{% set object_context = i18n_create_context_by_entity(pimcore_object(16), { _locale: 'en' }) %}
 {{ dump(object_context) }}
 {{ dump(object_context.linkedLanguages) }}
 <hr>
