@@ -45,7 +45,6 @@ class HeadLinkListener implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        // just add metadata on master request
         if (!$event->isMainRequest()) {
             return;
         }

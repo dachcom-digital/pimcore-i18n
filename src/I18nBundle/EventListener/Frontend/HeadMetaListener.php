@@ -38,7 +38,6 @@ class HeadMetaListener implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        // just add meta data on master request
         if (!$event->isMainRequest()) {
             return;
         }

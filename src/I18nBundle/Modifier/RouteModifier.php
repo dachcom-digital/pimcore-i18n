@@ -220,20 +220,17 @@ class RouteModifier
         if (empty($zoneTranslations)) {
             $exceptionMessage = sprintf('No translations for zone [Id: %d] found', $zoneIdentifier);
         } else {
-
             $translationIndex = array_search($key, array_column($zoneTranslations, 'key'), true);
-
             if ($translationIndex === false) {
                 $exceptionMessage = sprintf('No translation key for "%s" in zone [Id: %d] found', $key, $zoneIdentifier);
+            } else {
+                $translation = $zoneTranslations[$translationIndex]['values'];
+                if (!isset($translation[$locale])) {
+                    $exceptionMessage = sprintf('No translation key for "%s" with locale "%s" in zone [Id: %d] found', $key, $locale, $zoneIdentifier);
+                } else {
+                    $routeKey = $translation[$locale];
+                }
             }
-
-            $translation = $zoneTranslations[$translationIndex]['values'];
-
-            if (!isset($translation[$locale])) {
-                $exceptionMessage = sprintf('No translation key for "%s" with locale "%s" in zone [Id: %d] found', $key, $locale, $zoneIdentifier);
-            }
-
-            $routeKey = $translation[$locale];
         }
 
         if ($routeKey !== null) {
