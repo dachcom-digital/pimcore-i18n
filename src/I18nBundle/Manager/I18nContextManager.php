@@ -52,12 +52,8 @@ class I18nContextManager
      * @throws ZoneSiteNotFoundException
      * @throws RouteItemException
      */
-    public function buildContextByParameters(array $i18nRouteParameters, bool $bootPathGenerator = false): I18nContextInterface
+    public function buildContextByParameters(string $type, array $i18nRouteParameters, bool $bootPathGenerator = false): I18nContextInterface
     {
-        $type = $i18nRouteParameters['type'] ?? '';
-
-        unset($i18nRouteParameters['type']);
-
         $routeItem = $this->routeItemBuilder->buildRouteItemByParameters($type, $i18nRouteParameters);
 
         $zone = $this->setupZone($routeItem, false);
@@ -149,6 +145,5 @@ class I18nContextManager
 
         return $this->pathGeneratorRegistry->get($pathGeneratorIdentifier);
     }
-
 
 }

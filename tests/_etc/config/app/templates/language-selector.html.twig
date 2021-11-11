@@ -8,9 +8,9 @@
 </head>
 <body>
     <div id="site">
-        {% set i18n_context = i18n_context() %}
-        {% if i18n_context is not null %}
-            {% set languages = i18n_context.activeLanguages %}
+        {% set current_context = i18n_current_context() %}
+        {% if current_context is not null %}
+            {% set languages = current_context.activeLanguages %}
             {% if languages is iterable %}
                 <nav id="i18n-language-selector">
                     <select>

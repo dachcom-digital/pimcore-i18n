@@ -24,6 +24,8 @@ interface ZoneSiteInterface
 
     public function getHomeUrl(): ?string;
 
+    public function getRootPath(): string;
+
     public function getFullPath(): string;
 
     public function getType(): ?string;

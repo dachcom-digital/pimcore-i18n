@@ -5,16 +5,13 @@ services:
         autoconfigure: true
         public: false
 
-    # tool: installer
     I18nBundle\Tool\Install:
         public: true
         arguments:
             $bundle: "@=service('kernel').getBundle('I18nBundle')"
 
-    # configuration
     I18nBundle\Configuration\Configuration: ~
 
-    # session: configurator
     I18nBundle\Session\SessionConfigurator:
         tags:
             - { name: pimcore.session.configurator }

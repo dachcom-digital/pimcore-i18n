@@ -3,15 +3,24 @@
 namespace I18nBundle\Adapter\PathGenerator;
 
 use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Definitions;
+use I18nBundle\Exception\VirtualProxyPathException;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Model\ZoneSiteInterface;
-use I18nBundle\Model\ZoneInterface;
-use I18nBundle\Tool\System;
 use Pimcore\Model\Document as PimcoreDocument;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 class Document extends AbstractPathGenerator
 {
+    private RouterInterface $router;
     protected array $cachedUrls = [];
+
+    public function __construct(RouterInterface $router)
+    {
+        $this->router = $router;
+    }
 
     public function configureOptions(OptionsResolver $options): void
     {
@@ -31,9 +40,9 @@ class Document extends AbstractPathGenerator
         }
 
         if ($i18nContext->getZone()->getMode() === 'language') {
-            $urls = $this->documentUrlsFromLanguage($i18nContext->getZone(), $document, $onlyShowRootLanguages);
+            $urls = $this->documentUrlsFromLanguage($i18nContext, $document, $onlyShowRootLanguages);
         } else {
-            $urls = $this->documentUrlsFromCountry($i18nContext->getZone(), $document, $onlyShowRootLanguages);
+            $urls = $this->documentUrlsFromCountry($i18nContext, $document, $onlyShowRootLanguages);
         }
 
         $this->cachedUrls[$document->getId()] = $urls;
@@ -41,15 +50,11 @@ class Document extends AbstractPathGenerator
         return $urls;
     }
 
-    private function documentUrlsFromLanguage(ZoneInterface $zone, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
+    private function documentUrlsFromLanguage(I18nContextInterface $i18nContext, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
-
-        try {
-            $zoneSites = $zone->getSites(true);
-        } catch (\Exception $e) {
-            return [];
-        }
+        $zoneSites = $i18nContext->getZone()->getSites(true);
+        $routeItem = $i18nContext->getRouteItem();
 
         $rootDocumentIndexId = array_search($document->getId(), array_map(static function (ZoneSiteInterface $site) {
             return $site->getRootId();
@@ -70,7 +75,6 @@ class Document extends AbstractPathGenerator
                     'locale'           => $zoneSite->getLocale(),
                     'hrefLang'         => $zoneSite->getHrefLang(),
                     'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
-                    'key'              => $document->getKey(),
                     'url'              => $zoneSite->getUrl()
                 ];
             }
@@ -100,25 +104,13 @@ class Document extends AbstractPathGenerator
                     continue;
                 }
 
-                if ($this->hasPrettyUrl($document) === true) {
-                    $relativePath = $document->getPrettyUrl();
-                    $url = System::joinPath([$zoneSite->getSiteRequestContext()->getDomainUrl(), $relativePath]);
-                } else {
-                    // map paths
-                    $documentPath = $document->getRealPath() . $document->getKey();
-                    $relativePath = preg_replace('/^' . preg_quote($zoneSite->getFullPath(), '/') . '/', '', $documentPath);
-                    $url = System::joinPath([$zoneSite->getUrl(), $relativePath]);
-                }
-
                 $routes[] = [
                     'languageIso'      => $zoneSite->getLanguageIso(),
                     'countryIso'       => null,
                     'locale'           => $zoneSite->getLocale(),
                     'hrefLang'         => $zoneSite->getHrefLang(),
                     'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
-                    'key'              => $document->getKey(),
-                    'relativePath'     => $relativePath,
-                    'url'              => $url
+                    'url'              => $this->generateLink($routeItem, $document)
                 ];
             }
         }
@@ -126,22 +118,17 @@ class Document extends AbstractPathGenerator
         return $routes;
     }
 
-    private function documentUrlsFromCountry(ZoneInterface $zone, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
+    private function documentUrlsFromCountry(I18nContextInterface $i18nContext, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
-
-        try {
-            $zoneSites = $zone->getSites(true);
-        } catch (\Exception $e) {
-            return [];
-        }
+        $zoneSites = $i18nContext->getZone()->getSites(true);
+        $routeItem = $i18nContext->getRouteItem();
 
         $rootDocumentIndexId = array_search($document->getId(), array_map(static function (ZoneSiteInterface $site) {
             return $site->getRootId();
         }, $zoneSites), true);
 
         if ($onlyShowRootLanguages === true || $rootDocumentIndexId !== false) {
-
             foreach ($zoneSites as $zoneSite) {
                 if (!empty($zoneSite->getCountryIso())) {
                     $routes[] = [
@@ -159,7 +146,7 @@ class Document extends AbstractPathGenerator
             return $routes;
         }
 
-        $hardLinkZoneSitesToCheck = [];
+        $virtualProxyZoneSites = [];
         $service = new PimcoreDocument\Service();
         $translations = $service->getTranslations($document);
 
@@ -188,7 +175,7 @@ class Document extends AbstractPathGenerator
             // if page info is type of "hardlink", we need to add them to a second check
             if (!isset($translations[$pageInfoLocale])) {
                 if ($zoneSite->getType() === 'hardlink') {
-                    $hardLinkZoneSitesToCheck[] = $zoneSite;
+                    $virtualProxyZoneSites[] = $zoneSite;
                 }
                 continue;
             }
@@ -204,71 +191,61 @@ class Document extends AbstractPathGenerator
                 continue;
             }
 
-            $hasPrettyUrl = false;
-            if ($this->hasPrettyUrl($document) === true) {
-                $hasPrettyUrl = true;
-                $relativePath = $document->getPrettyUrl();
-                $url = System::joinPath([$zoneSite->getSiteRequestContext()->getDomainUrl(), $relativePath]);
-            } else {
-                //map paths
-                $documentPath = $document->getRealPath() . $document->getKey();
-                $relativePath = preg_replace('/^' . preg_quote($zoneSite->getFullPath(), '/') . '/', '', $documentPath);
-                $url = System::joinPath([$zoneSite->getUrl(), $relativePath]);
-            }
-
             $routes[] = [
                 'languageIso'      => $zoneSite->getLanguageIso(),
                 'countryIso'       => $zoneSite->getCountryIso(),
                 'locale'           => $zoneSite->getLocale(),
                 'hrefLang'         => $zoneSite->getHrefLang(),
                 'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
-                'key'              => $document->getKey(),
-                'relativePath'     => $relativePath,
-                'hasPrettyUrl'     => $hasPrettyUrl,
-                'url'              => $url
+                'url'              => $this->generateLink($routeItem, $document)
             ];
         }
 
-        if (count($hardLinkZoneSitesToCheck) === 0) {
+        if (count($virtualProxyZoneSites) === 0) {
             return $routes;
         }
 
-        foreach ($hardLinkZoneSitesToCheck as $hardLinkZoneSiteWrapper) {
+        foreach ($virtualProxyZoneSites as $virtualProxyZoneSite) {
 
-            $sameLanguageContext = array_search($hardLinkZoneSiteWrapper->getLanguageIso(), array_column($routes, 'languageIso'), true);
+            $sameLanguageContext = array_search($virtualProxyZoneSite->getLanguageIso(), array_column($routes, 'languageIso'), true);
             if ($sameLanguageContext === false || !isset($routes[$sameLanguageContext])) {
                 continue;
             }
 
-            $languageContext = $routes[$sameLanguageContext];
-            $posGlobalPath = System::joinPath([$hardLinkZoneSiteWrapper->getFullPath(), $languageContext['relativePath']]);
-
-            // case 1: only add hardlinks check if document has no pretty url => we can't guess pretty urls by magic.
-            // case 2: always continue: could be disabled or isn't linked via translations.
-            if ($languageContext['hasPrettyUrl'] === true || PimcoreDocument\Service::pathExists($posGlobalPath)) {
+            try {
+                $virtualProxyUrl =$this->generateLink($routeItem, $document, $virtualProxyZoneSite);
+            } catch (VirtualProxyPathException $e) {
                 continue;
             }
 
             $routes[] = [
-                'languageIso'      => $hardLinkZoneSiteWrapper->getLanguageIso(),
-                'countryIso'       => $hardLinkZoneSiteWrapper->getCountryIso(),
-                'locale'           => $hardLinkZoneSiteWrapper->getLocale(),
-                'hrefLang'         => $hardLinkZoneSiteWrapper->getHrefLang(),
-                'localeUrlMapping' => $hardLinkZoneSiteWrapper->getLocaleUrlMapping(),
-                'key'              => $languageContext['key'],
-                'url'              => System::joinPath([$hardLinkZoneSiteWrapper->getUrl(), $languageContext['relativePath']])
+                'languageIso'      => $virtualProxyZoneSite->getLanguageIso(),
+                'countryIso'       => $virtualProxyZoneSite->getCountryIso(),
+                'locale'           => $virtualProxyZoneSite->getLocale(),
+                'hrefLang'         => $virtualProxyZoneSite->getHrefLang(),
+                'localeUrlMapping' => $virtualProxyZoneSite->getLocaleUrlMapping(),
+                'url'              => $virtualProxyUrl
             ];
         }
 
         return $routes;
     }
 
-    private function hasPrettyUrl(PimcoreDocument $document): bool
+    protected function generateLink(RouteItemInterface $routeItem, PimcoreDocument $document, ?ZoneSiteInterface $virtualProxyZoneSite = null): string
     {
-        if ($document instanceof PimcoreDocument\Page) {
-            return !empty($document->getPrettyUrl()) && $document->getPrettyUrl() !== '';
-        }
+        $routeParameters = [
+            Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => [
+                'type'            => RouteItemInterface::DOCUMENT_ROUTE,
+                'entity'          => $document,
+                'routeName'       => '',
+                'routeParameters' => [],
+                'routeAttributes' => $routeItem->getRouteAttributes(),
+                'context'         => $virtualProxyZoneSite instanceof ZoneSiteInterface
+                    ? ['virtualProxyZoneSite' => $virtualProxyZoneSite]
+                    : []
+            ]
+        ];
 
-        return false;
+        return $this->router->generate('', $routeParameters, UrlGeneratorInterface::ABSOLUTE_URL);
     }
 }

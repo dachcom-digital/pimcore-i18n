@@ -39,7 +39,7 @@ class ZoneSitesBuilder
             $realHostUrl = parse_url($hostUrl, PHP_URL_HOST);
 
             $availableSites[] = [
-                'mainDomain' => $realHostUrl,
+                'mainDomain' => $realHostUrl ?? '',
                 'rootId'     => 1
             ];
         }
@@ -82,12 +82,12 @@ class ZoneSitesBuilder
             }
         }
 
-        $siteRequestContext = $this->generateSiteRequestContext($mainDomain, $currentZoneDomainConfiguration);
-
         $isPublishedMode = $domainDoc->isPublished() === true || $isFrontendRequestByAdmin;
         if ($valid === false || $isPublishedMode === false) {
             return null;
         }
+
+        $siteRequestContext = $this->generateSiteRequestContext($mainDomain, $currentZoneDomainConfiguration);
 
         $isRootDomain = false;
         $subPages = [];
@@ -213,6 +213,7 @@ class ZoneSitesBuilder
                     $urlKey,
                     $domainUrlWithKey,
                     $homeDomainUrlWithKey,
+                    $domainDoc->getRealFullPath(),
                     $child->getRealFullPath(),
                     $child->getType()
                 );
@@ -242,6 +243,7 @@ class ZoneSitesBuilder
             null,
             $siteRequestContext->getDomainUrl(),
             $siteRequestContext->getDomainUrl(),
+            $domainDoc->getRealFullPath(),
             $domainDoc->getRealFullPath(),
             $domainDoc->getType(),
             $subPages

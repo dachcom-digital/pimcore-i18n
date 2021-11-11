@@ -20,7 +20,6 @@ abstract class DynamicRoute extends AbstractPathGenerator
         $alternateRouteItems = [];
         $routes = [];
 
-        //create custom list for event ($i18nList) - do not include all the zone config stuff.
         foreach ($i18nContext->getZone()->getSites(true) as $zoneSite) {
             if (!empty($zoneSite->getLanguageIso())) {
                 $alternateRouteItems[] = $this->alternateRouteItemTransformer->transform(

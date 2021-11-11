@@ -20,9 +20,6 @@ class I18nContext implements I18nContextInterface
     protected LocaleDefinitionInterface $localeDefinition;
     protected ?PathGeneratorInterface $pathGenerator;
 
-    /**
-     * @throws ZoneSiteNotFoundException
-     */
     public function __construct(
         RouteItemInterface $routeItem,
         ZoneInterface $zone,
@@ -33,8 +30,6 @@ class I18nContext implements I18nContextInterface
         $this->zone = $zone;
         $this->pathGenerator = $pathGenerator;
         $this->localeDefinition = $localeDefinition;
-
-        $this->assertRouteContext();
     }
 
     public function getRouteItem(): RouteItemInterface
@@ -54,6 +49,12 @@ class I18nContext implements I18nContextInterface
 
     public function getCurrentZoneSite(): ZoneSiteInterface
     {
+        static $currentZoneSite = null;
+
+        if($currentZoneSite !== null) {
+            return $currentZoneSite;
+        }
+
         $sites = $this->zone->getSites(true);
         $locale = $this->localeDefinition->getLocale();
         $zoneIdentifier = $this->zone->getId() ?? 0;
@@ -83,7 +84,7 @@ class I18nContext implements I18nContextInterface
             );
         }
 
-        return $sites[$treeIndex];
+        return $currentZoneSite = $sites[$treeIndex];
     }
 
     public function getCurrentLocale(): ?string
@@ -331,25 +332,6 @@ class I18nContext implements I18nContextInterface
         }
 
         return $languages;
-    }
-
-    /**
-     * @throws ZoneSiteNotFoundException
-     */
-    protected function assertRouteContext(): void
-    {
-        if (!$this->localeDefinition->hasLocale()) {
-            return;
-        }
-
-        $currentZoneSite = $this->getCurrentZoneSite();
-
-        $this->routeItem->getRouteContextBag()->add([
-            'host'      => $currentZoneSite->getSiteRequestContext()->getHost(),
-            'scheme'    => $currentZoneSite->getSiteRequestContext()->getScheme(),
-            'httpPort'  => $currentZoneSite->getSiteRequestContext()->getHttpPort(),
-            'httpsPort' => $currentZoneSite->getSiteRequestContext()->getHttpsPort(),
-        ]);
     }
 
     protected function mapLanguageInfo(string $locale, string $href): array
