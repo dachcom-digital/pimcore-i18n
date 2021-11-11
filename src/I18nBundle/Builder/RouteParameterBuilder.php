@@ -14,44 +14,32 @@ class RouteParameterBuilder
 {
     public static function buildForEntity(ElementInterface $element, array $routeParameter, array $context = []): array
     {
-        return [
-            Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => self::buildRouteParams(null, $routeParameter, $context, null, $element)
-        ];
+        return self::buildRouteParams(null, $routeParameter, $context, null, $element);
     }
 
     public static function buildForEntityWithRequest(ElementInterface $element, array $routeParameter, Request $request): array
     {
-        return [
-            Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => self::buildRouteParams(null, $routeParameter, [], $request, $element)
-        ];
+        return self::buildRouteParams(null, $routeParameter, [], $request, $element);
     }
 
     public static function buildForStaticRoute(array $routeParameter, array $context = []): array
     {
-        return [
-            Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => self::buildRouteParams(RouteItemInterface::STATIC_ROUTE, $routeParameter, $context)
-        ];
+        return self::buildRouteParams(RouteItemInterface::STATIC_ROUTE, $routeParameter, $context);
     }
 
     public static function buildForStaticRouteWithRequest(array $routeParameter, Request $request): array
     {
-        return [
-            Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => self::buildRouteParams(RouteItemInterface::STATIC_ROUTE, $routeParameter, [], $request)
-        ];
+        return self::buildRouteParams(RouteItemInterface::STATIC_ROUTE, $routeParameter, [], $request);
     }
 
     public static function buildForSymfonyRoute(array $routeParameter, array $context = []): array
     {
-        return [
-            Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => self::buildRouteParams(RouteItemInterface::SYMFONY_ROUTE, $routeParameter, $context)
-        ];
+        return self::buildRouteParams(RouteItemInterface::SYMFONY_ROUTE, $routeParameter, $context);
     }
 
     public static function buildForSymfonyRouteWithRequest(array $routeParameter, Request $request): array
     {
-        return [
-            Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => self::buildRouteParams(RouteItemInterface::SYMFONY_ROUTE, $routeParameter, [], $request)
-        ];
+        return self::buildRouteParams(RouteItemInterface::SYMFONY_ROUTE, $routeParameter, [], $request);
     }
 
     private static function buildRouteParams(
@@ -101,7 +89,9 @@ class RouteParameterBuilder
             $params['routeParameters']['_locale'] = $request->getLocale();
         }
 
-        return $params;
+        return [
+            Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => $params
+        ];
     }
 
 }
