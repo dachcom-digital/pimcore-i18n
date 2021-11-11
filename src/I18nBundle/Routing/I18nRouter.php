@@ -115,7 +115,7 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
             return $this->generateDocumentRoute($i18nContext, $referenceType);
         }
 
-        throw new RouteNotFoundException(sprintf('None of the chained routers were able to generate route: %s', $name));
+        throw new RouteNotFoundException(sprintf('None of the chained routers were able to generate i18n route: %s', $name));
     }
 
     protected function generateStaticRoute(I18nContextInterface $i18nContext, int $referenceType): string

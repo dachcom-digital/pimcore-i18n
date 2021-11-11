@@ -49,12 +49,6 @@ class I18nContext implements I18nContextInterface
 
     public function getCurrentZoneSite(): ZoneSiteInterface
     {
-        static $currentZoneSite = null;
-
-        if($currentZoneSite !== null) {
-            return $currentZoneSite;
-        }
-
         $sites = $this->zone->getSites(true);
         $locale = $this->localeDefinition->getLocale();
         $zoneIdentifier = $this->zone->getId() ?? 0;
@@ -84,7 +78,7 @@ class I18nContext implements I18nContextInterface
             );
         }
 
-        return $currentZoneSite = $sites[$treeIndex];
+        return $sites[$treeIndex];
     }
 
     public function getCurrentLocale(): ?string

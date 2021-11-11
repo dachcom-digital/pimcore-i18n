@@ -8,6 +8,9 @@ use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\Document;
 use Pimcore\Model\Element\ElementInterface;
+use Pimcore\Tool;
+use Pimcore\Tool\Frontend;
+use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\HttpFoundation\Request;
 
 class RouteParameterBuilder
@@ -74,24 +77,24 @@ class RouteParameterBuilder
         $params['type'] = $routeType;
 
         if (!$request instanceof Request) {
-            return $params;
+            return [Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => $params];
         }
 
         if ($routeType === RouteItemInterface::DOCUMENT_ROUTE) {
-            return $params;
+            return [Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => $params];
         }
 
         if ($request->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
             $params['context']['site'] = $request->attributes->get(SiteResolver::ATTRIBUTE_SITE);
+        } elseif (Tool::isFrontendRequestByAdmin($request) && $request->attributes->has(DynamicRouter::CONTENT_KEY)) {
+            $params['context']['site'] = Frontend::getSiteForDocument($request->attributes->get(DynamicRouter::CONTENT_KEY));
         }
 
         if ($request->attributes->has('_locale')) {
             $params['routeParameters']['_locale'] = $request->getLocale();
         }
 
-        return [
-            Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => $params
-        ];
+        return [Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => $params];
     }
 
 }

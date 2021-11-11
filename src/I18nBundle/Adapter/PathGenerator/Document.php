@@ -147,6 +147,8 @@ class Document extends AbstractPathGenerator
         }
 
         $virtualProxyZoneSites = [];
+        $virtualProxyZoneSiteDocuments = [];
+
         $service = new PimcoreDocument\Service();
         $translations = $service->getTranslations($document);
 
@@ -199,6 +201,8 @@ class Document extends AbstractPathGenerator
                 'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
                 'url'              => $this->generateLink($routeItem, $document)
             ];
+
+            $virtualProxyZoneSiteDocuments[] = $document;
         }
 
         if (count($virtualProxyZoneSites) === 0) {
@@ -207,13 +211,13 @@ class Document extends AbstractPathGenerator
 
         foreach ($virtualProxyZoneSites as $virtualProxyZoneSite) {
 
-            $sameLanguageContext = array_search($virtualProxyZoneSite->getLanguageIso(), array_column($routes, 'languageIso'), true);
-            if ($sameLanguageContext === false || !isset($routes[$sameLanguageContext])) {
+            $sameLanguageContextIndex = array_search($virtualProxyZoneSite->getLanguageIso(), array_column($routes, 'languageIso'), true);
+            if ($sameLanguageContextIndex === false) {
                 continue;
             }
 
             try {
-                $virtualProxyUrl =$this->generateLink($routeItem, $document, $virtualProxyZoneSite);
+                $virtualProxyUrl = $this->generateLink($routeItem, $virtualProxyZoneSiteDocuments[$sameLanguageContextIndex], $virtualProxyZoneSite);
             } catch (VirtualProxyPathException $e) {
                 continue;
             }
