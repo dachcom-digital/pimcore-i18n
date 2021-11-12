@@ -19,6 +19,7 @@ class I18nContext implements I18nContextInterface
     protected ZoneInterface $zone;
     protected LocaleDefinitionInterface $localeDefinition;
     protected ?PathGeneratorInterface $pathGenerator;
+    protected ?ZoneSiteInterface $currentZoneSite = null;
 
     /**
      * @throws ZoneSiteNotFoundException
@@ -33,8 +34,7 @@ class I18nContext implements I18nContextInterface
         $this->zone = $zone;
         $this->pathGenerator = $pathGenerator;
         $this->localeDefinition = $localeDefinition;
-
-        $this->assertRouteContext();
+        $this->currentZoneSite = $this->determinateCurrentZoneSite();
     }
 
     public function getRouteItem(): RouteItemInterface
@@ -54,36 +54,7 @@ class I18nContext implements I18nContextInterface
 
     public function getCurrentZoneSite(): ZoneSiteInterface
     {
-        $sites = $this->zone->getSites(true);
-        $locale = $this->localeDefinition->getLocale();
-        $zoneIdentifier = $this->zone->getId() ?? 0;
-
-        if (empty($locale)) {
-            throw new ZoneSiteNotFoundException(
-                sprintf(
-                    'Cannot determinate current site with empty locale in zone %d',
-                    $zoneIdentifier
-                )
-            );
-        }
-
-        $availableZoneSiteLocales = array_map(static function (ZoneSiteInterface $site) {
-            return $site->getLocale();
-        }, $sites);
-
-        $treeIndex = array_search($locale, $availableZoneSiteLocales, true);
-
-        if ($treeIndex === false) {
-            throw new ZoneSiteNotFoundException(
-                sprintf(
-                    'No zone site for locale "%s" found. Available zone (Id: %d) site locales: %s',
-                    $locale,
-                    $zoneIdentifier,
-                    implode(', ', $availableZoneSiteLocales))
-            );
-        }
-
-        return $sites[$treeIndex];
+        return $this->currentZoneSite;
     }
 
     public function getCurrentLocale(): ?string
@@ -297,6 +268,43 @@ class I18nContext implements I18nContextInterface
         return null;
     }
 
+    protected function determinateCurrentZoneSite(): ?ZoneSiteInterface
+    {
+        $sites = $this->zone->getSites(true);
+        $locale = $this->localeDefinition->getLocale();
+        $zoneIdentifier = $this->zone->getId() ?? 0;
+
+        if (empty($locale)) {
+            return null;
+        }
+
+        $activeSites = array_values(array_filter($sites, static function (ZoneSiteInterface $site) {
+            return $site->isActive() === true;
+        }));
+
+        if (count($activeSites) === 0) {
+            throw new ZoneSiteNotFoundException(sprintf(
+                'No zone site for locale "%s" found. Available zone (Id %d) site locales: %s',
+                $locale,
+                $zoneIdentifier,
+                implode(', ', array_map(static function (ZoneSiteInterface $site) {
+                    return $site->getLocale();
+                }, $sites))
+            ));
+        } elseif (count($activeSites) > 1) {
+            throw new ZoneSiteNotFoundException(sprintf(
+                'Ambiguous locale definition for zone (Id %d) sites detected ("%s" was requested, multiple paths [%s] matched).',
+                $zoneIdentifier,
+                $locale,
+                implode(', ', array_map(static function (ZoneSiteInterface $site) {
+                    return $site->getFullPath();
+                }, $activeSites))
+            ));
+        }
+
+        return $activeSites[0];
+    }
+
     /**
      * Get languages for Country.
      * Only checks if root document in given country iso is accessible.
@@ -331,25 +339,6 @@ class I18nContext implements I18nContextInterface
         }
 
         return $languages;
-    }
-
-    /**
-     * @throws ZoneSiteNotFoundException
-     */
-    protected function assertRouteContext(): void
-    {
-        if (!$this->localeDefinition->hasLocale()) {
-            return;
-        }
-
-        $currentZoneSite = $this->getCurrentZoneSite();
-
-        $this->routeItem->getRouteContextBag()->add([
-            'host'      => $currentZoneSite->getSiteRequestContext()->getHost(),
-            'scheme'    => $currentZoneSite->getSiteRequestContext()->getScheme(),
-            'httpPort'  => $currentZoneSite->getSiteRequestContext()->getHttpPort(),
-            'httpsPort' => $currentZoneSite->getSiteRequestContext()->getHttpsPort(),
-        ]);
     }
 
     protected function mapLanguageInfo(string $locale, string $href): array

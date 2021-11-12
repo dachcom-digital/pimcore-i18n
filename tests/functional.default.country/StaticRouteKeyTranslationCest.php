@@ -62,7 +62,8 @@ class StaticRouteKeyTranslationCest
         ]);
 
         $exception = ZoneSiteNotFoundException::class;
-        $exceptionMessage = 'No zone site for locale "en_GB" found. Available zone (Id: 0) site locales: en';
+        // no available locales since static route build happens in without full bootstrap
+        $exceptionMessage = 'No zone site for locale "en_GB" found. Available zone (Id 0) site locales: ';
 
         $I->seeException($exception, $exceptionMessage, function () use ($I, $staticRoute) {
             $I->amOnStaticRoute($staticRoute->getName(), [

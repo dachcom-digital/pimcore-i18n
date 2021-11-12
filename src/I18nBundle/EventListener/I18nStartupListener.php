@@ -72,6 +72,10 @@ class I18nStartupListener implements EventSubscriberInterface
             return;
         }
 
+        if ($document instanceof Document\Link) {
+            return;
+        }
+
         try {
             $this->initializeI18nContext($request, $document);
         } catch (\Throwable $e) {

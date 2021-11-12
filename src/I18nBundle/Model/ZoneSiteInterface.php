@@ -10,6 +10,8 @@ interface ZoneSiteInterface
 
     public function isRootDomain(): bool;
 
+    public function isActive(): bool;
+
     public function getLocale(): ?string;
 
     public function getCountryIso(): ?string;
@@ -23,6 +25,8 @@ interface ZoneSiteInterface
     public function getUrl(): string;
 
     public function getHomeUrl(): ?string;
+
+    public function getRootPath(): string;
 
     public function getFullPath(): string;
 

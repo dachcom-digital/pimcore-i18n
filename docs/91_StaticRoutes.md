@@ -1,6 +1,81 @@
 # Static Routes
 The I18nBundle will help you to create translatable static routes and will also help you to generate valid alternate links.
 
+## Generating Routes in current request
+To create static route paths/urls in **current request** via Twig or PHP API
+you may want to use the `_i18n` parameter builder:
+
+### Twig
+```twig
+{# relative [by static route name] #}
+{{ dump( i18n_static_route('my_static_route', { news: 'my-attribute' }, true) ) }}
+ 
+{# absolute [by static route name] #}
+{{ dump( i18n_static_route('my_static_route', { news: 'my-attribute' }, true) ) }}
+
+{# relative [object with link generator] #}
+{{ dump( i18n_entity_route(pimcore_object(20), {}, false) ) }}
+ 
+{# absolute [object with link generator] #}
+{{ dump( i18n_entity_route(pimcore_object(20), {}, true) ) }}
+```
+
+### PHP
+```php
+use I18nBundle\Builder\RouteParameterBuilder;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+public function myAction(Request $request) 
+{
+    $parameters = RouteParameterBuilder::buildForEntityWithRequest(
+        \Pimcore\Model\DataObject::getById(20),
+        [],
+        $request
+    );
+
+    $linkGeneratorStaticRoute = $this->urlGenerator->generate('', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
+    
+    $parameters = RouteParameterBuilder::buildForStaticRouteWithRequest(
+        ['news' => 'my-attribute'],
+        $request
+    );
+
+    $instantStaticRoute = $this->urlGenerator->generate('my_static_route', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
+}
+```
+
+## Generating Routes in CLI
+To create static route paths/urls in **headless** context:
+
+### PHP
+```php
+use I18nBundle\Builder\RouteParameterBuilder;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+protected function execute(InputInterface $input, OutputInterface $output): int
+{
+    $parameters = RouteParameterBuilder::buildForEntity(
+        \Pimcore\Model\DataObject::getById(20),
+        ['_locale' => 'en'],
+        ['site' => Site::getByDomain('test-domain1.test')]
+    );
+
+    $linkGeneratorStaticRoute = $this->urlGenerator->generate('', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
+    
+    $parameters = RouteParameterBuilder::buildForStaticRoute(
+        ['_locale' => 'en', 'news' => 'my-attribute'],
+        ['site' => Site::getByDomain('test-domain1.test')]
+    );
+
+    $instantStaticRoute = $this->urlGenerator->generate('my_static_route', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
+    
+    return 0;
+}
+```
+
 ## Translatable Fragments
 Creating translatable static routes are quite a challenge in pimcore. 
 We'll show you how to create them based on our [Pimcore News Bundle](https://github.com/dachcom-digital/pimcore-news).
@@ -75,8 +150,8 @@ That was easy! Now we need to check the static routes again - because the patter
 Pimcore allows [optional placeholders](https://pimcore.com/docs/5.0.x/MVC/Routing_and_URLs/Custom_Routes.html#page_Building_URLs_based_on_Custom_Routes) so instead of `%_locale` just add `{%_locale}` to your reverse element.
 If no locale has been found in your request url the fragment now gets excluded.
 
-## href-lang Generator
-Now let's create an event listener to generate valid alternate links for our news entries:
+## Alternate Links Generator
+Then need to register an alternate listener and its corresponding service.
 
 ```html
 <link href="https://www.domain.com/de/artikel/news-mit-headline" rel="alternate" hreflang="de" />
@@ -85,7 +160,6 @@ Now let's create an event listener to generate valid alternate links for our new
 <link href="https://www.domain.com/nouvelles/titre-francais" rel="alternate" hreflang="fr" />
 ```
 
-First you need to register a service:
 ```yaml
 App\EventListener\I18nRoutesAlternateListener:
     autowire: true
@@ -93,7 +167,6 @@ App\EventListener\I18nRoutesAlternateListener:
         - { name: kernel.event_subscriber }
 ```
 
-Now implement the event listener itself:
 ```php
 <?php
 
@@ -190,11 +263,3 @@ Yea - that's also possible. Just create your [country element](27_Countries.md) 
 This Bundle will automatically transform your static routes locale fragment into valid ones.
 
 > **Note:** Of course it's still possible to use iso code formatted url structures if you really want to do that. :)
-
-## Creating Static Routes in Twig 
-Nothing special here. Just create your url like you know it from the twig standard and pass your parameters via the `_18n` flag.
-I18n will transform your locale fragment, if necessary:
-
-```twig
-{{ url('your_static_route', { _i18n: { routeParameters: { _locale: app.request.locale, param1: param1 } } }) }}
-```

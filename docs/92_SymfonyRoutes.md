@@ -23,7 +23,62 @@ i18n_symfony_route:
         matching_route_key: '(%i18n.route.translations.mySymfonyRouteKey%)' ## returns (meine-symfony-route|my-symfony-route)
 ```
 
-Then need to register an alternate listener:
+## Generating Routes in current request
+To create symfony paths/urls in **current request** via Twig or PHP API
+you may want to use the `_i18n` parameter builder:
+
+### Twig
+```twig
+{# relative #}
+{{ dump( i18n_symfony_route('i18n_symfony_route', {foo: bar}, false) ) }}
+
+{# absolute #}
+{{ dump( i18n_symfony_route('i18n_symfony_route', {foo: bar}, true) ) }}
+```
+
+### PHP
+```php
+use I18nBundle\Builder\RouteParameterBuilder;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+public function myAction(Request $request) 
+{
+    $parameters = RouteParameterBuilder::buildForSymfonyRouteWithRequest(
+        ['foo' => 'bar'],
+        $request
+    );
+
+    $symfonyRoute = $this->urlGenerator->generate('i18n_symfony_route', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
+}
+```
+
+## Generating Routes in CLI
+To create symfony paths/urls in **headless** context:
+
+### PHP
+```php
+use I18nBundle\Builder\RouteParameterBuilder;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+protected function execute(InputInterface $input, OutputInterface $output): int
+{
+    $parameters = RouteParameterBuilder::buildForSymfonyRoute(
+        ['foo' => 'bar'],
+        ['site' => Site::getByDomain('test-domain1.test')]
+    );
+
+    $symfonyRoute = $this->urlGenerator->generate('i18n_symfony_route', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
+    
+    return 0;
+}
+```
+
+## Alternate Links
+Then need to register an alternate listener and its corresponding service.
+
 ```yaml
 App\EventListener\I18nRoutesAlternateListener:
     autowire: true
@@ -31,7 +86,6 @@ App\EventListener\I18nRoutesAlternateListener:
         - { name: kernel.event_subscriber }
 ```
 
-Now implement the event listener itself:
 ```php
 <?php
 
@@ -70,12 +124,4 @@ class I18nRoutesAlternateListener implements EventSubscriberInterface
         }
     }
 }
-```
-
-## Creating Symfony in Twig 
-Just create your url like you know it from the twig standard and pass your parameters via the `_18n` flag:
-I18n will transform your locale fragment, if necessary:
-
-```twig
-{{ url('i18n_symfony_route', { _i18n: { routeParameters: { _locale: app.request.locale } } }) }}
 ```

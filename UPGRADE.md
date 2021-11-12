@@ -34,7 +34,8 @@ i18n:
 ### Global Changes
 - `$staticRoute->assemble()` is **not** supported anymore, you always need to call `$router->generate()`:
     - Every PIMCORE LinkGenerator needs to implement the `I18nLinkGeneratorInterface`
-    - You need to pass the `_18n => [ type = RouteItemInterface::TYPE, routeParameters => [] ]` block via `$router->generate()` 
+    - You need to pass the `_18n => [ type = RouteItemInterface::TYPE, routeParameters => [] ]` block via `$router->generate()` (Or use `RouteParameterBuilder` for parameter building)
+- `url()`, `path()`, `pimcore_url()` twig helper are not supported, use `i18n_entity_route()`, `i18n_static_route()` and `i18n_symfony_route()` instead
 - Context Adapter and Manager have been removed (All corresponding information are available via `I18nContextInterface` directly)
 - PHP8 return type declarations added: you may have to adjust your extensions accordingly
 - `LocaleProviderInterface` changes:
@@ -79,7 +80,7 @@ i18n:
 
 ### Additional new Features
 - Check Akamai CDN header [@florian25686](https://github.com/dachcom-digital/pimcore-i18n/pull/76/files)
-- Allow different I18nContext look-ups [#70](https://github.com/dachcom-digital/pimcore-i18n/issues/70), read more about it [here](./docs/21_CustomI18nContextLookUp.md)
+- Allow different I18nContext look-ups [#70](https://github.com/dachcom-digital/pimcore-i18n/issues/70), read more about it [here](./docs/21_I18nContext.md)
 - Allow symfony routes [#65](https://github.com/dachcom-digital/pimcore-i18n/issues/65)
 
 ***

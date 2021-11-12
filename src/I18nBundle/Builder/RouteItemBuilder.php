@@ -247,15 +247,4 @@ class RouteItemBuilder
             $routeItem->getRouteAttributesBag()->set('_i18n_translation_keys', $i18nDefaults['translation_keys']);
         }
     }
-
-    protected function assertRouteContext(RouteItemInterface $routeItem, ZoneSiteInterface $site): void
-    {
-        $routeItem->getRouteContextBag()->add([
-            'host'      => $site->getSiteRequestContext()->getHost(),
-            'scheme'    => $site->getSiteRequestContext()->getScheme(),
-            'httpPort'  => $site->getSiteRequestContext()->getHttpPort(),
-            'httpsPort' => $site->getSiteRequestContext()->getHttpsPort(),
-        ]);
-    }
-
 }

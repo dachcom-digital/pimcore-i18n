@@ -8,7 +8,7 @@
 ![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
 
 ## Scheme
-![i18n scheme](https://user-images.githubusercontent.com/700119/140646548-fcf6433d-1fa0-4323-98e2-9cc49550e5ee.png)
+![i18n scheme](https://user-images.githubusercontent.com/700119/141124503-59576527-e5b1-47b3-a38e-d06e51555bde.png)
 
 ## Introduction
 Pimcore already comes with some great features to build internationalized websites. 
@@ -58,15 +58,17 @@ When using this bundle, you should:
 - If you're using the country detection, you need a valid maxmind geo ip [data provider](docs/10_GeoControl.md)
 
 ## Further Information
+- [I18n Overview Page](./docs/1_I18n.md): Learn all about the i18n principals.
 - [Geo IP/Control](docs/10_GeoControl.md): Enable GeoIP Data Provider.
 - [Zone Definitions](docs/20_Zones.md): Learn more about i18n zone definitions and how to manage them.
-  - [Custom I18n Context Look-Up](docs/21_CustomI18nContextLookUp.md)] (🔥 New!)
+  - [Custom I18n Context Look-Up](docs/21_I18nContext.md)] (🔥 New!)
 - [Href-Lang](docs/25_HrefLang.md): Find out more about the href-lang tag generator.
 - [Language Configuration](docs/26_Languages.md): Configure languages.
 - [Country Configuration](docs/27_Countries.md): Configure countries.
-- Dynamic Routing
-  - [Static Routes](docs/28_StaticRoutes.md): Configure translatable static routes and implement href-lang tags.
-  - [Symfony Route](docs/29_SymfonyRoutes.md): Configure translatable symfony routes and implement href-lang tags.
+- Route and Alternate Links Generation
+  - [Document Routes](docs/90_DocumentRoutes.md): Build document routes
+  - [Static Routes](docs/91_StaticRoutes.md): Build translatable static routes and implement href-lang tags.
+  - [Symfony Route](docs/92_SymfonyRoutes.md): Build translatable symfony routes and implement href-lang tags.
 - [Front Page Mapping](docs/30_FrontPageMapping.md): Learn how to map a custom front page.
 - [Localized Error Documents](docs/40_LocaleErrorDocument.md): Learn how to create localized error documents.
 - [Custom Locale Adapter](docs/50_CustomLocaleAdapter.md): Learn how to create a custom locale adapter.

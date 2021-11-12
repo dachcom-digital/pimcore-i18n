@@ -22,7 +22,7 @@ abstract class BaseRouteItem
             RouteItemInterface::SYMFONY_ROUTE,
             RouteItemInterface::STATIC_ROUTE,
         ], true)) {
-            throw new \Exception(sprintf('Invalid RouteItem type %s', $type));
+            throw new \Exception(sprintf('Invalid RouteItem type "%s"', $type));
         }
 
         $this->type = $type;

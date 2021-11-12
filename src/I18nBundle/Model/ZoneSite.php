@@ -7,6 +7,7 @@ class ZoneSite implements ZoneSiteInterface
     protected SiteRequestContext $siteRequestContext;
     protected int $rootId;
     protected bool $isRootDomain;
+    protected bool $isActive;
     protected ?string $locale;
     protected ?string $countryIso;
     protected string $languageIso;
@@ -14,6 +15,7 @@ class ZoneSite implements ZoneSiteInterface
     protected ?string $localeUrlMapping;
     protected string $url;
     protected ?string $homeUrl;
+    protected string $rootPath;
     protected string $fullPath;
     protected ?string $type;
     protected array $subSites;
@@ -22,6 +24,7 @@ class ZoneSite implements ZoneSiteInterface
         SiteRequestContext $siteRequestContext,
         int $rootId,
         bool $isRootDomain,
+        bool $isActive,
         ?string $locale,
         ?string $countryIso,
         string $languageIso,
@@ -29,6 +32,7 @@ class ZoneSite implements ZoneSiteInterface
         ?string $localeUrlMapping,
         string $url,
         ?string $homeUrl,
+        string $rootPath,
         string $fullPath,
         ?string $type,
         array $subSites = []
@@ -36,6 +40,7 @@ class ZoneSite implements ZoneSiteInterface
         $this->siteRequestContext = $siteRequestContext;
         $this->rootId = $rootId;
         $this->isRootDomain = $isRootDomain;
+        $this->isActive = $isActive;
         $this->locale = $locale;
         $this->countryIso = $countryIso;
         $this->languageIso = $languageIso;
@@ -43,6 +48,7 @@ class ZoneSite implements ZoneSiteInterface
         $this->localeUrlMapping = $localeUrlMapping;
         $this->url = $url;
         $this->homeUrl = $homeUrl;
+        $this->rootPath = $rootPath;
         $this->fullPath = $fullPath;
         $this->type = $type;
         $this->subSites = $subSites;
@@ -61,6 +67,11 @@ class ZoneSite implements ZoneSiteInterface
     public function isRootDomain(): bool
     {
         return $this->isRootDomain;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
     }
 
     public function getLocale(): ?string
@@ -96,6 +107,11 @@ class ZoneSite implements ZoneSiteInterface
     public function getHomeUrl(): ?string
     {
         return $this->homeUrl;
+    }
+
+    public function getRootPath(): string
+    {
+        return $this->rootPath;
     }
 
     public function getFullPath(): string

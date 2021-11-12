@@ -20,66 +20,40 @@
 | getLanguageNameByIsoCode | helper to get language name by iso code |
 | getCountryNameByIsoCode | helper to get country name by iso code |
 
-## Zone
-The zone represents an instance of `I18nZoneInterface` which comes with some helper methods:
-
-| Name | Description |
-|------|-------------|
-| getId | given zone id (null, if it no zones have been configured |
-| getName | given zone name (null, if no zones have been configured |
-| getDomains | all available domains for given zone. |
-| getMode | returns `language` or `country` |
-| getTranslations | array, translations for dynamic routes |
-| isActiveZone | check if zone is active one |
-| getLocaleUrlMapping | For example: `de-ch`. Mostly used to build [static routes](./28_StaticRoutes.md#naming-convention-in-country-context) |
-| getGlobalInfo | international state  |
-| getSites | get all corresponding sites  |
-
-**Twig**
+### Fetch Context Data in Twig
 ```twig
 {# 
-    be careful, i18n_context is allowed to return null!
+    be careful, i18n_current_context is allowed to return null!
 #}
 
-{% set current_locale = i18n_context().localeDefinition.locale %}
-{% set current_language_iso = i18n_context().localeDefinition.languageIso %}
-{% set current_country_iso = i18n_context().localeDefinition.countryIso %}
+{% set current_locale = i18n_current_context().localeDefinition.locale %}
+{% set current_language_iso = i18n_current_context().localeDefinition.languageIso %}
+{% set current_country_iso = i18n_current_context().localeDefinition.countryIso %}
 
-{{ dump(i18n_context().mode) }}
-{{ dump(i18n_context().localeDefinition.locale) }}
-{{ dump(i18n_context().linkedLanguages) }}
-{{ dump(i18n_context().activeLanguages) }}
-{{ dump(i18n_context().activeCountries) }}
-{{ dump(i18n_context().languageNameByIsoCode(current_language_iso, current_locale)) }}
-{{ dump(i18n_context().countryNameByIsoCode(current_country_iso, current_locale)) }}
+{{ dump(i18n_current_context().localeDefinition.locale) }}
+{{ dump(i18n_current_context().linkedLanguages) }}
+{{ dump(i18n_current_context().activeLanguages) }}
+{{ dump(i18n_current_context().activeCountries) }}
+{{ dump(i18n_current_context().languageNameByIsoCode(current_language_iso, current_locale)) }}
+{{ dump(i18n_current_context().countryNameByIsoCode(current_country_iso, current_locale)) }}
 
-{{ dump(i18n_context().zoneActiveLocales()) }}
-{{ dump(i18n_context().localeInfo('de', 'id')) }}
+{{ dump(i18n_current_context().zoneActiveLocales()) }}
+{{ dump(i18n_current_context().localeInfo('de', 'id')) }}
 ```
 
-**PHP**
+### Fetch Context Data in PHP
 ```php
 <?php
 
 use Symfony\Component\HttpFoundation\RequestStack;
 use I18nBundle\Http\I18nContextResolverInterface;
 
-class ExampleService
+class Service
 {
-    protected RequestStack $requestStack;
-    protected ZoneResolverInterface $zoneResolver;
-
-    public function __construct(RequestStack $requestStack, I18nContextResolverInterface $i18nContextResolver)
+    public function myAction(RequestStack $requestStack, I18nContextResolverInterface $i18nContextResolver)
     {
-        $this->requestStack = $requestStack;
-        $this->i18nContextResolver = $i18nContextResolver;
-    }
-
-    public function getInformation()
-    {
-        $i18nContext = $this->i18nContextResolver->getContext($this->requestStack->getMainRequest());
+        $i18nContext = $i18nContextResolver->getContext($requestStack->getMainRequest());
         
-        $mode = $i18nContext->getZone()->getMode();
         $LinkedLanguages = $i18nContext->getLinkedLanguages();
         
         // get current locale
@@ -100,6 +74,57 @@ class ExampleService
         // locale provider info
         $localProviderActiveLocales = $i18nContext->getZoneActiveLocales();
         $localeProviderLocaleInfo = $i18nContext->getLocaleInfo('de', 'id');
+    }
+}
+```
+
+## Zone
+The zone represents an instance of `I18nZoneInterface` which comes with some helper methods:
+
+| Name | Description |
+|------|-------------|
+| getId | given zone id (null, if it no zones have been configured |
+| getName | given zone name (null, if no zones have been configured |
+| getDomains | all available domains for given zone. |
+| getMode | returns `language` or `country` |
+| getTranslations | array, translations for dynamic routes |
+| isActiveZone | check if zone is active one |
+| getLocaleUrlMapping | For example: `de-ch`. Mostly used to build [static routes](./28_StaticRoutes.md#naming-convention-in-country-context) |
+| getGlobalInfo | international state  |
+| getSites | get all corresponding sites  |
+
+
+### Fetch Zone Data in Twig
+```twig
+{# 
+    be careful, i18n_current_context is allowed to return null!
+#}
+
+{{ dump(i18n_current_context().zone.mode) }}
+{{ dump(i18n_current_context().zone.sites) }}
+
+```
+
+### Fetch Zone Data in PHP
+```php
+<?php
+
+use Symfony\Component\HttpFoundation\RequestStack;
+use I18nBundle\Http\I18nContextResolverInterface;
+
+class Service
+{
+    public function myAction(RequestStack $requestStack, I18nContextResolverInterface $i18nContextResolver)
+    {
+        $i18nContext = $i18nContextResolver->getContext($requestStack->getMainRequest());
+        
+        $zone = $i18nContext->getZone();
+        
+        // get zone mode (language or country
+        $mode = $zone->getMode();
+        
+        // list all zone sites
+        $zoneSites = $zone->getSites(true);
     }
 }
 ```
@@ -132,47 +157,39 @@ The current site represents an instance of `ZoneSiteInterface` which comes with 
 | getSubSites | array |
 | hasSubSites | bool |
 
-**Twig**
+### Fetch Zone Site Data in Twig
 ```twig
 {# get current context info #}
-{{ dump(i18n_context().currentZoneSite.url) }}
-{{ dump(i18n_context().currentZoneSite.localeUrlMapping) }}
+{{ dump(i18n_current_context().currentZoneSite.url) }}
+{{ dump(i18n_current_context().currentZoneSite.localeUrlMapping) }}
 ```
 
-**PHP**
+### Fetch Zone Site Data in Twig
 ```php
 <?php
 
 use Symfony\Component\HttpFoundation\RequestStack;
 use I18nBundle\Http\I18nContextResolverInterface;
 
-class ExampleService
+class Service
 {
-    protected RequestStack $requestStack;
-    protected ZoneResolverInterface $zoneResolver;
-
-    public function __construct(RequestStack $requestStack, I18nContextResolverInterface $i18nContextResolver)
+    public function myAction(RequestStack $requestStack, I18nContextResolverInterface $i18nContextResolver)
     {
-        $this->requestStack = $requestStack;
-        $this->i18nContextResolver = $i18nContextResolver;
-    }
-
-    public function getInformation()
-    {
-        $i18nContext = $this->i18nContextResolver->getContext($this->requestStack->getMainRequest());
+        $i18nContext = $i18nContextResolver->getContext($requestStack->getMainRequest());
         
         $currentContextInfo = $i18nContext->getCurrentZoneSite()->getUrl();
         $currentContextInfo = $i18nContext->getCurrentZoneSite()->getLocaleUrlMapping();
     }
 }
 ```
+
 ## Navigation Examples
 
 ### Language Drop-Down
 ```twig
-{% set i18n_context = i18n_context() %}
-{% if i18n_context is not null %}
-    {% set languages = i18n_context.activeLanguages %}
+{% set current_context = i18n_current_context() %}
+{% if current_context is not null %}
+    {% set languages = current_context.activeLanguages %}
     {% if languages is iterable %}
         <nav id="navigation">
             <select>
@@ -187,9 +204,9 @@ class ExampleService
 
 ### Country Selection
 ```twig
-{% set i18n_context = i18n_context() %}
-{% if i18n_context is not null %}
-    {% set countries = i18n_context.activeCountries %}
+{% set current_context = i18n_current_context() %}
+{% if current_context is not null %}
+    {% set countries = current_context.activeCountries %}
     {% if countries is iterable %}
         <nav id="navigation">
             {% for country in countries %}
@@ -211,10 +228,10 @@ class ExampleService
 ### Complex Country / Language Selection based on Current Zone
 ```twig
 <nav id="navigation">
-    {% set i18n_context = i18n_context() %}
-    {% if i18n_context is not null %}
-        {% if i18n_context.zone.mode == 'country' %}
-            {% set countries = i18n_context.activeCountries %}
+    {% set current_context = i18n_current_context() %}
+    {% if current_context is not null %}
+        {% if current_context.zone.mode == 'country' %}
+            {% set countries = current_context.activeCountries %}
             {% if countries is iterable %}
                 {% for country in countries %}
                     <ul>
@@ -228,8 +245,8 @@ class ExampleService
                     </ul>
                 {% endfor %}
             {% endif %}
-        {% elseif i18n_context.zone.mode == 'language' %}
-            {% set languages = i18n_context.activeLanguages %}
+        {% elseif current_context.zone.mode == 'language' %}
+            {% set languages = current_context.activeLanguages %}
             {% if languages is iterable %}
                 <select>
                     {% for language in languages %}

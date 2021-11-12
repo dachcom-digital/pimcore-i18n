@@ -2,3 +2,6 @@ services:
 
     I18nBundle\Factory\RouteItemFactory:
         autowire: true
+
+    I18nBundle\Modifier\RouteModifier:
+        autowire: true
