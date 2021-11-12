@@ -19,7 +19,7 @@ This bundle helps you to master this challenges and gives you the freedom to ela
 ### Release Plan
 | Release | Supported Pimcore Versions        | Supported Symfony Versions | Release Date | Maintained     | Branch     |
 |---------|-----------------------------------|----------------------------|--------------|----------------|------------|
-| **4.x** | `10.1`                            | `5.3`                      | --           | Feature Branch | master     |
+| **4.x** | `10.1`                            | `5.3`                      | 12.11.2021   | Feature Branch | master     |
 | **3.x** | `6.0` - `6.3`, `6.5` - `6.9`      | `3.4`, `^4.4`              | 18.07.2019   | Unsupported    | 3.x        |
 | **2.4** | `5.4`, `5.5`, `5.6`, `5.7`, `5.8` | `3.4`                      | 24.05.2019   | Unsupported    | 2.4        |
 
