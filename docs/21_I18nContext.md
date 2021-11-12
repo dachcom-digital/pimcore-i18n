@@ -1,4 +1,5 @@
 # Current Context
+
 Fetch the current context to list linked languages for example:
 
 ```twig
@@ -14,6 +15,7 @@ Fetch the current context to list linked languages for example:
 ```
 
 **PHP**
+
 ```php
 <?php
 
@@ -31,9 +33,11 @@ class Service
 ```
 
 # Custom Context Look-Up
+
 In some cases, you want to retrieve all available links for a specific document or object.
 
 ## Boot Context in TWIG
+
 ```twig
 <h4>I18n Context Look-Up (document)</h4>
 {% set document_context = i18n_create_context_by_entity(pimcore_document(16), { _locale: 'en' }) %}
@@ -67,10 +71,12 @@ In some cases, you want to retrieve all available links for a specific document 
 ```
 
 ## Boot Context in PHP
+
 ```php
 <?php
 
 use I18nBundle\Manager\I18nContextManager;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 
 class ExampleService
 {
@@ -81,26 +87,28 @@ class ExampleService
         $this->i18nContextManager = $i18nContextManager;
     }
 
-    public function build(Pimcore\Document $document, array $routeParameter)
+    public function build(Pimcore\DataObject $object, array $routeParameter)
     {
+        ## I. no zones defined
         $parameters = [
             'routeParameters' => $routeParameter,
-            'entity'          => $document
+            'entity'          => $object
         ];
         
-       $i18nContext = $this->i18nContextManager->buildContextByParameters($parameters, true);
+        // third argument needs to be true to fully boot context (initialize linked zone sites)        
+        $i18nContext = $this->i18nContextManager->buildContextByParameters(RouteItemInterface::STATIC_ROUTE, $parameters, true);
        
-       ## If you're using zones, you NEED to pass the site as context!
-       
-       $zoneAwareParameters = [
+        ## II. zones available
+        ## You MUST pass the site as context!
+        $zoneAwareParameters = [
             'routeParameters' => $routeParameter,
-            'entity'          => $document,
+            'entity'          => $object,
             'context'         => [
                 'site' => $site
             ]
         ];
         
-       $zoneAwareI18nContext = $this->i18nContextManager->buildContextByParameters($zoneAwareParameters, true);
+       $zoneAwareI18nContext = $this->i18nContextManager->buildContextByParameters(RouteItemInterface::STATIC_ROUTE, $zoneAwareParameters, true);
        
        dump($zoneAwareI18nContext);
     }

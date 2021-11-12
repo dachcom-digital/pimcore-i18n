@@ -7,6 +7,7 @@ class ZoneSite implements ZoneSiteInterface
     protected SiteRequestContext $siteRequestContext;
     protected int $rootId;
     protected bool $isRootDomain;
+    protected bool $isActive;
     protected ?string $locale;
     protected ?string $countryIso;
     protected string $languageIso;
@@ -23,6 +24,7 @@ class ZoneSite implements ZoneSiteInterface
         SiteRequestContext $siteRequestContext,
         int $rootId,
         bool $isRootDomain,
+        bool $isActive,
         ?string $locale,
         ?string $countryIso,
         string $languageIso,
@@ -38,6 +40,7 @@ class ZoneSite implements ZoneSiteInterface
         $this->siteRequestContext = $siteRequestContext;
         $this->rootId = $rootId;
         $this->isRootDomain = $isRootDomain;
+        $this->isActive = $isActive;
         $this->locale = $locale;
         $this->countryIso = $countryIso;
         $this->languageIso = $languageIso;
@@ -64,6 +67,11 @@ class ZoneSite implements ZoneSiteInterface
     public function isRootDomain(): bool
     {
         return $this->isRootDomain;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
     }
 
     public function getLocale(): ?string

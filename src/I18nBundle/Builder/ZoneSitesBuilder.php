@@ -4,12 +4,14 @@ namespace I18nBundle\Builder;
 
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Definitions;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Model\ZoneSite;
 use I18nBundle\Model\ZoneSiteInterface;
 use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Model\SiteRequestContext;
 use Pimcore\Db\Connection;
 use Pimcore\Model\Document;
+use Pimcore\Model\Site;
 
 class ZoneSitesBuilder
 {
@@ -27,25 +29,34 @@ class ZoneSitesBuilder
         $this->configuration = $configuration;
     }
 
-    public function buildZoneSites(ZoneInterface $zone, bool $isFrontendRequestByAdmin = false): array
+    public function buildZoneSites(ZoneInterface $zone, RouteItemInterface $routeItem, bool $fullBootstrap = false, bool $isFrontendRequestByAdmin = false): array
     {
         $zoneSites = [];
+        $routeItemLocale = $routeItem->getLocaleFragment();
+
+        if ($fullBootstrap === false) {
+            // we don't have a zone id, so no site context is needed!
+            if ($zone->getId() === null) {
+                $virtualZoneSite = $this->buildVirtualZoneSite();
+                $zoneSites[] = $this->createZoneSite($zone, $isFrontendRequestByAdmin, $virtualZoneSite['mainDomain'], $virtualZoneSite['rootId'], $routeItemLocale, $fullBootstrap);
+            } else {
+                /** @var Site $site */
+                $site = $routeItem->getRouteContextBag()->get('site');
+                $zoneSites[] = $this->createZoneSite($zone, $isFrontendRequestByAdmin, $site->getMainDomain(), $site->getRootId(), $routeItemLocale, $fullBootstrap);
+            }
+
+            return $zoneSites;
+        }
+
         $availableSites = $this->fetchAvailableSites();
 
-        //it's a simple page, no sites: create a default one
+        //it's a simple page, no sites: create a virtual one
         if (count($availableSites) === 0) {
-
-            $hostUrl = !empty($this->generalDomain) && $this->generalDomain !== 'localhost' ? $this->generalDomain : \Pimcore\Tool::getHostUrl();
-            $realHostUrl = parse_url($hostUrl, PHP_URL_HOST);
-
-            $availableSites[] = [
-                'mainDomain' => $realHostUrl ?? '',
-                'rootId'     => 1
-            ];
+            $availableSites[] = $this->buildVirtualZoneSite();
         }
 
         foreach ($availableSites as $site) {
-            $zoneSite = $this->createZoneSite($zone, $isFrontendRequestByAdmin, $site['mainDomain'], $site['rootId']);
+            $zoneSite = $this->createZoneSite($zone, $isFrontendRequestByAdmin, $site['mainDomain'], $site['rootId'], $routeItemLocale, $fullBootstrap);
             if ($zoneSite instanceof ZoneSiteInterface) {
                 $zoneSites[] = $zoneSite;
             }
@@ -58,23 +69,26 @@ class ZoneSitesBuilder
         ZoneInterface $zone,
         bool $isFrontendRequestByAdmin,
         string $mainDomain,
-        int $rootId
+        int $rootId,
+        ?string $routeItemLocale,
+        bool $fullBootstrap
     ): ?ZoneSiteInterface {
 
+        $subPages = [];
         $domainDoc = Document::getById($rootId);
 
         if (!$domainDoc instanceof Document) {
             return null;
         }
 
-        $currentZoneDomainConfiguration = null;
+        $zoneDomainConfiguration = null;
         $valid = $zone->getId() === null;
 
         if ($zone->getId() !== null && !empty($zone->getDomains())) {
-            foreach ($zone->getDomains() as $currentZoneDomain) {
-                $currentZoneDomainHost = is_array($currentZoneDomain) ? $currentZoneDomain[0] : $currentZoneDomain;
+            foreach ($zone->getDomains() as $zoneDomain) {
+                $currentZoneDomainHost = is_array($zoneDomain) ? $zoneDomain[0] : $zoneDomain;
                 if ($mainDomain === $currentZoneDomainHost) {
-                    $currentZoneDomainConfiguration = $currentZoneDomain;
+                    $zoneDomainConfiguration = $zoneDomain;
                     $valid = true;
 
                     break;
@@ -87,143 +101,25 @@ class ZoneSitesBuilder
             return null;
         }
 
-        $siteRequestContext = $this->generateSiteRequestContext($mainDomain, $currentZoneDomainConfiguration);
-
-        $isRootDomain = false;
-        $subPages = [];
-
-        $docLocale = $domainDoc->getProperty('language');
-        $docCountryIso = null;
-
-        if ($zone->getMode() === 'country' && !empty($docLocale)) {
-            $docCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
-        }
-
-        if (str_contains($docLocale, '_')) {
-            $parts = explode('_', $docLocale);
-            if (isset($parts[1]) && !empty($parts[1])) {
-                $docCountryIso = $parts[1];
-            }
-        }
-
-        //domain has language, it's the root.
-        if (!empty($docLocale)) {
-            $isRootDomain = true;
-            if (!in_array($docLocale, array_column($zone->getActiveLocales(), 'locale'), true)) {
-                return null;
-            }
-        } else {
-            $children = $domainDoc->getChildren(true);
-
-            foreach ($children as $child) {
-
-                if (!in_array($child->getType(), ['page', 'hardlink', 'link'], true)) {
-                    continue;
-                }
-
-                $urlKey = $child->getKey();
-                $docUrl = $urlKey;
-                $validPath = true;
-                $loopDetector = [];
-
-                //detect real doc url: if page is a link, move to target until we found a real document.
-                if ($child->getType() === 'link') {
-                    /** @var Document\Link $linkChild */
-                    $linkChild = $child;
-                    while ($linkChild instanceof Document\Link) {
-                        if (in_array($linkChild->getPath(), $loopDetector, true)) {
-                            $validPath = false;
-
-                            break;
-                        }
-
-                        if ($linkChild->getLinktype() !== 'internal') {
-                            $validPath = false;
-
-                            break;
-                        }
-
-                        if ($linkChild->getInternalType() !== 'document') {
-                            $validPath = false;
-
-                            break;
-                        }
-
-                        $loopDetector[] = $linkChild->getPath();
-                        $linkChild = Document::getById($linkChild->getInternal());
-
-                        if (!$linkChild instanceof Document) {
-                            $validPath = false;
-
-                            break;
-                        }
-
-                        $isPublishedMode = $linkChild->isPublished() === true || $isFrontendRequestByAdmin;
-                        if ($isPublishedMode === false) {
-                            $validPath = false;
-
-                            break;
-                        }
-
-                        // we can't use getFullPath since i18n will transform the path since it could be a "out-of-context" link.
-                        $docUrl = ltrim($linkChild->getPath(), DIRECTORY_SEPARATOR) . $linkChild->getKey();
-                    }
-                }
-
-                $isPublishedMode = $child->isPublished() === true || $isFrontendRequestByAdmin;
-                if ($validPath === false || $isPublishedMode === false) {
-                    continue;
-                }
-
-                $childDocLocale = $child->getProperty('language');
-                $childCountryIso = null;
-
-                if ($zone->getMode() === 'country') {
-                    $childCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
-                }
-
-                if (str_contains($childDocLocale, '_')) {
-                    $parts = explode('_', $childDocLocale);
-                    if (isset($parts[1]) && !empty($parts[1])) {
-                        $childCountryIso = $parts[1];
-                    }
-                }
-
-                if (empty($childDocLocale) || !in_array($childDocLocale, array_column($zone->getActiveLocales(), 'locale'), true)) {
-                    continue;
-                }
-
-                $domainUrlWithKey = rtrim($siteRequestContext->getDomainUrl() . DIRECTORY_SEPARATOR . $urlKey, DIRECTORY_SEPARATOR);
-                $homeDomainUrlWithKey = rtrim($siteRequestContext->getDomainUrl() . DIRECTORY_SEPARATOR . $docUrl, DIRECTORY_SEPARATOR);
-
-                $realLang = explode('_', $childDocLocale);
-                $hrefLang = strtolower($realLang[0]);
-                if (!empty($childCountryIso) && $childCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
-                    $hrefLang .= '-' . strtolower($childCountryIso);
-                }
-
-                $subPages[] = new ZoneSite(
-                    $siteRequestContext,
-                    $child->getId(),
-                    false,
-                    $childDocLocale,
-                    $childCountryIso,
-                    $realLang[0],
-                    $hrefLang,
-                    $urlKey,
-                    $domainUrlWithKey,
-                    $homeDomainUrlWithKey,
-                    $domainDoc->getRealFullPath(),
-                    $child->getRealFullPath(),
-                    $child->getType()
-                );
-            }
-        }
-
         $hrefLang = '';
         $docRealLanguageIso = '';
+        $docCountryIso = null;
+        $docLocale = $domainDoc->getProperty('language');
+        $siteRequestContext = $this->generateSiteRequestContext($mainDomain, $zoneDomainConfiguration);
 
         if (!empty($docLocale)) {
+
+            if ($zone->getMode() === 'country') {
+                $docCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
+            }
+
+            if (str_contains($docLocale, '_')) {
+                $parts = explode('_', $docLocale);
+                if (isset($parts[1]) && !empty($parts[1])) {
+                    $docCountryIso = $parts[1];
+                }
+            }
+
             $realLang = explode('_', $docLocale);
             $docRealLanguageIso = $realLang[0];
             $hrefLang = strtolower($docRealLanguageIso);
@@ -232,10 +128,26 @@ class ZoneSitesBuilder
             }
         }
 
+        // domain has locale property, so there are no subpages
+        $isRootDomain = !empty($docLocale);
+
+        // if it's root domain, check if it's allowed for active locales
+        if ($isRootDomain === true && !in_array($docLocale, array_column($zone->getActiveLocales(), 'locale'), true)) {
+            return null;
+        }
+
+        // we're only booting a specific locale. skip subpage rendering!
+        if ($fullBootstrap === false && $isRootDomain === true && $docLocale === $routeItemLocale) {
+            $subPages = [];
+        } else {
+            $subPages = $this->createSubSites($domainDoc, $zone, $siteRequestContext, $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
+        }
+
         return new ZoneSite(
             $siteRequestContext,
             $rootId,
             $isRootDomain,
+            $docLocale === $routeItemLocale,
             $docLocale,
             $docCountryIso,
             $docRealLanguageIso,
@@ -248,6 +160,139 @@ class ZoneSitesBuilder
             $domainDoc->getType(),
             $subPages
         );
+    }
+
+    protected function createSubSites(
+        Document $domainDoc,
+        ZoneInterface $zone,
+        SiteRequestContext $siteRequestContext,
+        bool $isFrontendRequestByAdmin,
+        ?string $routeItemLocale,
+        bool $fullBootstrap
+    ): array {
+
+        $subPages = [];
+        $children = $domainDoc->getChildren(true);
+
+        $processedChildLocales = [];
+
+        foreach ($children as $child) {
+
+            $validPath = true;
+            $loopDetector = [];
+            $childCountryIso = null;
+            $urlKey = $child->getKey();
+            $docUrl = $urlKey;
+            $childDocLocale = $child->getProperty('language');
+
+            if (!in_array($child->getType(), ['page', 'hardlink', 'link'], true)) {
+                continue;
+            }
+
+            // we're only booting a specific locale. skip other subpage rendering if specific has been found!
+            if ($fullBootstrap === false && in_array($routeItemLocale, $processedChildLocales, true)) {
+                return $subPages;
+            }
+
+            // we're only booting a specific locale. skip other subpage but parse only requested one!
+            if ($fullBootstrap === false && $routeItemLocale !== $childDocLocale) {
+                continue;
+            }
+
+            //detect real doc url: if page is a link, move to target until we found a real document.
+            if ($child->getType() === 'link') {
+                /** @var Document\Link $linkChild */
+                $linkChild = $child;
+                while ($linkChild instanceof Document\Link) {
+                    if (in_array($linkChild->getPath(), $loopDetector, true)) {
+                        $validPath = false;
+
+                        break;
+                    }
+
+                    if ($linkChild->getLinktype() !== 'internal') {
+                        $validPath = false;
+
+                        break;
+                    }
+
+                    if ($linkChild->getInternalType() !== 'document') {
+                        $validPath = false;
+
+                        break;
+                    }
+
+                    $loopDetector[] = $linkChild->getPath();
+                    $linkChild = Document::getById($linkChild->getInternal());
+
+                    if (!$linkChild instanceof Document) {
+                        $validPath = false;
+
+                        break;
+                    }
+
+                    $isPublishedMode = $linkChild->isPublished() === true || $isFrontendRequestByAdmin;
+                    if ($isPublishedMode === false) {
+                        $validPath = false;
+
+                        break;
+                    }
+
+                    // we can't use getFullPath since i18n will transform the path since it could be a "out-of-context" link.
+                    $docUrl = ltrim($linkChild->getPath(), DIRECTORY_SEPARATOR) . $linkChild->getKey();
+                }
+            }
+
+            $isPublishedMode = $child->isPublished() === true || $isFrontendRequestByAdmin;
+            if ($validPath === false || $isPublishedMode === false) {
+                continue;
+            }
+
+            if ($zone->getMode() === 'country') {
+                $childCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
+            }
+
+            if (str_contains($childDocLocale, '_')) {
+                $parts = explode('_', $childDocLocale);
+                if (isset($parts[1]) && !empty($parts[1])) {
+                    $childCountryIso = $parts[1];
+                }
+            }
+
+            if (empty($childDocLocale) || !in_array($childDocLocale, array_column($zone->getActiveLocales(), 'locale'), true)) {
+                continue;
+            }
+
+            $processedChildLocales[] = $childDocLocale;
+
+            $domainUrlWithKey = rtrim($siteRequestContext->getDomainUrl() . DIRECTORY_SEPARATOR . $urlKey, DIRECTORY_SEPARATOR);
+            $homeDomainUrlWithKey = rtrim($siteRequestContext->getDomainUrl() . DIRECTORY_SEPARATOR . $docUrl, DIRECTORY_SEPARATOR);
+
+            $realLang = explode('_', $childDocLocale);
+            $hrefLang = strtolower($realLang[0]);
+            if (!empty($childCountryIso) && $childCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
+                $hrefLang .= '-' . strtolower($childCountryIso);
+            }
+
+            $subPages[] = new ZoneSite(
+                $siteRequestContext,
+                $child->getId(),
+                false,
+                $routeItemLocale === $childDocLocale,
+                $childDocLocale,
+                $childCountryIso,
+                $realLang[0],
+                $hrefLang,
+                $urlKey,
+                $domainUrlWithKey,
+                $homeDomainUrlWithKey,
+                $domainDoc->getRealFullPath(),
+                $child->getRealFullPath(),
+                $child->getType()
+            );
+        }
+
+        return $subPages;
     }
 
     protected function generateSiteRequestContext(string $domain, mixed $domainConfiguration): SiteRequestContext
@@ -290,4 +335,16 @@ class ZoneSitesBuilder
     {
         return $this->db->fetchAllAssociative('SELECT `mainDomain`, `rootId` FROM sites');
     }
+
+    protected function buildVirtualZoneSite(): array
+    {
+        $hostUrl = !empty($this->generalDomain) && $this->generalDomain !== 'localhost' ? $this->generalDomain : \Pimcore\Tool::getHostUrl();
+        $realHostUrl = parse_url($hostUrl, PHP_URL_HOST);
+
+        return [
+            'mainDomain' => $realHostUrl ?? '',
+            'rootId'     => 1
+        ];
+    }
+
 }

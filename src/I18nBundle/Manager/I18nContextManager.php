@@ -52,12 +52,12 @@ class I18nContextManager
      * @throws ZoneSiteNotFoundException
      * @throws RouteItemException
      */
-    public function buildContextByParameters(string $type, array $i18nRouteParameters, bool $bootPathGenerator = false): I18nContextInterface
+    public function buildContextByParameters(string $type, array $i18nRouteParameters, bool $fullBootstrap = false): I18nContextInterface
     {
         $routeItem = $this->routeItemBuilder->buildRouteItemByParameters($type, $i18nRouteParameters);
 
-        $zone = $this->setupZone($routeItem, false);
-        $pathGenerator = $this->setupPathGenerator($routeItem, $bootPathGenerator);
+        $zone = $this->setupZone($routeItem, false, $fullBootstrap);
+        $pathGenerator = $this->setupPathGenerator($routeItem, $fullBootstrap);
         $localeDefinition = $this->buildLocaleDefinition($routeItem);
 
         return new I18nContext($routeItem, $zone, $localeDefinition, $pathGenerator);
@@ -67,20 +67,20 @@ class I18nContextManager
      * @throws ZoneSiteNotFoundException
      * @throws RouteItemException
      */
-    public function buildContextByRequest(Request $baseRequest, ?Document $baseDocument, bool $bootPathGenerator = false): I18nContextInterface
+    public function buildContextByRequest(Request $baseRequest, ?Document $baseDocument, bool $fullBootstrap = false): I18nContextInterface
     {
         $routeItem = $this->routeItemBuilder->buildRouteItemByRequest($baseRequest, $baseDocument);
 
-        $zone = $this->setupZone($routeItem, $this->requestHelper->isFrontendRequestByAdmin($baseRequest));
-        $pathGenerator = $this->setupPathGenerator($routeItem, $bootPathGenerator);
+        $zone = $this->setupZone($routeItem, $this->requestHelper->isFrontendRequestByAdmin($baseRequest), $fullBootstrap);
+        $pathGenerator = $this->setupPathGenerator($routeItem, $fullBootstrap);
         $localeDefinition = $this->buildLocaleDefinition($routeItem);
 
         return new I18nContext($routeItem, $zone, $localeDefinition, $pathGenerator);
     }
 
-    protected function setupPathGenerator(RouteItemInterface $routeItem, bool $bootPathGenerator = false): ?PathGeneratorInterface
+    protected function setupPathGenerator(RouteItemInterface $routeItem, bool $fullBootstrap = false): ?PathGeneratorInterface
     {
-        if ($bootPathGenerator === false) {
+        if ($fullBootstrap === false) {
             return null;
         }
 
@@ -94,7 +94,7 @@ class I18nContextManager
         return $pathGenerator;
     }
 
-    protected function setupZone(RouteItemInterface $routeItem, bool $isFrontendRequestByAdmin = false): ZoneInterface
+    protected function setupZone(RouteItemInterface $routeItem, bool $isFrontendRequestByAdmin = false, bool $fullBootstrap = false): ZoneInterface
     {
         $zone = $this->zoneBuilder->buildZone($routeItem);
 
@@ -102,7 +102,7 @@ class I18nContextManager
         // since they are kind of internal!
         if ($zone instanceof Zone) {
             $zone->processProviderLocales($this->localeProviderRegistry->get($zone->getLocaleAdapterName()));
-            $zone->setSites($this->zoneSitesBuilder->buildZoneSites($zone, $isFrontendRequestByAdmin));
+            $zone->setSites($this->zoneSitesBuilder->buildZoneSites($zone, $routeItem, $fullBootstrap, $isFrontendRequestByAdmin));
         }
 
         return $zone;

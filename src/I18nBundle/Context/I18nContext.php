@@ -19,7 +19,11 @@ class I18nContext implements I18nContextInterface
     protected ZoneInterface $zone;
     protected LocaleDefinitionInterface $localeDefinition;
     protected ?PathGeneratorInterface $pathGenerator;
+    protected ?ZoneSiteInterface $currentZoneSite = null;
 
+    /**
+     * @throws ZoneSiteNotFoundException
+     */
     public function __construct(
         RouteItemInterface $routeItem,
         ZoneInterface $zone,
@@ -30,6 +34,7 @@ class I18nContext implements I18nContextInterface
         $this->zone = $zone;
         $this->pathGenerator = $pathGenerator;
         $this->localeDefinition = $localeDefinition;
+        $this->currentZoneSite = $this->determinateCurrentZoneSite();
     }
 
     public function getRouteItem(): RouteItemInterface
@@ -49,36 +54,7 @@ class I18nContext implements I18nContextInterface
 
     public function getCurrentZoneSite(): ZoneSiteInterface
     {
-        $sites = $this->zone->getSites(true);
-        $locale = $this->localeDefinition->getLocale();
-        $zoneIdentifier = $this->zone->getId() ?? 0;
-
-        if (empty($locale)) {
-            throw new ZoneSiteNotFoundException(
-                sprintf(
-                    'Cannot determinate current site with empty locale in zone %d',
-                    $zoneIdentifier
-                )
-            );
-        }
-
-        $availableZoneSiteLocales = array_map(static function (ZoneSiteInterface $site) {
-            return $site->getLocale();
-        }, $sites);
-
-        $treeIndex = array_search($locale, $availableZoneSiteLocales, true);
-
-        if ($treeIndex === false) {
-            throw new ZoneSiteNotFoundException(
-                sprintf(
-                    'No zone site for locale "%s" found. Available zone (Id: %d) site locales: %s',
-                    $locale,
-                    $zoneIdentifier,
-                    implode(', ', $availableZoneSiteLocales))
-            );
-        }
-
-        return $sites[$treeIndex];
+        return $this->currentZoneSite;
     }
 
     public function getCurrentLocale(): ?string
@@ -290,6 +266,43 @@ class I18nContext implements I18nContextInterface
         }
 
         return null;
+    }
+
+    protected function determinateCurrentZoneSite(): ?ZoneSiteInterface
+    {
+        $sites = $this->zone->getSites(true);
+        $locale = $this->localeDefinition->getLocale();
+        $zoneIdentifier = $this->zone->getId() ?? 0;
+
+        if (empty($locale)) {
+            return null;
+        }
+
+        $activeSites = array_values(array_filter($sites, static function (ZoneSiteInterface $site) {
+            return $site->isActive() === true;
+        }));
+
+        if (count($activeSites) === 0) {
+            throw new ZoneSiteNotFoundException(sprintf(
+                'No zone site for locale "%s" found. Available zone (Id %d) site locales: %s',
+                $locale,
+                $zoneIdentifier,
+                implode(', ', array_map(static function (ZoneSiteInterface $site) {
+                    return $site->getLocale();
+                }, $sites))
+            ));
+        } elseif (count($activeSites) > 1) {
+            throw new ZoneSiteNotFoundException(sprintf(
+                'Ambiguous locale definition for zone (Id %d) sites detected ("%s" was requested, multiple paths [%s] matched).',
+                $locale,
+                implode(', ', array_map(static function (ZoneSiteInterface $site) {
+                    return $site->getFullPath();
+                }, $activeSites)),
+                $zoneIdentifier
+            ));
+        }
+
+        return $activeSites[0];
     }
 
     /**

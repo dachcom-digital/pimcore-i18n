@@ -20,7 +20,10 @@ class LocalizedErrorDocumentsCest
             ]
         ]);
 
+        // we need to unpublish the default page here
+        // since the default error page is placed on root level (defined in system.yaml)
         $defaultErrorDocument = $I->haveAPageDocument('error', [], 'en');
+        $I->haveAUnPublishedDocument($defaultErrorDocument);
 
         $document1 = $I->haveAPageDocument('en', [], 'en');
         $document2 = $I->haveAPageDocument('de', [], 'de');
