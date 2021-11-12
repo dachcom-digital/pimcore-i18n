@@ -52,9 +52,13 @@ class I18nContextManager
      * @throws ZoneSiteNotFoundException
      * @throws RouteItemException
      */
-    public function buildContextByParameters(string $type, array $i18nRouteParameters, bool $fullBootstrap = false): I18nContextInterface
+    public function buildContextByParameters(string $type, array $i18nRouteParameters, bool $fullBootstrap = false): ?I18nContextInterface
     {
         $routeItem = $this->routeItemBuilder->buildRouteItemByParameters($type, $i18nRouteParameters);
+
+        if (!$routeItem instanceof RouteItemInterface) {
+            return null;
+        }
 
         $zone = $this->setupZone($routeItem, false, $fullBootstrap);
         $pathGenerator = $this->setupPathGenerator($routeItem, $fullBootstrap);
@@ -67,9 +71,13 @@ class I18nContextManager
      * @throws ZoneSiteNotFoundException
      * @throws RouteItemException
      */
-    public function buildContextByRequest(Request $baseRequest, ?Document $baseDocument, bool $fullBootstrap = false): I18nContextInterface
+    public function buildContextByRequest(Request $baseRequest, ?Document $baseDocument, bool $fullBootstrap = false): ?I18nContextInterface
     {
         $routeItem = $this->routeItemBuilder->buildRouteItemByRequest($baseRequest, $baseDocument);
+
+        if (!$routeItem instanceof RouteItemInterface) {
+            return null;
+        }
 
         $zone = $this->setupZone($routeItem, $this->requestHelper->isFrontendRequestByAdmin($baseRequest), $fullBootstrap);
         $pathGenerator = $this->setupPathGenerator($routeItem, $fullBootstrap);

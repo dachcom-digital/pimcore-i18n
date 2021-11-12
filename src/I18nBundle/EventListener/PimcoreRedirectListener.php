@@ -3,6 +3,7 @@
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Adapter\Redirector\CookieRedirector;
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Exception\RouteItemException;
 use I18nBundle\Exception\ZoneSiteNotFoundException;
 use I18nBundle\Helper\RequestValidatorHelper;
@@ -128,6 +129,10 @@ class PimcoreRedirectListener implements EventSubscriberInterface
         }
 
         $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
+
+        if (!$i18nContext instanceof I18nContextInterface) {
+            return $response;
+        }
 
         $redirectorBag = new RedirectorBag([
             'i18nContext' => $i18nContext,

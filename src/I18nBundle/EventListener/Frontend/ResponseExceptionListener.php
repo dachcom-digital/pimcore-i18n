@@ -2,6 +2,7 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Exception\RouteItemException;
 use I18nBundle\Exception\ZoneSiteNotFoundException;
 use I18nBundle\Http\I18nContextResolverInterface;
@@ -112,6 +113,10 @@ class ResponseExceptionListener implements EventSubscriberInterface
         }
 
         $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
+
+        if (!$i18nContext instanceof I18nContextInterface) {
+            return;
+        }
 
         $this->i18nContextResolver->setContext($i18nContext, $request);
 

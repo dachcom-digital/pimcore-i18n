@@ -32,7 +32,7 @@ class RouteModifier
         $this->i18nContextManager = $i18nContextManager;
     }
 
-    public function generateI18nContext(string $name, $parameters = []): I18nContextInterface
+    public function generateI18nContext(string $name, $parameters = []): ?I18nContextInterface
     {
         $i18nParameters = $parameters[Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER];
         $i18nType = $i18nParameters['type'] ?? '';

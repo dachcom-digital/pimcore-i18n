@@ -2,6 +2,7 @@
 
 namespace I18nBundle\EventListener;
 
+use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Manager\I18nContextManager;
 use Pimcore\Tool\Admin;
@@ -101,6 +102,10 @@ class I18nStartupListener implements EventSubscriberInterface
         $request->setLocale($documentLocale ?? '');
 
         $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
+
+        if (!$i18nContext instanceof I18nContextInterface) {
+            return;
+        }
 
         $this->i18nContextResolver->setContext($i18nContext, $request);
 

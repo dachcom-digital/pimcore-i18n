@@ -53,7 +53,7 @@ class I18nExtension extends AbstractExtension
         return $this->i18nContextResolver->getContext($this->requestStack->getCurrentRequest());
     }
 
-    public function createI18nContextByEntity(ElementInterface $entity, array $routeParameter = [], ?Site $site = null): I18nContextInterface
+    public function createI18nContextByEntity(ElementInterface $entity, array $routeParameter = [], ?Site $site = null): ?I18nContextInterface
     {
         $routeItemParameters = [
             'routeParameters' => $routeParameter,
@@ -74,7 +74,7 @@ class I18nExtension extends AbstractExtension
         return $this->i18nContextManager->buildContextByParameters($type, $routeItemParameters, true);
     }
 
-    public function createI18nContextByStaticRoute(string $route, array $routeParameter = [], ?Site $site = null): I18nContextInterface
+    public function createI18nContextByStaticRoute(string $route, array $routeParameter = [], ?Site $site = null): ?I18nContextInterface
     {
         $routeItemParameters = [
             'routeParameters' => $routeParameter,
@@ -87,7 +87,7 @@ class I18nExtension extends AbstractExtension
         return $this->i18nContextManager->buildContextByParameters(RouteItemInterface::STATIC_ROUTE, $routeItemParameters, true);
     }
 
-    public function createI18nContextBySymfonyRoute(string $route, array $routeParameter = [], ?Site $site = null): I18nContextInterface
+    public function createI18nContextBySymfonyRoute(string $route, array $routeParameter = [], ?Site $site = null): ?I18nContextInterface
     {
         $routeItemParameters = [
             'routeParameters' => $routeParameter,

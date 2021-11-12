@@ -67,7 +67,7 @@ class RouteItemBuilder
     /**
      * @throws RouteItemException
      */
-    public function buildRouteItemByRequest(Request $baseRequest, ?Document $baseDocument): RouteItemInterface
+    public function buildRouteItemByRequest(Request $baseRequest, ?Document $baseDocument): ?RouteItemInterface
     {
         $site = null;
         $editMode = $this->editModeResolver->isEditmode($baseRequest);
@@ -99,7 +99,7 @@ class RouteItemBuilder
         }
 
         if ($routeItem === null) {
-            throw new RouteItemException('Cannot build route item for type because request route type cannot be detected');
+            return null;
         }
 
         $routeItem->setRouteName($currentRouteName);
