@@ -136,12 +136,8 @@ class ZoneSitesBuilder
             return null;
         }
 
-        // we're only booting a specific locale. skip subpage rendering!
-        if ($fullBootstrap === false && $isRootDomain === true && $docLocale === $routeItemLocale) {
-            $subPages = [];
-        } else {
-            $subPages = $this->createSubSites($domainDoc, $zone, $siteRequestContext, $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
-        }
+        // do not render sub pages if current domain is root domain
+        $subPages = $isRootDomain === true ? [] : $this->createSubSites($domainDoc, $zone, $siteRequestContext, $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
 
         return new ZoneSite(
             $siteRequestContext,

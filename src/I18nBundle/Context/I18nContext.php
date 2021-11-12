@@ -294,11 +294,11 @@ class I18nContext implements I18nContextInterface
         } elseif (count($activeSites) > 1) {
             throw new ZoneSiteNotFoundException(sprintf(
                 'Ambiguous locale definition for zone (Id %d) sites detected ("%s" was requested, multiple paths [%s] matched).',
+                $zoneIdentifier,
                 $locale,
                 implode(', ', array_map(static function (ZoneSiteInterface $site) {
                     return $site->getFullPath();
-                }, $activeSites)),
-                $zoneIdentifier
+                }, $activeSites))
             ));
         }
 
