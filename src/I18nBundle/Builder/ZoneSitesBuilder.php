@@ -335,7 +335,7 @@ class ZoneSitesBuilder
     protected function buildVirtualZoneSite(): array
     {
         $hostUrl = !empty($this->generalDomain) && $this->generalDomain !== 'localhost' ? $this->generalDomain : \Pimcore\Tool::getHostUrl();
-        $realHostUrl = parse_url($hostUrl, PHP_URL_HOST);
+        $realHostUrl = str_contains($hostUrl, 'http') ? parse_url($hostUrl, PHP_URL_HOST) : $hostUrl;
 
         return [
             'mainDomain' => $realHostUrl ?? '',
