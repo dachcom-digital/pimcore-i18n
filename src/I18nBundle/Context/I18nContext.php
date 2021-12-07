@@ -148,7 +148,7 @@ class I18nContext implements I18nContextInterface
             $languageData['active'] = $site->getLanguageIso() === $this->localeDefinition->getLanguageIso();
             foreach ($linkedLanguages as $linkedLanguage) {
                 if ($linkedLanguage['languageIso'] === $site->getLanguageIso()) {
-                    $languageData['linkedHref'] = $site->getUrl();
+                    $languageData['linkedHref'] = $linkedLanguage['url'];
 
                     break;
                 }
