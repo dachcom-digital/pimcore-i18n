@@ -44,7 +44,7 @@ class PimcoreRedirectCest
 
         $redirect = [
             'type'       => 'entire_uri',
-            'source'     => '@https?://test-domain3\.test@',
+            'source'     => '@http://test-domain3\.test@',
             'sourceSite' => null,
             'target'     => sprintf('/{i18n_localized_target_page=%s}', $document2->getId()),
             'targetSite' => null,
