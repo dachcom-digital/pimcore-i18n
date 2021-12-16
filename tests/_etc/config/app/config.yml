@@ -27,3 +27,5 @@ framework:
         transports:
             main: 'null://null'
             pimcore_newsletter: 'null://null'
+    session:
+        cookie_secure: false
