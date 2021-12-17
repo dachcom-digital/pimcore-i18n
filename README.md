@@ -73,6 +73,7 @@ Does actually the same as the update command and preferred in CI-Workflow:
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
 - [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in hardlinks.
 - [Navigation Caching](docs/110_NavigationCaching.md): Cache your navigation right!
+- [Cookie Settings](docs/120_CookieSettings.md): Change Symfony default cookie settings.
 
 ## Why is there no Version 1?
 There is already an i18n plugin for pimcore4 which is not public. With Pimcore5 we decided to move this project to a public github repository. You're welcome. :)
