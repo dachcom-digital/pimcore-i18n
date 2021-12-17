@@ -27,7 +27,7 @@ class CookieHelper
         $cookie = $request->cookies->get($key);
 
         if (is_null($cookie)) {
-            return false;
+            return null;
         }
 
         $cookieData = [];
