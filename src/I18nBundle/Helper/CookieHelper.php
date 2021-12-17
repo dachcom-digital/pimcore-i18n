@@ -16,13 +16,7 @@ class CookieHelper
         $this->configuration = $configuration;
     }
 
-    /**
-     * @param Request $request
-     * @param string  $key
-     *
-     * @return array|bool
-     */
-    public function get(Request $request, $key = Definitions::REDIRECT_COOKIE_NAME)
+    public function get(Request $request, string $key = Definitions::REDIRECT_COOKIE_NAME): ?array
     {
         $cookie = $request->cookies->get($key);
 
@@ -44,13 +38,7 @@ class CookieHelper
         return $cookieData;
     }
 
-    /**
-     * @param Response $response
-     * @param array    $params
-     *
-     * @return Cookie
-     */
-    public function set(Response $response, $params)
+    public function set(Response $response, array $params): Cookie
     {
         $cookieConfig = $this->configuration->getConfig('cookie');
 
