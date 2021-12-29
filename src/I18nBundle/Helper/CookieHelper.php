@@ -15,7 +15,8 @@ class CookieHelper
     /**
      * @param Configuration $configuration
      */
-    public function __construct(Configuration $configuration) {
+    public function __construct(Configuration $configuration)
+    {
         $this->configuration = $configuration;
     }
 
@@ -57,11 +58,11 @@ class CookieHelper
     {
         $cookieConfig = $this->configuration->getConfig('cookie');
 
-        $path = $cookieConfig['path'] ?? '/';
-        $domain = $cookieConfig['domain'] ?? null;
-        $secure = $cookieConfig['secure'] ?? false;
-        $httpOnly = $cookieConfig['httpOnly'] ?? true;
-        $sameSite = $cookieConfig['sameSite'] ?? Cookie::SAMESITE_LAX;
+        $path = $cookieConfig['path'];
+        $domain = $cookieConfig['domain'];
+        $secure = $cookieConfig['secure'];
+        $httpOnly = $cookieConfig['httpOnly'];
+        $sameSite = $cookieConfig['sameSite'];
 
         $cookieData = base64_encode(json_encode($params));
         $cookie = new Cookie(Definitions::REDIRECT_COOKIE_NAME, $cookieData, strtotime('+1 year'), $path, $domain, $secure, $httpOnly, false, $sameSite);

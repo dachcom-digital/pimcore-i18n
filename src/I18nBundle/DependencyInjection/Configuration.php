@@ -115,6 +115,7 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->arrayNode('cookie')
                     ->info('Cookie settings')
+                    ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('path')
                             ->defaultValue('/')
