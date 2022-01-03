@@ -1,7 +1,11 @@
 # Upgrade Notes
 
-## 4.0.1
+## 4.0.3
 - [IMPROVEMENT] Add cookie configuration [@tomhatzer](https://github.com/dachcom-digital/pimcore-i18n/issues/88)
+## 4.0.2
+- [BUGFIX] Fix real host [@pmoser](https://github.com/dachcom-digital/pimcore-i18n/pull/86)
+## 4.0.1
+- [BUGFIX] Allow empty route items
 
 ## Migrating from Version 3.x to Version 4.0
 
