@@ -78,6 +78,7 @@ When using this bundle, you should:
 - [Context Switch Event](docs/70_ContextSwitch.md): Detect zone/language/country switches.
 - [Canonical Links](docs/80_CanonicalLinks.md): Canonical links in hardlinks.
 - [Navigation Caching](docs/110_NavigationCaching.md): Cache your navigation right!
+- [Cookie Settings](docs/120_CookieSettings.md): Change Symfony default cookie settings.
 
 ## Copyright and License
 Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
