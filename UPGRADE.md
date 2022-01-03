@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 4.0.1
+- [IMPROVEMENT] Add cookie configuration [@tomhatzer](https://github.com/dachcom-digital/pimcore-i18n/issues/88)
+
 ## Migrating from Version 3.x to Version 4.0
 
 ⚠️ If you're still on version `2.x` or `< 3.2.8`, you need to update to `3.2.8` first, then [migrate](https://github.com/dachcom-digital/pimcore-i18n/blob/3.x/UPGRADE.md) to `3.3`. 
