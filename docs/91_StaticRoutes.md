@@ -102,7 +102,7 @@ Please be sure that all translation keys are also available in the pattern secti
 Now we'll add some configuration to translate this fragment:
 
 ```yaml
-# app/config/config.yaml
+# config/packages/i18n.yaml
 i18n:
 
     mode: country

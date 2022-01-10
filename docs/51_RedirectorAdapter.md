@@ -22,7 +22,7 @@ or by default locale defined in your pimcore system settings.
 By default, a redirect will be dispatched with code `302`. If you want to change it, you need to update your config:
 
 ```yaml
-# app/config/config.yaml
+# config/packages/i18n.yaml
 i18n:
     redirect_status_code: 301
 ```
@@ -30,7 +30,7 @@ i18n:
 ## Disable a Redirector
 
 ```yaml
-# app/config/config.yaml
+# config/packages/i18n.yaml
 i18n:
     registry:
         redirector:
@@ -43,7 +43,7 @@ i18n:
 ### 1. Create a Service
 
 ```yaml
-# app/config/services.yml
+# config/services.yml
 App\Services\I18nBundle\RedirectorAdapter\Website:
     parent: I18nBundle\Adapter\Redirector\AbstractRedirector
     public: false

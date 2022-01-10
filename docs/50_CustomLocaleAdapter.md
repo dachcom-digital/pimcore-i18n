@@ -20,7 +20,7 @@ App\Services\I18nBundle\LocaleAdapter\SpecialLocaleProvider:
 ### 2. Set Locale Adapter in your Configuration
 
 ```yaml
-# config/config.yaml
+# config/packages/i18n.yaml
 i18n:
     mode: country
     locale_adapter: special

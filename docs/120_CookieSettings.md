@@ -9,7 +9,7 @@ You can have custom settings with fallbacks to default by adding each of them to
 > Customizing the `raw` cookie parameter using this config is not implemented right now!
 
 ```yaml
-# app/config/config.yaml
+# config/packages/i18n.yaml
 i18n:
     cookie:
         path: '/yourpath/'
@@ -22,7 +22,7 @@ i18n:
 ### Default values
 
 ```yaml
-# app/config/config.yaml
+# config/packages/i18n.yaml
 i18n:
     cookie:
         path: '/'
