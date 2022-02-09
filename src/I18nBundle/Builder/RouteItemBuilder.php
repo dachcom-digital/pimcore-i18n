@@ -6,10 +6,10 @@ use I18nBundle\Definitions;
 use I18nBundle\Exception\RouteItemException;
 use I18nBundle\Factory\RouteItemFactory;
 use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
-use I18nBundle\Model\ZoneSiteInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use Pimcore\Http\Request\Resolver\SiteResolver;
+use Pimcore\Http\RequestHelper;
 use Pimcore\Model\DataObject\ClassDefinition\LinkGeneratorInterface;
 use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\Document;
@@ -21,21 +21,24 @@ use Symfony\Component\Routing\Generator\CompiledUrlGenerator;
 class RouteItemBuilder
 {
     protected ?FrameworkRouter $frameworkRouter = null;
+    protected RequestHelper $requestHelper;
     protected SiteResolver $siteResolver;
     protected EditmodeResolver $editModeResolver;
     protected RouteItemFactory $routeItemFactory;
 
     public function __construct(
+        RequestHelper $requestHelper,
         SiteResolver $siteResolver,
         EditmodeResolver $editModeResolver,
         RouteItemFactory $routeItemFactory
     ) {
+        $this->requestHelper = $requestHelper;
         $this->siteResolver = $siteResolver;
         $this->editModeResolver = $editModeResolver;
         $this->routeItemFactory = $routeItemFactory;
     }
 
-    public function setFrameworkRouter(FrameworkRouter $router)
+    public function setFrameworkRouter(FrameworkRouter $router): void
     {
         $this->frameworkRouter = $router;
     }
@@ -71,8 +74,9 @@ class RouteItemBuilder
     {
         $site = null;
         $editMode = $this->editModeResolver->isEditmode($baseRequest);
+        $isFrontendRequestByAdmin = $this->requestHelper->isFrontendRequestByAdmin($baseRequest);
 
-        if ($editMode === false) {
+        if ($editMode === false && $isFrontendRequestByAdmin === false) {
             if ($this->siteResolver->isSiteRequest($baseRequest)) {
                 $site = $this->siteResolver->getSite();
             }
