@@ -112,13 +112,15 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $request->attributes->set('_route', sprintf('document_%d', $document->getId()));
         }
 
-        $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
+        if (!$this->i18nContextResolver->hasContext($request)) {
+            $i18nContext = $this->i18nContextManager->buildContextByRequest($request, $document, true);
 
-        if (!$i18nContext instanceof I18nContextInterface) {
-            return;
+            if (!$i18nContext instanceof I18nContextInterface) {
+                return;
+            }
+
+            $this->i18nContextResolver->setContext($i18nContext, $request);
         }
-
-        $this->i18nContextResolver->setContext($i18nContext, $request);
 
         $this->enablePimcoreContext();
     }
