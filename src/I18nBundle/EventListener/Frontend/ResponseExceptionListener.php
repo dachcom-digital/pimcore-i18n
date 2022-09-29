@@ -101,8 +101,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $headers = [];
 
         $exception = $event->getThrowable();
-
-        if ($event->getThrowable() instanceof HttpExceptionInterface) {
+        if ($exception instanceof HttpExceptionInterface) {
             $statusCode = $exception->getStatusCode();
             $headers = $exception->getHeaders();
         }
