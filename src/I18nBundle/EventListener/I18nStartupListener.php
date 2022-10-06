@@ -85,7 +85,7 @@ class I18nStartupListener implements EventSubscriberInterface
             return;
         }
 
-        if ($document->getProperty('language') === null) {
+        if (!$document->getProperty('language')) {
             $this->buildEditModeResponse($event);
         }
     }
