@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 4.1.0
+- [BUGFIX] I18nContext is missing in static routes if fallback document is an instance of Document\Link [#105](https://github.com/dachcom-digital/pimcore-i18n/issues/105)
+
 ## 4.0.5
 - [BUGFIX] Wrong Error Page in Static Route Context  [@Zodiarc](https://github.com/dachcom-digital/pimcore-i18n/issues/96)
 - [BUGFIX] Properly overriding Pimcore ResponseExceptionListener and multisite error page [@Zodiarc](https://github.com/dachcom-digital/pimcore-i18n/pull/101)
