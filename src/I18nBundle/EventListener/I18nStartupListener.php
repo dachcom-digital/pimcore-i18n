@@ -73,7 +73,8 @@ class I18nStartupListener implements EventSubscriberInterface
             return;
         }
 
-        if ($document instanceof Document\Link) {
+        if ($document instanceof Document\Link && !$this->pimcoreDocumentResolver->isFallbackDocument($document)) {
+            // only skip context building if the *requested* document is a link
             return;
         }
 
