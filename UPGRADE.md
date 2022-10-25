@@ -1,9 +1,10 @@
 # Upgrade Notes
 
+## 4.0.6
+- [BUGFIX] Fix missing site attribute in error page [#107](https://github.com/dachcom-digital/pimcore-i18n/issues/107)
 ## 4.0.5
 - [BUGFIX] Wrong Error Page in Static Route Context  [@Zodiarc](https://github.com/dachcom-digital/pimcore-i18n/issues/96)
 - [BUGFIX] Properly overriding Pimcore ResponseExceptionListener and multisite error page [@Zodiarc](https://github.com/dachcom-digital/pimcore-i18n/pull/101)
-
 ## 4.0.4
 - [IMPROVEMENT] Check against `isFrontendRequestByAdmin` in route item builder
 ## 4.0.3
