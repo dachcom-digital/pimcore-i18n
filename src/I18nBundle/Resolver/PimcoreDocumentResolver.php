@@ -45,6 +45,15 @@ class PimcoreDocumentResolver implements PimcoreDocumentResolverInterface
         return $this->findFallback($request);
     }
 
+    public function isFallbackDocument(Document $document): bool
+    {
+        if (!$this->nearestDocument instanceof Document) {
+            return false;
+        }
+
+        return $this->nearestDocument->getId() === $document->getId();
+    }
+
     protected function findFallback(Request $request): ?Document
     {
         if (!$this->requestHelper->matchesDefaultPimcoreContext($request)) {
