@@ -141,10 +141,14 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $this->enablePimcoreContext();
 
         try {
-            $response = $this->documentRenderer->render($document, [
-                'exception' => $exception,
+            $attributes = [
+                'exception'                                                       => $exception,
                 PimcoreContextListener::ATTRIBUTE_PIMCORE_CONTEXT_FORCE_RESOLVING => true,
-            ]);
+            ];
+            if ($request->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
+                $attributes[SiteResolver::ATTRIBUTE_SITE] = $request->attributes->get(SiteResolver::ATTRIBUTE_SITE);
+            }
+            $response = $this->documentRenderer->render($document, $attributes);
         } catch (\Exception $e) {
             // we are even not able to render the error page, so we send the client a unicorn
             $response = 'Page not found. 🦄';
