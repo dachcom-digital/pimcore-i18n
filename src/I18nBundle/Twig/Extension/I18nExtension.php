@@ -151,7 +151,7 @@ class I18nExtension extends AbstractExtension
             return ['site' => $request->attributes->get(SiteResolver::ATTRIBUTE_SITE)];
         }
 
-         if ($mainRequest instanceof Request && $mainRequest->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
+        if ($mainRequest instanceof Request && $mainRequest->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
             return ['site' => $mainRequest->attributes->get(SiteResolver::ATTRIBUTE_SITE)];
         }
 
