@@ -1,6 +1,7 @@
 # Upgrade Notes
 
-
+## 4.1.1
+- [BUGFIX] Pass request context within twig functions
 ## 4.1.0
 - [BUGFIX] I18nContext is missing in static routes if fallback document is an instance of Document\Link [#105](https://github.com/dachcom-digital/pimcore-i18n/issues/105)
 ## 4.0.6
