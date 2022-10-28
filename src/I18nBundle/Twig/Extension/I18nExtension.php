@@ -7,10 +7,12 @@ use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Manager\I18nContextManager;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Builder\RouteParameterBuilder;
+use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\Document;
 use Pimcore\Model\Element\ElementInterface;
 use Pimcore\Model\Site;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Extension\AbstractExtension;
@@ -107,7 +109,8 @@ class I18nExtension extends AbstractExtension
         $routeItemParameters = RouteParameterBuilder::buildForEntityWithRequest(
             $entity,
             $routeParameter,
-            $this->requestStack->getCurrentRequest()
+            $this->requestStack->getCurrentRequest(),
+            $this->getRequestContext()
         );
 
         return $this->urlGenerator->generate('', $routeItemParameters, $referenceType);
@@ -119,7 +122,8 @@ class I18nExtension extends AbstractExtension
 
         $routeItemParameters = RouteParameterBuilder::buildForStaticRouteWithRequest(
             $routeParameter,
-            $this->requestStack->getCurrentRequest()
+            $this->requestStack->getCurrentRequest(),
+            $this->getRequestContext()
         );
 
         return $this->urlGenerator->generate($route, $routeItemParameters, $referenceType);
@@ -131,10 +135,26 @@ class I18nExtension extends AbstractExtension
 
         $routeItemParameters = RouteParameterBuilder::buildForSymfonyRouteWithRequest(
             $routeParameter,
-            $this->requestStack->getCurrentRequest()
+            $this->requestStack->getCurrentRequest(),
+            $this->getRequestContext()
         );
 
         return $this->urlGenerator->generate($route, $routeItemParameters, $referenceType);
     }
 
+    private function getRequestContext(): array
+    {
+        $mainRequest = $this->requestStack->getMainRequest();
+        $request = $this->requestStack->getCurrentRequest();
+
+        if ($request instanceof Request && $request->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
+            return ['site' => $request->attributes->get(SiteResolver::ATTRIBUTE_SITE)];
+        }
+
+        if ($mainRequest instanceof Request && $mainRequest->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
+            return ['site' => $mainRequest->attributes->get(SiteResolver::ATTRIBUTE_SITE)];
+        }
+
+        return [];
+    }
 }

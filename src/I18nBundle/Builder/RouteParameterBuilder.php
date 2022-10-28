@@ -8,6 +8,7 @@ use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\Document;
 use Pimcore\Model\Element\ElementInterface;
+use Pimcore\Model\Site;
 use Pimcore\Tool;
 use Pimcore\Tool\Frontend;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
@@ -20,9 +21,9 @@ class RouteParameterBuilder
         return self::buildRouteParams(null, $routeParameter, $context, null, $element);
     }
 
-    public static function buildForEntityWithRequest(ElementInterface $element, array $routeParameter, Request $request): array
+    public static function buildForEntityWithRequest(ElementInterface $element, array $routeParameter, Request $request, array $requestContext = []): array
     {
-        return self::buildRouteParams(null, $routeParameter, [], $request, $element);
+        return self::buildRouteParams(null, $routeParameter, $requestContext, $request, $element);
     }
 
     public static function buildForStaticRoute(array $routeParameter, array $context = []): array
@@ -30,9 +31,9 @@ class RouteParameterBuilder
         return self::buildRouteParams(RouteItemInterface::STATIC_ROUTE, $routeParameter, $context);
     }
 
-    public static function buildForStaticRouteWithRequest(array $routeParameter, Request $request): array
+    public static function buildForStaticRouteWithRequest(array $routeParameter, Request $request, array $requestContext = []): array
     {
-        return self::buildRouteParams(RouteItemInterface::STATIC_ROUTE, $routeParameter, [], $request);
+        return self::buildRouteParams(RouteItemInterface::STATIC_ROUTE, $routeParameter, $requestContext, $request);
     }
 
     public static function buildForSymfonyRoute(array $routeParameter, array $context = []): array
@@ -40,9 +41,9 @@ class RouteParameterBuilder
         return self::buildRouteParams(RouteItemInterface::SYMFONY_ROUTE, $routeParameter, $context);
     }
 
-    public static function buildForSymfonyRouteWithRequest(array $routeParameter, Request $request): array
+    public static function buildForSymfonyRouteWithRequest(array $routeParameter, Request $request, array $requestContext = []): array
     {
-        return self::buildRouteParams(RouteItemInterface::SYMFONY_ROUTE, $routeParameter, [], $request);
+        return self::buildRouteParams(RouteItemInterface::SYMFONY_ROUTE, $routeParameter, $requestContext, $request);
     }
 
     private static function buildRouteParams(
@@ -84,9 +85,11 @@ class RouteParameterBuilder
             return [Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => $params];
         }
 
-        if ($request->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
+        $hasContextSite = isset($params['context']['site']) && $params['context']['site'] instanceof Site;
+
+        if ($hasContextSite === false && $request->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
             $params['context']['site'] = $request->attributes->get(SiteResolver::ATTRIBUTE_SITE);
-        } elseif (Tool::isFrontendRequestByAdmin($request) && $request->attributes->has(DynamicRouter::CONTENT_KEY)) {
+        } elseif ($hasContextSite === false && Tool::isFrontendRequestByAdmin($request) && $request->attributes->has(DynamicRouter::CONTENT_KEY)) {
             $params['context']['site'] = Frontend::getSiteForDocument($request->attributes->get(DynamicRouter::CONTENT_KEY));
         }
 
