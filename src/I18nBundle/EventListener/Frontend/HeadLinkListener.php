@@ -69,11 +69,11 @@ class HeadLinkListener implements EventSubscriberInterface
         $xDefaultUrl = $this->getXDefaultLink($i18nContext->getZoneDefaultLocale(), $hrefLinks);
 
         if (!is_null($xDefaultUrl)) {
-            $this->headLink->appendAlternate($this->generateHrefLink($xDefaultUrl), false, false, ['hreflang' => 'x-default']);
+            $this->headLink->appendAlternate($this->generateHrefLink($xDefaultUrl), false, false, ['webLink' => false, 'hreflang' => 'x-default']);
         }
 
         foreach ($hrefLinks as $route) {
-            $this->headLink->appendAlternate($this->generateHrefLink($route['url']), false, false, ['hreflang' => $route['hrefLang']]);
+            $this->headLink->appendAlternate($this->generateHrefLink($route['url']), false, false, ['webLink' => false, 'hreflang' => $route['hrefLang']]);
         }
 
         foreach ($this->headLink->getContainer() as $i => $item) {
