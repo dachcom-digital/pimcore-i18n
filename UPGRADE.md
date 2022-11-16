@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 4.1.2
+- [BUGFIX] Fix alternate links being pushed as web links [@alexej-d](https://github.com/dachcom-digital/pimcore-i18n/issues/97)
+- [BUGFIX] Fix strict locale property check [@GALCF](https://github.com/dachcom-digital/pimcore-i18n/pull/103)
 ## 4.1.1
 - [BUGFIX] Pass request context within twig functions
 ## 4.1.0
