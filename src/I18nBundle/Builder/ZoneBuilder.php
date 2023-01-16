@@ -78,13 +78,15 @@ class ZoneBuilder
             ));
         }
 
+        $translations = array_merge($this->configuration->getConfig('translations'), $zoneDefinition['translations']);
+
         return new Zone(
             $currentZoneId,
             $currentZoneName,
             $zoneDefinition['default_locale'],
             $zoneDefinition['locale_adapter'],
             $zoneDefinition['mode'],
-            $zoneDefinition['translations'],
+            $translations,
             $currentZoneDomains
         );
     }
