@@ -1,7 +1,8 @@
 # Symfony Routes
 
 ### Routing
-First you need to create a valid route. Read more about the symfony route definitions [here](./1_I18n.md#symfony-routes).
+First you need to create a valid route. 
+Read more about the symfony route definitions [here](./1_I18n.md#symfony-routes).
 
 ```yaml
 # config/routes.yaml
@@ -14,11 +15,11 @@ i18n:
               
 i18n_symfony_route:
     path: /{_locale}/i18n/{matching_route_key}
+    controller: App\Controller\DefaultController::symfonyRouteAction
     defaults:
         _i18n:
             translation_keys:
                 matching_route_key: mySymfonyRouteKey
-        _controller: App\Controller\DefaultController::symfonyRouteAction
     requirements:
         matching_route_key: '(%i18n.route.translations.mySymfonyRouteKey%)' ## returns (meine-symfony-route|my-symfony-route)
 ```
@@ -106,7 +107,7 @@ class I18nRoutesAlternateListener implements EventSubscriberInterface
     */
     
     
-     public static function getSubscribedEvents(): array
+    public static function getSubscribedEvents(): array
     {
         return [
             I18nEvents::PATH_ALTERNATE_SYMFONY_ROUTE => 'checkSymfonyRouteAlternate',

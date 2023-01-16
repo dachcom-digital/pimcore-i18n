@@ -138,11 +138,13 @@ class RouteItemBuilder
 
     protected function assertSymfonyRouteItem(RouteItemInterface $routeItem): void
     {
-        if ($routeItem->getRouteAttributesBag()->has(Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER)) {
+        if ($routeItem->getRouteAttributesBag()->has(Definitions::ATTRIBUTE_I18N_ROUTE_TRANSLATION_KEYS_VALIDATED)) {
             return;
         }
 
         $this->assertValidSymfonyRoute($routeItem);
+
+        $routeItem->getRouteAttributesBag()->set(Definitions::ATTRIBUTE_I18N_ROUTE_TRANSLATION_KEYS_VALIDATED, true);
     }
 
     protected function assertDocumentRouteItem(RouteItemInterface $routeItem): void
