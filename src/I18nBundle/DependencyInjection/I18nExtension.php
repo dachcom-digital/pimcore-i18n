@@ -15,6 +15,11 @@ class I18nExtension extends Extension implements PrependExtensionInterface
     {
         $configs = $container->getExtensionConfig($this->getAlias());
 
+        // first, we need to resolve parameters
+        // => allow placeholders in translation blocks for example
+        $resolvingBag = $container->getParameterBag();
+        $configs = $resolvingBag->resolveValue($configs);
+
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
