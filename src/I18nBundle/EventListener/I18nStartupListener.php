@@ -48,7 +48,8 @@ class I18nStartupListener implements EventSubscriberInterface
     {
         return [
             KernelEvents::REQUEST => [
-                ['onKernelRequest', 2],      // after pimcore context resolver
+                ['onKernelRequestLocale', 17],  // before symfony LocaleListener
+                ['onKernelRequest', 2],         // after pimcore context resolver
             ]
         ];
     }
@@ -88,6 +89,57 @@ class I18nStartupListener implements EventSubscriberInterface
         if (empty($document->getProperty('language'))) {
             $this->buildEditModeResponse($event);
         }
+    }
+
+    public function onKernelRequestLocale(RequestEvent $event): void
+    {
+        if ($event->isMainRequest() === false) {
+            return;
+        }
+
+        $request = $event->getRequest();
+        $document = $this->pimcoreDocumentResolver->getDocument($request);
+
+        if (!$document instanceof Document) {
+            return;
+        }
+
+        if (!$this->requestValidatorHelper->isValidForRedirect($request)) {
+            return;
+        }
+
+        if ($document instanceof Document\Hardlink\Wrapper\WrapperInterface) {
+            $documentLocale = $document->getHardLinkSource()->getProperty('language');
+        } else {
+            $documentLocale = $document->getProperty('language');
+        }
+
+        if (empty($documentLocale)) {
+            return;
+        }
+
+        if ($request->attributes->get('_locale') === $documentLocale) {
+            return;
+        }
+
+        $overwriteLocale = false;
+
+        // static routes
+        if ($request->attributes->has('pimcore_request_source') && $request->attributes->get('pimcore_request_source') === 'staticroute') {
+            $overwriteLocale = true;
+        }
+
+        // symfony routes
+        if ($request->attributes->has('_route_params') && array_key_exists('_i18n', $request->attributes->get('_route_params'))) {
+            $overwriteLocale = true;
+        }
+
+        if ($overwriteLocale === false) {
+            return;
+        }
+
+        $request->attributes->set('_locale', $documentLocale);
+
     }
 
     /**
