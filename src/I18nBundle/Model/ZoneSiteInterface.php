@@ -2,9 +2,15 @@
 
 namespace I18nBundle\Model;
 
+use Pimcore\Model\Site;
+
 interface ZoneSiteInterface
 {
     public function getSiteRequestContext(): SiteRequestContext;
+
+    public function getPimcoreSite(): ?Site;
+
+    public function hasPimcoreSite(): bool;
 
     public function getRootId(): int;
 

@@ -15,20 +15,20 @@ class AlternateRouteItemTransformer implements TransformerInterface
     {
         $type = $context['type'] ?? '';
         /** @var ZoneSiteInterface $zoneSite */
-        $zoneSite = $context['zoneSite'] ?? '';
-        $useZoneSiteLocale = $context['useZoneSiteLocale'] ?? false;
+        $zoneSite = $context['zoneSite'];
 
         $alternateRouteItem = new AlternateRouteItem($type, $routeItem->isHeadless(), $zoneSite);
-        $alternateRouteItem->getRouteAttributesBag()->add($routeItem->getRouteAttributes());
+        $alternateRouteItem->getRouteAttributesBag()->add(array_filter($routeItem->getRouteAttributes(), static function ($key) {
+            return in_array($key, ['_route', '_controller'], true);
+        }, ARRAY_FILTER_USE_KEY));
+
         $alternateRouteItem->getRouteParametersBag()->add($routeItem->getRouteParameters());
         $alternateRouteItem->getRouteContextBag()->add($routeItem->getRouteContext());
 
-        if ($useZoneSiteLocale === true && $routeItem->hasLocaleFragment()) {
-            $alternateRouteItem->getRouteParametersBag()->set('_locale', $zoneSite->getLocale());
-        }
+        $alternateRouteItem->getRouteParametersBag()->set('_locale', $zoneSite->getLocale());
+        $alternateRouteItem->getRouteContextBag()->set('site', $zoneSite->getPimcoreSite());
 
         return $alternateRouteItem;
-
     }
 
     public function reverseTransform(mixed $transformedRouteItem, array $context = []): RouteItemInterface

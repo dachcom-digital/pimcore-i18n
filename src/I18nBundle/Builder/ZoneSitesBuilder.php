@@ -38,25 +38,25 @@ class ZoneSitesBuilder
             // we don't have a zone id, so no site context is needed!
             if ($zone->getId() === null) {
                 $virtualZoneSite = $this->buildVirtualZoneSite();
-                $zoneSites[] = $this->createZoneSite($zone, $isFrontendRequestByAdmin, $virtualZoneSite['mainDomain'], $virtualZoneSite['rootId'], $routeItemLocale, $fullBootstrap);
+                $zoneSites[] = $this->createZoneSite($zone, null, $virtualZoneSite['mainDomain'], $virtualZoneSite['rootId'], $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
             } else {
-                /** @var Site $site */
-                $site = $routeItem->getRouteContextBag()->get('site');
-                $zoneSites[] = $this->createZoneSite($zone, $isFrontendRequestByAdmin, $site->getMainDomain(), $site->getRootId(), $routeItemLocale, $fullBootstrap);
+                /** @var Site $pimcoreSite */
+                $pimcoreSite = $routeItem->getRouteContextBag()->get('site');
+                $zoneSites[] = $this->createZoneSite($zone, $pimcoreSite, $pimcoreSite->getMainDomain(), $pimcoreSite->getRootId(), $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
             }
 
             return $zoneSites;
         }
 
-        $availableSites = $this->fetchAvailableSites();
+        $availablePimcoreSites = $this->fetchAvailablePimcoreSites();
 
         //it's a simple page, no sites: create a virtual one
-        if (count($availableSites) === 0) {
-            $availableSites[] = $this->buildVirtualZoneSite();
+        if (count($availablePimcoreSites) === 0) {
+            $availablePimcoreSites[] = $this->buildVirtualZoneSite();
         }
 
-        foreach ($availableSites as $site) {
-            $zoneSite = $this->createZoneSite($zone, $isFrontendRequestByAdmin, $site['mainDomain'], $site['rootId'], $routeItemLocale, $fullBootstrap);
+        foreach ($availablePimcoreSites as $pimcoreSite) {
+            $zoneSite = $this->createZoneSite($zone, Site::getById($pimcoreSite['id']), $pimcoreSite['mainDomain'], $pimcoreSite['rootId'], $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
             if ($zoneSite instanceof ZoneSiteInterface) {
                 $zoneSites[] = $zoneSite;
             }
@@ -67,14 +67,14 @@ class ZoneSitesBuilder
 
     protected function createZoneSite(
         ZoneInterface $zone,
-        bool $isFrontendRequestByAdmin,
+        ?Site $pimcoreSite,
         string $mainDomain,
         int $rootId,
+        bool $isFrontendRequestByAdmin,
         ?string $routeItemLocale,
         bool $fullBootstrap
     ): ?ZoneSiteInterface {
 
-        $subPages = [];
         $domainDoc = Document::getById($rootId);
 
         if (!$domainDoc instanceof Document) {
@@ -137,10 +137,11 @@ class ZoneSitesBuilder
         }
 
         // do not render sub pages if current domain is root domain
-        $subPages = $isRootDomain === true ? [] : $this->createSubSites($domainDoc, $zone, $siteRequestContext, $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
+        $subPages = $isRootDomain === true ? [] : $this->createSubSites($domainDoc, $pimcoreSite, $zone, $siteRequestContext, $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
 
         return new ZoneSite(
             $siteRequestContext,
+            $pimcoreSite,
             $rootId,
             $isRootDomain,
             $docLocale === $routeItemLocale,
@@ -160,6 +161,7 @@ class ZoneSitesBuilder
 
     protected function createSubSites(
         Document $domainDoc,
+        ?Site $pimcoreSite,
         ZoneInterface $zone,
         SiteRequestContext $siteRequestContext,
         bool $isFrontendRequestByAdmin,
@@ -272,6 +274,7 @@ class ZoneSitesBuilder
 
             $subPages[] = new ZoneSite(
                 $siteRequestContext,
+                $pimcoreSite,
                 $child->getId(),
                 false,
                 $routeItemLocale === $childDocLocale,
@@ -327,9 +330,9 @@ class ZoneSitesBuilder
         );
     }
 
-    protected function fetchAvailableSites(): array
+    protected function fetchAvailablePimcoreSites(): array
     {
-        return $this->db->fetchAllAssociative('SELECT `mainDomain`, `rootId` FROM sites');
+        return $this->db->fetchAllAssociative('SELECT `id`, `mainDomain`, `rootId` FROM sites');
     }
 
     protected function buildVirtualZoneSite(): array

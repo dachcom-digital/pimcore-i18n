@@ -20,7 +20,7 @@ class StaticRouteKeyTranslationCest
             'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
             'reverse'   => '/{%_locale}/@testKey/%testProperty',
             'action'    => 'defaultAction',
-            'variables' => '_locale,entry',
+            'variables' => '_locale,testProperty',
         ]);
 
         $I->amOnStaticRoute($staticRoute->getName(), [
@@ -58,7 +58,7 @@ class StaticRouteKeyTranslationCest
             'pattern'   => '/([a-zA-Z0-9-_]*)\\/(?:news|beitrag|nouvelles|notizia|artikel)\\/(.*?)$/',
             'reverse'   => '/{%_locale}/@testKey/%testProperty',
             'action'    => 'defaultAction',
-            'variables' => '_locale,entry',
+            'variables' => '_locale,testProperty',
         ]);
 
         $exception = ZoneSiteNotFoundException::class;
