@@ -4,6 +4,7 @@
 - [BUGFIX] Zone Settings: Use fallback for translations [#114](https://github.com/dachcom-digital/pimcore-i18n/issues/114)
 - [BUGFIX] Allow parameters for translation config [#115](https://github.com/dachcom-digital/pimcore-i18n/issues/115)
 - [BUGFIX] Assert correct locale in static/symfony route [#104](https://github.com/dachcom-digital/pimcore-i18n/issues/104)
+- [BUGFIX] Assert site in static/symfony route [#109](https://github.com/dachcom-digital/pimcore-i18n/issues/109)
 ## 4.1.2
 - [BUGFIX] Fix alternate links being pushed as web links [@alexej-d](https://github.com/dachcom-digital/pimcore-i18n/issues/97)
 - [BUGFIX] Fix strict locale property check [@GALCF](https://github.com/dachcom-digital/pimcore-i18n/pull/103)

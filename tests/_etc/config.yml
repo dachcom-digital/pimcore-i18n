@@ -6,3 +6,6 @@ setup_files:
     - { path: app/controller/DefaultController.php, dest: ./src/Controller/DefaultController.php }
     - { path: app/templates/default.html.twig, dest: ./templates/default/default.html.twig }
     - { path: app/templates/language-selector.html.twig, dest: ./templates/default/language-selector.html.twig }
+preload_files:
+    - { path: Services/TestAlternateListener.php }
+    - { path: Services/TestLinkGenerator.php }

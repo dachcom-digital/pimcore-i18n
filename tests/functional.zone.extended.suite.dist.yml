@@ -12,3 +12,4 @@ modules:
                 depends: \Dachcom\Codeception\Helper\PimcoreCore
         - \Dachcom\Codeception\Helper\PimcoreBackend
         - \Dachcom\Codeception\Helper\PimcoreUser
+        - \Pimcore\Tests\Helper\ClassManager

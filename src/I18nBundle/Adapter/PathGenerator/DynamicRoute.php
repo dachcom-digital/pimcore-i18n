@@ -25,9 +25,8 @@ abstract class DynamicRoute extends AbstractPathGenerator
                 $alternateRouteItems[] = $this->alternateRouteItemTransformer->transform(
                     $i18nContext->getRouteItem(),
                     [
-                        'type'              => $type,
-                        'zoneSite'          => $zoneSite,
-                        'useZoneSiteLocale' => true
+                        'type'     => $type,
+                        'zoneSite' => $zoneSite
                     ]
                 );
             }

@@ -2,9 +2,12 @@
 
 namespace I18nBundle\Model;
 
+use Pimcore\Model\Site;
+
 class ZoneSite implements ZoneSiteInterface
 {
     protected SiteRequestContext $siteRequestContext;
+    protected ?Site $pimcoreSite;
     protected int $rootId;
     protected bool $isRootDomain;
     protected bool $isActive;
@@ -22,6 +25,7 @@ class ZoneSite implements ZoneSiteInterface
 
     public function __construct(
         SiteRequestContext $siteRequestContext,
+        ?Site $pimcoreSite,
         int $rootId,
         bool $isRootDomain,
         bool $isActive,
@@ -52,11 +56,22 @@ class ZoneSite implements ZoneSiteInterface
         $this->fullPath = $fullPath;
         $this->type = $type;
         $this->subSites = $subSites;
+        $this->pimcoreSite = $pimcoreSite;
     }
 
     public function getSiteRequestContext(): SiteRequestContext
     {
         return $this->siteRequestContext;
+    }
+
+    public function getPimcoreSite(): ?Site
+    {
+        return $this->pimcoreSite;
+    }
+
+    public function hasPimcoreSite(): bool
+    {
+        return $this->pimcoreSite instanceof Site;
     }
 
     public function getRootId(): int
