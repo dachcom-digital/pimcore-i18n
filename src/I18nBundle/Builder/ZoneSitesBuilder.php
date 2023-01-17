@@ -55,8 +55,9 @@ class ZoneSitesBuilder
             $availablePimcoreSites[] = $this->buildVirtualZoneSite();
         }
 
-        foreach ($availablePimcoreSites as $pimcoreSite) {
-            $zoneSite = $this->createZoneSite($zone, Site::getById($pimcoreSite['id']), $pimcoreSite['mainDomain'], $pimcoreSite['rootId'], $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
+        foreach ($availablePimcoreSites as $pimcoreRawSite) {
+            $pimcoreSite = array_key_exists('id', $pimcoreRawSite) ? Site::getById($pimcoreRawSite['id']) : null;
+            $zoneSite = $this->createZoneSite($zone, $pimcoreSite, $pimcoreRawSite['mainDomain'], $pimcoreRawSite['rootId'], $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
             if ($zoneSite instanceof ZoneSiteInterface) {
                 $zoneSites[] = $zoneSite;
             }
