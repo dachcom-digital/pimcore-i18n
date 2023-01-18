@@ -5,6 +5,8 @@
 - [BUGFIX] Allow parameters for translation config [#115](https://github.com/dachcom-digital/pimcore-i18n/issues/115)
 - [BUGFIX] Assert correct locale in static/symfony route [#104](https://github.com/dachcom-digital/pimcore-i18n/issues/104)
 - [BUGFIX] Assert site in static/symfony route [#109](https://github.com/dachcom-digital/pimcore-i18n/issues/109)
+- [ENHANCEMENT] Allow link generations from wysiwyg/link-elements [#94](https://github.com/dachcom-digital/pimcore-i18n/issues/94). You may need to adjust your link generator classes, read more about it [here](./docs/1_I18n.md#pimcore-link-generator)
+- [ENHANCEMENT] Introduce ObjectPreviewGenerator: [Read the docs](./docs/1_I18n.md#pimcore-preview-generator)
 ## 4.1.2
 - [BUGFIX] Fix alternate links being pushed as web links [@alexej-d](https://github.com/dachcom-digital/pimcore-i18n/issues/97)
 - [BUGFIX] Fix strict locale property check [@GALCF](https://github.com/dachcom-digital/pimcore-i18n/pull/103)

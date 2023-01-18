@@ -7,6 +7,10 @@ services:
 
     I18nBundle\Helper\CookieHelper: ~
 
+    I18nBundle\Helper\AdminLocaleHelper: ~
+
+    I18nBundle\Helper\AdminMessageRendererHelper: ~
+
     I18nBundle\Helper\RequestValidatorHelper: ~
 
     I18nBundle\Helper\UserHelper:

@@ -10,6 +10,11 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
+    # event: define preview parameters
+    I18nBundle\EventListener\I18nPreviewListener:
+        tags:
+            - { name: kernel.event_subscriber }
+
     # event: redirect user to given locale
     I18nBundle\EventListener\DetectorListener:
         tags:
