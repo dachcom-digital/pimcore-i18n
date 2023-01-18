@@ -1,2 +1,3 @@
 "key","en","de"
 "i18n.not_editable_aware_message","This document can not be edited because it will be skipped during a i18n redirection or does not have a valid language property.","Dieses Dokument kann nicht bearbeitet werden, da es während einer i18n-Weiterleitung übersprungen wird oder keine gültige Spracheigenschaft besitzt."
+"i18n.preview_incomplete","Preview cannot be created due to missing preview parameters.","Vorschau kann aufgrund fehlender Vorschauparameter nicht erstellt werden."
