@@ -40,8 +40,7 @@ class RouteModifier
     public function modifyStaticRouteFragments(I18nContextInterface $i18nContext, string $originalPath)
     {
         $zone = $i18nContext->getZone();
-        $routeItem = $i18nContext->getRouteItem();
-        $locale = $routeItem->getLocaleFragment();
+        $locale = $i18nContext->getRouteItem()->getLocaleFragment();
 
         if (!$zone instanceof ZoneInterface) {
             return $originalPath;
@@ -49,8 +48,8 @@ class RouteModifier
 
         $path = preg_replace_callback(
             '/@((?:(?![\/|?]).)*)/',
-            function ($matches) use ($zone, $locale) {
-                return $this->translateDynamicRouteKey($zone, $matches[1], $locale);
+            function ($matches) use ($i18nContext, $locale) {
+                return $this->translateDynamicRouteKey($i18nContext->getZone(), $i18nContext->getRouteItem(), $matches[1], $locale);
             },
             $originalPath
         );
