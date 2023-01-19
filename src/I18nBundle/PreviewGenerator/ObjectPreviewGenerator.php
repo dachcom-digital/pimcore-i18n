@@ -38,7 +38,9 @@ class ObjectPreviewGenerator implements PreviewGeneratorInterface
 
         $queryParams = [];
         $routeParams = [];
-        $routeContext = [];
+        $routeContext = [
+            'isFrontendRequestByAdmin' => true
+        ];
 
         if (!array_key_exists('i18n_locale', $params)) {
             $valid = false;

@@ -64,6 +64,10 @@ class RouteItemBuilder
             );
         }
 
+        if (!$routeItem->getRouteContextBag()->has('isFrontendRequestByAdmin')) {
+            $routeItem->getRouteContextBag()->set('isFrontendRequestByAdmin', false);
+        }
+
         return $routeItem;
     }
 
@@ -108,6 +112,7 @@ class RouteItemBuilder
 
         $routeItem->setRouteName($currentRouteName);
         $routeItem->getRouteContextBag()->set('site', $site);
+        $routeItem->getRouteContextBag()->set('isFrontendRequestByAdmin', $isFrontendRequestByAdmin);
 
         if (isset($routeParameters['_locale']) && !$routeItem->getRouteParametersBag()->has('_locale')) {
             $routeItem->getRouteParametersBag()->set('_locale', $baseRequest->getLocale());

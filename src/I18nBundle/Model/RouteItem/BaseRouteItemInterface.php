@@ -27,6 +27,8 @@ interface BaseRouteItemInterface
 
     public function getLocaleFragment(): ?string;
 
+    public function isFrontendRequestByAdmin(): bool;
+
     public function hasEntity(): bool;
 
     public function getEntity(): ?ElementInterface;

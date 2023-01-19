@@ -10,15 +10,10 @@ use Symfony\Component\HttpFoundation\Request;
 
 class RequestValidatorHelper
 {
-    protected RequestHelper $requestHelper;
-    protected PimcoreContextResolver $pimcoreContextResolver;
-
     public function __construct(
-        RequestHelper $requestHelper,
-        PimcoreContextResolver $contextResolver
+        protected RequestHelper $requestHelper,
+        protected PimcoreContextResolver $pimcoreContextResolver
     ) {
-        $this->requestHelper = $requestHelper;
-        $this->pimcoreContextResolver = $contextResolver;
     }
 
     public function isValidForRedirect(Request $request, bool $allowFrontendRequestByAdmin = true): bool
@@ -58,10 +53,5 @@ class RequestValidatorHelper
     public function matchesDefaultPimcoreContext(Request $request): bool
     {
         return $this->pimcoreContextResolver->matchesPimcoreContext($request, PimcoreContextResolver::CONTEXT_DEFAULT);
-    }
-
-    public function isFrontendRequestByAdmin(Request $request): bool
-    {
-        return $this->requestHelper->isFrontendRequestByAdmin($request);
     }
 }

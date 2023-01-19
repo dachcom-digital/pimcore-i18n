@@ -25,27 +25,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class I18nContextManager
 {
-    protected RequestHelper $requestHelper;
-    protected ZoneBuilder $zoneBuilder;
-    protected ZoneSitesBuilder $zoneSitesBuilder;
-    protected RouteItemBuilder $routeItemBuilder;
-    protected LocaleProviderRegistry $localeProviderRegistry;
-    protected PathGeneratorRegistry $pathGeneratorRegistry;
-
     public function __construct(
-        RequestHelper $requestHelper,
-        ZoneBuilder $zoneBuilder,
-        ZoneSitesBuilder $zoneSitesBuilder,
-        RouteItemBuilder $routeItemBuilder,
-        LocaleProviderRegistry $localeProviderRegistry,
-        PathGeneratorRegistry $pathGeneratorRegistry,
+        protected RequestHelper $requestHelper,
+        protected ZoneBuilder $zoneBuilder,
+        protected ZoneSitesBuilder $zoneSitesBuilder,
+        protected RouteItemBuilder $routeItemBuilder,
+        protected LocaleProviderRegistry $localeProviderRegistry,
+        protected PathGeneratorRegistry $pathGeneratorRegistry,
     ) {
-        $this->requestHelper = $requestHelper;
-        $this->zoneBuilder = $zoneBuilder;
-        $this->zoneSitesBuilder = $zoneSitesBuilder;
-        $this->routeItemBuilder = $routeItemBuilder;
-        $this->localeProviderRegistry = $localeProviderRegistry;
-        $this->pathGeneratorRegistry = $pathGeneratorRegistry;
     }
 
     /**
@@ -60,7 +47,7 @@ class I18nContextManager
             return null;
         }
 
-        $zone = $this->setupZone($routeItem, false, $fullBootstrap);
+        $zone = $this->setupZone($routeItem, $fullBootstrap);
         $pathGenerator = $this->setupPathGenerator($routeItem, $fullBootstrap);
         $localeDefinition = $this->buildLocaleDefinition($routeItem);
 
@@ -79,7 +66,7 @@ class I18nContextManager
             return null;
         }
 
-        $zone = $this->setupZone($routeItem, $this->requestHelper->isFrontendRequestByAdmin($baseRequest), $fullBootstrap);
+        $zone = $this->setupZone($routeItem, $fullBootstrap);
         $pathGenerator = $this->setupPathGenerator($routeItem, $fullBootstrap);
         $localeDefinition = $this->buildLocaleDefinition($routeItem);
 
@@ -102,7 +89,7 @@ class I18nContextManager
         return $pathGenerator;
     }
 
-    protected function setupZone(RouteItemInterface $routeItem, bool $isFrontendRequestByAdmin = false, bool $fullBootstrap = false): ZoneInterface
+    protected function setupZone(RouteItemInterface $routeItem, bool $fullBootstrap = false): ZoneInterface
     {
         $zone = $this->zoneBuilder->buildZone($routeItem);
 
@@ -110,7 +97,7 @@ class I18nContextManager
         // since they are kind of internal!
         if ($zone instanceof Zone) {
             $zone->processProviderLocales($this->localeProviderRegistry->get($zone->getLocaleAdapterName()));
-            $zone->setSites($this->zoneSitesBuilder->buildZoneSites($zone, $routeItem, $fullBootstrap, $isFrontendRequestByAdmin));
+            $zone->setSites($this->zoneSitesBuilder->buildZoneSites($zone, $routeItem, $fullBootstrap));
         }
 
         return $zone;

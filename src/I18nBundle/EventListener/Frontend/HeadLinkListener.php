@@ -17,21 +17,12 @@ class HeadLinkListener implements EventSubscriberInterface
 {
     use PimcoreContextAwareTrait;
 
-    protected HeadLink $headLink;
-    protected I18nContextResolverInterface $i18nContextResolver;
-    protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver;
-    protected Config $pimcoreConfig;
-
     public function __construct(
-        HeadLink $headLink,
-        I18nContextResolverInterface $i18nContextResolver,
-        PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
-        Config $pimcoreConfig
+        protected HeadLink $headLink,
+        protected I18nContextResolverInterface $i18nContextResolver,
+        protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
+        protected Config $pimcoreConfig
     ) {
-        $this->headLink = $headLink;
-        $this->i18nContextResolver = $i18nContextResolver;
-        $this->pimcoreDocumentResolver = $pimcoreDocumentResolver;
-        $this->pimcoreConfig = $pimcoreConfig;
     }
 
     public static function getSubscribedEvents(): array

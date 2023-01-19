@@ -72,14 +72,19 @@ abstract class BaseRouteItem
         return $this->routeContext->all();
     }
 
+    public function getLocaleFragment(): ?string
+    {
+        return $this->routeParameters->get('_locale');
+    }
+
     public function hasLocaleFragment(): bool
     {
         return $this->routeParameters->has('_locale');
     }
 
-    public function getLocaleFragment(): ?string
+    public function isFrontendRequestByAdmin(): bool
     {
-        return $this->routeParameters->get('_locale');
+        return $this->routeContext->has('isFrontendRequestByAdmin') && $this->routeContext->get('isFrontendRequestByAdmin') === true;
     }
 
     public function hasEntity(): bool
