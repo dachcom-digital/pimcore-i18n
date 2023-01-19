@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 4.1.4
+- [BUGFIX] Improve `isFrontendRequestByAdmin` determination and reduce redundancy
+
 ## 4.1.3
 - [BUGFIX] Zone Settings: Use fallback for translations [#114](https://github.com/dachcom-digital/pimcore-i18n/issues/114)
 - [BUGFIX] Allow parameters for translation config [#115](https://github.com/dachcom-digital/pimcore-i18n/issues/115)

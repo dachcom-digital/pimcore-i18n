@@ -21,16 +21,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class RouteModifier
 {
-    protected LinkGeneratorRouteItemTransformer $linkGeneratorRouteItemTransformer;
-    protected I18nContextManager $i18nContextManager;
-
     public function __construct(
-        LinkGeneratorRouteItemTransformer $linkGeneratorRouteItemTransformer,
-        I18nContextManager $i18nContextManager
-    ) {
-        $this->linkGeneratorRouteItemTransformer = $linkGeneratorRouteItemTransformer;
-        $this->i18nContextManager = $i18nContextManager;
-    }
+        protected LinkGeneratorRouteItemTransformer $linkGeneratorRouteItemTransformer,
+        protected I18nContextManager $i18nContextManager
+    ) {}
 
     public function generateI18nContext(string $name, $parameters = []): ?I18nContextInterface
     {
@@ -46,8 +40,7 @@ class RouteModifier
     public function modifyStaticRouteFragments(I18nContextInterface $i18nContext, string $originalPath)
     {
         $zone = $i18nContext->getZone();
-        $routeItem = $i18nContext->getRouteItem();
-        $locale = $routeItem->getLocaleFragment();
+        $locale = $i18nContext->getRouteItem()->getLocaleFragment();
 
         if (!$zone instanceof ZoneInterface) {
             return $originalPath;
@@ -55,8 +48,8 @@ class RouteModifier
 
         $path = preg_replace_callback(
             '/@((?:(?![\/|?]).)*)/',
-            function ($matches) use ($zone, $locale) {
-                return $this->translateDynamicRouteKey($zone, $matches[1], $locale);
+            function ($matches) use ($i18nContext, $locale) {
+                return $this->translateDynamicRouteKey($i18nContext->getZone(), $i18nContext->getRouteItem(), $matches[1], $locale);
             },
             $originalPath
         );
@@ -82,7 +75,7 @@ class RouteModifier
                 continue;
             }
 
-            $i18nContext->getRouteItem()->getRouteParametersBag()->set($routeKey, $this->translateDynamicRouteKey($zone, $translationKey, $locale));
+            $i18nContext->getRouteItem()->getRouteParametersBag()->set($routeKey, $this->translateDynamicRouteKey($zone, $i18nContext->getRouteItem(), $translationKey, $locale));
         }
     }
 
@@ -209,7 +202,7 @@ class RouteModifier
         return sprintf('%s://%s%s%s', $scheme, $host, $port, $documentPath);
     }
 
-    protected function translateDynamicRouteKey(ZoneInterface $zone, string $key, string $locale): string
+    protected function translateDynamicRouteKey(ZoneInterface $zone, RouteItemInterface $routeItem, string $key, string $locale): string
     {
         $zoneTranslations = $zone->getTranslations();
         $zoneIdentifier = $zone->getId() ?? 0;
@@ -237,7 +230,7 @@ class RouteModifier
             return $routeKey;
         }
 
-        if (\Pimcore\Tool::isFrontendRequestByAdmin()) {
+        if ($routeItem->isFrontendRequestByAdmin() === true) {
             return $key;
         }
 
@@ -256,7 +249,9 @@ class RouteModifier
             $entity = $parameters['entity'] ?? null;
             if ($routeType === RouteItemInterface::DOCUMENT_ROUTE && !$entity instanceof Document) {
                 throw new \Exception('I18n document route without route name requires a valid Document in "entity" parameter');
-            } elseif ($routeType === RouteItemInterface::STATIC_ROUTE && !$entity instanceof DataObject) {
+            }
+
+            if ($routeType === RouteItemInterface::STATIC_ROUTE && !$entity instanceof DataObject) {
                 throw new \Exception('I18n static route without route name requires a valid DataObject in "entity" parameter');
             }
         }

@@ -29,20 +29,19 @@ class ZoneSitesBuilder
         $this->configuration = $configuration;
     }
 
-    public function buildZoneSites(ZoneInterface $zone, RouteItemInterface $routeItem, bool $fullBootstrap = false, bool $isFrontendRequestByAdmin = false): array
+    public function buildZoneSites(ZoneInterface $zone, RouteItemInterface $routeItem, bool $fullBootstrap = false): array
     {
         $zoneSites = [];
-        $routeItemLocale = $routeItem->getLocaleFragment();
 
         if ($fullBootstrap === false) {
             // we don't have a zone id, so no site context is needed!
             if ($zone->getId() === null) {
                 $virtualZoneSite = $this->buildVirtualZoneSite();
-                $zoneSites[] = $this->createZoneSite($zone, null, $virtualZoneSite['mainDomain'], $virtualZoneSite['rootId'], $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
+                $zoneSites[] = $this->createZoneSite($zone, $routeItem, null, $virtualZoneSite['mainDomain'], $virtualZoneSite['rootId'], false);
             } else {
                 /** @var Site $pimcoreSite */
                 $pimcoreSite = $routeItem->getRouteContextBag()->get('site');
-                $zoneSites[] = $this->createZoneSite($zone, $pimcoreSite, $pimcoreSite->getMainDomain(), $pimcoreSite->getRootId(), $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
+                $zoneSites[] = $this->createZoneSite($zone, $routeItem, $pimcoreSite, $pimcoreSite->getMainDomain(), $pimcoreSite->getRootId(), false);
             }
 
             return $zoneSites;
@@ -57,7 +56,7 @@ class ZoneSitesBuilder
 
         foreach ($availablePimcoreSites as $pimcoreRawSite) {
             $pimcoreSite = array_key_exists('id', $pimcoreRawSite) ? Site::getById($pimcoreRawSite['id']) : null;
-            $zoneSite = $this->createZoneSite($zone, $pimcoreSite, $pimcoreRawSite['mainDomain'], $pimcoreRawSite['rootId'], $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
+            $zoneSite = $this->createZoneSite($zone, $routeItem, $pimcoreSite, $pimcoreRawSite['mainDomain'], $pimcoreRawSite['rootId'], $fullBootstrap);
             if ($zoneSite instanceof ZoneSiteInterface) {
                 $zoneSites[] = $zoneSite;
             }
@@ -68,14 +67,14 @@ class ZoneSitesBuilder
 
     protected function createZoneSite(
         ZoneInterface $zone,
+        RouteItemInterface $routeItem,
         ?Site $pimcoreSite,
         string $mainDomain,
         int $rootId,
-        bool $isFrontendRequestByAdmin,
-        ?string $routeItemLocale,
         bool $fullBootstrap
     ): ?ZoneSiteInterface {
 
+        $routeItemLocale = $routeItem->getLocaleFragment();
         $domainDoc = Document::getById($rootId);
 
         if (!$domainDoc instanceof Document) {
@@ -97,7 +96,7 @@ class ZoneSitesBuilder
             }
         }
 
-        $isPublishedMode = $domainDoc->isPublished() === true || $isFrontendRequestByAdmin;
+        $isPublishedMode = $domainDoc->isPublished() === true || $routeItem->isFrontendRequestByAdmin();
         if ($valid === false || $isPublishedMode === false) {
             return null;
         }
@@ -138,7 +137,7 @@ class ZoneSitesBuilder
         }
 
         // do not render sub pages if current domain is root domain
-        $subPages = $isRootDomain === true ? [] : $this->createSubSites($domainDoc, $pimcoreSite, $zone, $siteRequestContext, $isFrontendRequestByAdmin, $routeItemLocale, $fullBootstrap);
+        $subPages = $isRootDomain === true ? [] : $this->createSubSites($domainDoc, $pimcoreSite, $zone, $routeItem, $siteRequestContext, $fullBootstrap);
 
         return new ZoneSite(
             $siteRequestContext,
@@ -164,18 +163,17 @@ class ZoneSitesBuilder
         Document $domainDoc,
         ?Site $pimcoreSite,
         ZoneInterface $zone,
+        RouteItemInterface $routeItem,
         SiteRequestContext $siteRequestContext,
-        bool $isFrontendRequestByAdmin,
-        ?string $routeItemLocale,
         bool $fullBootstrap
     ): array {
 
         $subPages = [];
-        $children = $domainDoc->getChildren(true);
-
         $processedChildLocales = [];
 
-        foreach ($children as $child) {
+        $routeItemLocale = $routeItem->getLocaleFragment();
+
+        foreach ($domainDoc->getChildren(true) as $child) {
 
             $validPath = true;
             $loopDetector = [];
@@ -230,7 +228,7 @@ class ZoneSitesBuilder
                         break;
                     }
 
-                    $isPublishedMode = $linkChild->isPublished() === true || $isFrontendRequestByAdmin;
+                    $isPublishedMode = $linkChild->isPublished() === true || $routeItem->isFrontendRequestByAdmin();
                     if ($isPublishedMode === false) {
                         $validPath = false;
 
@@ -242,7 +240,7 @@ class ZoneSitesBuilder
                 }
             }
 
-            $isPublishedMode = $child->isPublished() === true || $isFrontendRequestByAdmin;
+            $isPublishedMode = $child->isPublished() === true || $routeItem->isFrontendRequestByAdmin();
             if ($validPath === false || $isPublishedMode === false) {
                 continue;
             }
