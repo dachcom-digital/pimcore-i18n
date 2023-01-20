@@ -2,8 +2,8 @@
 
 [![Software License](https://img.shields.io/badge/license-GPLv3-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Latest Release](https://img.shields.io/packagist/v/dachcom-digital/i18n.svg?style=flat-square)](https://packagist.org/packages/dachcom-digital/i18n)
-[![Tests](https://img.shields.io/github/workflow/status/dachcom-digital/pimcore-i18n/Codeception/master?style=flat-square&logo=github&label=codeception)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3ACodeception+branch%3Amaster)
-[![PhpStan](https://img.shields.io/github/workflow/status/dachcom-digital/pimcore-i18n/PHP%20Stan/master?style=flat-square&logo=github&label=phpstan%20level%204)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3A"PHP+Stan"+branch%3Amaster)
+[![Tests](https://img.shields.io/github/actions/workflow/status/dachcom-digital/pimcore-i18n/.github/workflows/codeception.yml?branch=master&style=flat-square&logo=github&label=codeception)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3ACodeception+branch%3Amaster)
+[![PhpStan](https://img.shields.io/github/actions/workflow/status/dachcom-digital/pimcore-i18n/.github/workflows/php-stan.yml?branch=master&style=flat-square&logo=github&label=phpstan%20level%204)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3A"PHP+Stan"+branch%3Amaster)
 
 ![i18n](https://user-images.githubusercontent.com/700119/27761666-f3ed6746-5e60-11e7-955a-3030453c68ff.jpg)
 
@@ -19,7 +19,7 @@ This bundle helps you to master this challenges and gives you the freedom to ela
 ### Release Plan
 | Release | Supported Pimcore Versions        | Supported Symfony Versions | Release Date | Maintained     | Branch     |
 |---------|-----------------------------------|----------------------------|--------------|----------------|------------|
-| **4.x** | `10.1` - `10.5`                   | `5.3`                      | 12.11.2021   | Feature Branch | master     |
+| **4.x** | `10.1` - `10.5`                   | `5.4`                      | 12.11.2021   | Feature Branch | master     |
 | **3.x** | `6.0` - `6.3`, `6.5` - `6.9`      | `3.4`, `^4.4`              | 18.07.2019   | Unsupported    | 3.x        |
 | **2.4** | `5.4`, `5.5`, `5.6`, `5.7`, `5.8` | `3.4`                      | 24.05.2019   | Unsupported    | 2.4        |
 
