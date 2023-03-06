@@ -8,15 +8,27 @@ use Pimcore\Model\DataObject\Concrete;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractRequestAwareLinkGenerator
 {
-    /** @required */
-    public UrlGeneratorInterface $urlGenerator;
-    /** @required */
-    public RequestStack $requestStack;
+    protected UrlGeneratorInterface $urlGenerator;
+
+    protected RequestStack $requestStack;
 
     protected int $urlReferenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
+
+    #[Required]
+    public function setUrlGenerator(UrlGeneratorInterface $urlGenerator): void
+    {
+        $this->urlGenerator = $urlGenerator;
+    }
+
+    #[Required]
+    public function setRequestStack(RequestStack $requestStack): void
+    {
+        $this->requestStack = $requestStack;
+    }
 
     public function generate(Concrete $object, array $params = []): string
     {
