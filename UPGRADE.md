@@ -6,6 +6,9 @@
 After every update you should check the pimcore extension manager. 
 Just click the "update" button or execute the migration command to finish the bundle update.
 
+#### Update from Version 3.2.9 to Version 3.2.10
+- [BUGFIX] Disallow frontend request by admin in DetectorListener [@buezu09](https://github.com/dachcom-digital/pimcore-i18n/pull/113)
+
 #### Update from Version 3.2.8 to Version 3.2.9
 - [IMPROVEMENT] Add cookie configuration [@tomhatzer](https://github.com/dachcom-digital/pimcore-i18n/issues/88)
 
