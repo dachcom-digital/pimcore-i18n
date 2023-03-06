@@ -131,7 +131,7 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        if (!$this->requestValidatorHelper->isValidForRedirect($request)) {
+        if (!$this->requestValidatorHelper->isValidForRedirect($request, false)) {
             return;
         }
 
