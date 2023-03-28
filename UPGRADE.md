@@ -1,5 +1,9 @@
 # Upgrade Notes
 
+## 4.1.5
+- [BUGFIX] Object Preview Improvements [#126](https://github.com/dachcom-digital/pimcore-i18n/pull/126)
+- [ENHANCEMENT] Improve requirements for AbstractRequestAwareLinkGenerator [#122](https://github.com/dachcom-digital/pimcore-i18n/issues/122)
+
 ## 4.1.4
 - [BUGFIX] Improve `isFrontendRequestByAdmin` determination and reduce redundancy
 

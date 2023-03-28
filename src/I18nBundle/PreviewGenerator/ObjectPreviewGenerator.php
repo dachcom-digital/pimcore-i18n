@@ -182,7 +182,7 @@ class ObjectPreviewGenerator implements PreviewGeneratorInterface
         foreach ($this->getSites() as $mainDomain => $siteId) {
             $siteHost = parse_url(sprintf('https://%s', $mainDomain), PHP_URL_HOST);
             if ($siteHost === $currentHost) {
-                return $mainDomain;
+                return $siteId;
             }
         }
 
