@@ -45,9 +45,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 public function myAction(Request $request) 
 {
-    $parameters = RouteParameterBuilder::buildForSymfonyRouteWithRequest(
-        ['foo' => 'bar'],
-        $request
+    $parameters = RouteParameterBuilder::buildForSymfonyRoute(
+        [
+            'foo' => 'bar'
+        ]
     );
 
     $symfonyRoute = $this->urlGenerator->generate('i18n_symfony_route', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
@@ -67,8 +68,12 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 protected function execute(InputInterface $input, OutputInterface $output): int
 {
     $parameters = RouteParameterBuilder::buildForSymfonyRoute(
-        ['foo' => 'bar'],
-        ['site' => Site::getByDomain('test-domain1.test')]
+        [
+            'foo' => 'bar'
+        ],
+        [
+            'site' => Site::getByDomain('test-domain1.test')
+        ]
     );
 
     $symfonyRoute = $this->urlGenerator->generate('i18n_symfony_route', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);

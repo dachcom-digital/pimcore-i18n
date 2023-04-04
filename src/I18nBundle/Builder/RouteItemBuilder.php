@@ -14,14 +14,15 @@ use Pimcore\Http\RequestHelper;
 use Pimcore\Model\DataObject\ClassDefinition\LinkGeneratorInterface;
 use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\Document;
-use Pimcore\Tool\Frontend;
 use Symfony\Bundle\FrameworkBundle\Routing\Router as FrameworkRouter;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\CompiledUrlGenerator;
 
 class RouteItemBuilder
 {
     protected ?FrameworkRouter $frameworkRouter = null;
+    protected RequestStack $requestStack;
     protected RequestHelper $requestHelper;
     protected SiteResolver $siteResolver;
     protected PimcoreAdminSiteResolverInterface $adminSiteResolver;
@@ -29,12 +30,14 @@ class RouteItemBuilder
     protected RouteItemFactory $routeItemFactory;
 
     public function __construct(
+        RequestStack $requestStack,
         RequestHelper $requestHelper,
         SiteResolver $siteResolver,
         PimcoreAdminSiteResolverInterface $adminSiteResolver,
         EditmodeResolver $editModeResolver,
         RouteItemFactory $routeItemFactory
     ) {
+        $this->requestStack = $requestStack;
         $this->requestHelper = $requestHelper;
         $this->siteResolver = $siteResolver;
         $this->adminSiteResolver = $adminSiteResolver;
@@ -55,9 +58,9 @@ class RouteItemBuilder
             $this->assertStaticRouteItem($routeItem);
         } elseif ($routeItem->getType() === RouteItemInterface::SYMFONY_ROUTE) {
             $this->assertSymfonyRouteItem($routeItem);
-        } elseif ($routeItem->getType() === RouteItemInterface::DOCUMENT_ROUTE) {
-            $this->assertDocumentRouteItem($routeItem);
         }
+
+        $this->attachDefaultRequestParametersToRouteItem($routeItem);
 
         if (!$routeItem->hasLocaleFragment()) {
             throw new RouteItemException(
@@ -80,17 +83,6 @@ class RouteItemBuilder
      */
     public function buildRouteItemByRequest(Request $baseRequest, ?Document $baseDocument): ?RouteItemInterface
     {
-        $site = null;
-        $editMode = $this->editModeResolver->isEditmode($baseRequest);
-        $isFrontendRequestByAdmin = $this->requestHelper->isFrontendRequestByAdmin($baseRequest);
-
-        if ($editMode === false && $isFrontendRequestByAdmin === false && $this->siteResolver->isSiteRequest($baseRequest)) {
-            $site = $this->siteResolver->getSite();
-        } elseif ($this->adminSiteResolver->hasAdminSite($baseRequest)) {
-            // in back end we don't have any site request, we need to fetch it via document
-            $site = $this->adminSiteResolver->getAdminSite($baseRequest);
-        }
-
         $pimcoreRequestSource = $baseRequest->attributes->get('pimcore_request_source');
         $routeParameters = $baseRequest->attributes->get('_route_params', []);
         $currentRouteName = $baseRequest->attributes->get('_route');
@@ -113,8 +105,8 @@ class RouteItemBuilder
         }
 
         $routeItem->setRouteName($currentRouteName);
-        $routeItem->getRouteContextBag()->set('site', $site);
-        $routeItem->getRouteContextBag()->set('isFrontendRequestByAdmin', $isFrontendRequestByAdmin);
+
+        $this->attachDefaultRequestParametersToRouteItem($routeItem, $baseRequest);
 
         if (isset($routeParameters['_locale']) && !$routeItem->getRouteParametersBag()->has('_locale')) {
             $routeItem->getRouteParametersBag()->set('_locale', $baseRequest->getLocale());
@@ -152,21 +144,6 @@ class RouteItemBuilder
         $this->assertValidSymfonyRoute($routeItem);
 
         $routeItem->getRouteAttributesBag()->set(Definitions::ATTRIBUTE_I18N_ROUTE_TRANSLATION_KEYS_VALIDATED, true);
-    }
-
-    protected function assertDocumentRouteItem(RouteItemInterface $routeItem): void
-    {
-        /** @var Document $document */
-        $document = $routeItem->getEntity();
-
-        if ($routeItem->getRouteContextBag()->get('site') !== null) {
-            $site = $routeItem->getRouteContextBag()->get('site');
-        } else {
-            $site = Frontend::getSiteForDocument($document);
-        }
-
-        $routeItem->getRouteParametersBag()->set('_locale', $document->getProperty('language'));
-        $routeItem->getRouteContextBag()->set('site', $site);
     }
 
     protected function assertValidLinkGenerator(RouteItemInterface $routeItem): void
@@ -260,5 +237,30 @@ class RouteItemBuilder
         if (isset($i18nDefaults['translation_keys'])) {
             $routeItem->getRouteAttributesBag()->set('_i18n_translation_keys', $i18nDefaults['translation_keys']);
         }
+    }
+
+    protected function attachDefaultRequestParametersToRouteItem(RouteItemInterface $routeItem, ?Request $baseRequest = null): void
+    {
+        $mainRequest = $baseRequest instanceof Request ? $baseRequest : $this->requestStack->getMainRequest();
+
+        if (!$mainRequest instanceof Request) {
+            return;
+        }
+
+        $isFrontendRequestByAdmin = $this->requestHelper->isFrontendRequestByAdmin($mainRequest);
+
+        if (!$routeItem->getRouteContextBag()->has('site') || $routeItem->getRouteContextBag()->get('site') === null) {
+            if ($mainRequest->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
+                $routeItem->getRouteContextBag()->set('site', $mainRequest->attributes->get(SiteResolver::ATTRIBUTE_SITE));
+            } elseif ($mainRequest->attributes->has(PimcoreAdminSiteResolverInterface::ATTRIBUTE_ADMIN_EDIT_MODE_SITE)) {
+                $routeItem->getRouteContextBag()->set('site', $mainRequest->attributes->get(PimcoreAdminSiteResolverInterface::ATTRIBUTE_ADMIN_EDIT_MODE_SITE));
+            }
+        }
+
+        if ($mainRequest->attributes->has('_locale') && !$routeItem->getRouteParametersBag()->has('_locale')) {
+            $routeItem->getRouteParametersBag()->set('_locale', $mainRequest->getLocale());
+        }
+
+        $routeItem->getRouteContextBag()->set('isFrontendRequestByAdmin', $isFrontendRequestByAdmin);
     }
 }

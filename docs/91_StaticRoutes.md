@@ -28,18 +28,13 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 public function myAction(Request $request) 
 {
-    $parameters = RouteParameterBuilder::buildForEntityWithRequest(
-        \Pimcore\Model\DataObject::getById(20),
-        [],
-        $request
-    );
+    $object = \Pimcore\Model\DataObject::getById(20);
+    
+    $parameters = RouteParameterBuilder::buildForEntity($object);
 
     $linkGeneratorStaticRoute = $this->urlGenerator->generate('', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
     
-    $parameters = RouteParameterBuilder::buildForStaticRouteWithRequest(
-        ['news' => 'my-attribute'],
-        $request
-    );
+    $parameters = RouteParameterBuilder::buildForStaticRoute(['news' => 'my-attribute']);
 
     $instantStaticRoute = $this->urlGenerator->generate('my_static_route', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
 }
@@ -57,17 +52,28 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 protected function execute(InputInterface $input, OutputInterface $output): int
 {
+    $object = \Pimcore\Model\DataObject::getById(20);
+    
     $parameters = RouteParameterBuilder::buildForEntity(
-        \Pimcore\Model\DataObject::getById(20),
-        ['_locale' => 'en'],
-        ['site' => Site::getByDomain('test-domain1.test')]
+        $object,
+        [
+            '_locale' => 'en'
+        ],
+        [
+            'site' => Site::getByDomain('test-domain1.test')
+        ]
     );
 
     $linkGeneratorStaticRoute = $this->urlGenerator->generate('', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
     
     $parameters = RouteParameterBuilder::buildForStaticRoute(
-        ['_locale' => 'en', 'news' => 'my-attribute'],
-        ['site' => Site::getByDomain('test-domain1.test')]
+        [
+            '_locale' => 'en',
+            'news' => 'my-attribute'
+        ],
+        [
+            'site' => Site::getByDomain('test-domain1.test')
+        ]
     );
 
     $instantStaticRoute = $this->urlGenerator->generate('my_static_route', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
@@ -196,17 +202,14 @@ class I18nRoutesAlternateListener implements EventSubscriberInterface
         
     public function checkStaticRouteAlternate(AlternateDynamicRouteEvent $event): void
     {
-    
         // be careful here! Alternate requests are able to resolve two states:
-        // I. non-headless: generate alternate links for a given request (mostly the current one) which will pass the request attributes
+        // I. non-headless: generate alternate links for a given request (main request) which will pass the request attributes
         //   => you'll find your mapped data in $event->getCurrentRouteAttributes()
         // II. headless: requested by a standalone zone entity which passes will pass route parameters
         //   => you'll find your mapped data in $event->getCurrentRouteParameters()
 
         $attributes = $event->isCurrentRouteHeadless() ? $event->getCurrentRouteParameters() : $event->getCurrentRouteAttributes();
         
-        $route = $attributes['_route'] ?? null;
-    
         // depending on given route, you may want to build different alternate route items
         if($event->getCurrentRouteName() !== 'test_route') {
             return;
@@ -219,29 +222,31 @@ class I18nRoutesAlternateListener implements EventSubscriberInterface
             return;
         }
 
+        $locale = $attributes->get('_locale');
+
         foreach ($event->getAlternateRouteItems() as $alternateRouteItem) {
 
-            $locale = $i18nElement['locale'];
             $newsName = $news->getName($locale);
 
             if (empty($newsName)) {
                 continue;
             }
             
-            //  Strategy I. ##########################################
-            //  Default static route generation
+            //  Strategy I. (recommended) ############################
+            //  Use link generator, only pass the object.
+            //  ######################################################
+            $alternateRouteItem->setEntity($news);
+            
+            //  Strategy II. #########################################
+            //  Default static route generation (no link generator)
             //  ######################################################
 
             //set the static route name (in this case it depends on the entry type.
             $alternateRouteItem->setRouteName($news->getEntryType() === 'news' ? 'news_detail' : 'blog_detail');
             $alternateRouteItem->getRouteParametersBag()->add([
-                'entry' => $news->getDetailurl($locale)
+                'entry' => $news->getDetailUrl($locale)
             ]);
           
-            //  Strategy II. #########################################
-            //  Use link generator, only pass "object".
-            //  ######################################################
-            $alternateRouteItem->setEntity($object);
         }
     }
 }
