@@ -25,6 +25,11 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
+    # event: attach site in admin context (frontend edit mode)
+    I18nBundle\EventListener\AdminSiteListener:
+        tags:
+            - { name: kernel.event_subscriber }
+
     # event: log context switch
     I18nBundle\EventListener\ContextSwitchDetectorListener:
         tags:

@@ -7,6 +7,7 @@ use I18nBundle\Exception\RouteItemException;
 use I18nBundle\Factory\RouteItemFactory;
 use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Resolver\PimcoreAdminSiteResolverInterface;
 use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Http\RequestHelper;
@@ -23,17 +24,20 @@ class RouteItemBuilder
     protected ?FrameworkRouter $frameworkRouter = null;
     protected RequestHelper $requestHelper;
     protected SiteResolver $siteResolver;
+    protected PimcoreAdminSiteResolverInterface $adminSiteResolver;
     protected EditmodeResolver $editModeResolver;
     protected RouteItemFactory $routeItemFactory;
 
     public function __construct(
         RequestHelper $requestHelper,
         SiteResolver $siteResolver,
+        PimcoreAdminSiteResolverInterface $adminSiteResolver,
         EditmodeResolver $editModeResolver,
         RouteItemFactory $routeItemFactory
     ) {
         $this->requestHelper = $requestHelper;
         $this->siteResolver = $siteResolver;
+        $this->adminSiteResolver = $adminSiteResolver;
         $this->editModeResolver = $editModeResolver;
         $this->routeItemFactory = $routeItemFactory;
     }
@@ -80,13 +84,11 @@ class RouteItemBuilder
         $editMode = $this->editModeResolver->isEditmode($baseRequest);
         $isFrontendRequestByAdmin = $this->requestHelper->isFrontendRequestByAdmin($baseRequest);
 
-        if ($editMode === false && $isFrontendRequestByAdmin === false) {
-            if ($this->siteResolver->isSiteRequest($baseRequest)) {
-                $site = $this->siteResolver->getSite();
-            }
-        } else {
+        if ($editMode === false && $isFrontendRequestByAdmin === false && $this->siteResolver->isSiteRequest($baseRequest)) {
+            $site = $this->siteResolver->getSite();
+        } elseif ($this->adminSiteResolver->hasAdminSite($baseRequest)) {
             // in back end we don't have any site request, we need to fetch it via document
-            $site = \Pimcore\Tool\Frontend::getSiteForDocument($baseDocument);
+            $site = $this->adminSiteResolver->getAdminSite($baseRequest);
         }
 
         $pimcoreRequestSource = $baseRequest->attributes->get('pimcore_request_source');
@@ -154,16 +156,17 @@ class RouteItemBuilder
 
     protected function assertDocumentRouteItem(RouteItemInterface $routeItem): void
     {
-        // this is for DX only
-        if ($routeItem->getRouteContextBag()->get('site') !== null) {
-            throw new \Exception('Forcing a site context if requesting a zone for a document is forbidden (Site can be resolved by given document)');
-        }
-
         /** @var Document $document */
         $document = $routeItem->getEntity();
 
+        if ($routeItem->getRouteContextBag()->get('site') !== null) {
+            $site = $routeItem->getRouteContextBag()->get('site');
+        } else {
+            $site = Frontend::getSiteForDocument($document);
+        }
+
         $routeItem->getRouteParametersBag()->set('_locale', $document->getProperty('language'));
-        $routeItem->getRouteContextBag()->set('site', Frontend::getSiteForDocument($document));
+        $routeItem->getRouteContextBag()->set('site', $site);
     }
 
     protected function assertValidLinkGenerator(RouteItemInterface $routeItem): void

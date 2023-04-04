@@ -11,20 +11,26 @@ use I18nBundle\Manager\I18nContextManager;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Model\ZoneSiteInterface;
+use I18nBundle\Resolver\PimcoreAdminSiteResolverInterface;
 use I18nBundle\Tool\System;
 use I18nBundle\Transformer\LinkGeneratorRouteItemTransformer;
+use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Model\DataObject;
 use Pimcore\Model\DataObject\Concrete;
 use Pimcore\Model\Document;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class RouteModifier
 {
     public function __construct(
+        protected RequestStack $requestStack,
         protected LinkGeneratorRouteItemTransformer $linkGeneratorRouteItemTransformer,
         protected I18nContextManager $i18nContextManager
-    ) {}
+    ) {
+    }
 
     public function generateI18nContext(string $name, $parameters = []): ?I18nContextInterface
     {
@@ -75,7 +81,8 @@ class RouteModifier
                 continue;
             }
 
-            $i18nContext->getRouteItem()->getRouteParametersBag()->set($routeKey, $this->translateDynamicRouteKey($zone, $i18nContext->getRouteItem(), $translationKey, $locale));
+            $i18nContext->getRouteItem()->getRouteParametersBag()->set($routeKey,
+                $this->translateDynamicRouteKey($zone, $i18nContext->getRouteItem(), $translationKey, $locale));
         }
     }
 
@@ -239,6 +246,8 @@ class RouteModifier
 
     protected function validateRouteParameters(string $name, string $routeType, array $parameters): array
     {
+        $parameters = $this->assertRequestParameters($parameters);
+
         unset($parameters['type']);
 
         if (!empty($name)) {
@@ -257,5 +266,28 @@ class RouteModifier
         }
 
         return $parameters;
+    }
+
+    protected function assertRequestParameters(array $i18nParameters): array
+    {
+        $mainRequest = $this->requestStack->getMainRequest();
+
+        if (!$mainRequest instanceof Request) {
+            return $i18nParameters;
+        }
+
+        if (!isset($i18nParameters['context']['site'])) {
+            if ($mainRequest->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
+                $i18nParameters['context']['site'] = $mainRequest->attributes->get(SiteResolver::ATTRIBUTE_SITE);
+            } elseif ($mainRequest->attributes->has(PimcoreAdminSiteResolverInterface::ATTRIBUTE_ADMIN_EDIT_MODE_SITE)) {
+                $i18nParameters['context']['site'] = $mainRequest->attributes->get(PimcoreAdminSiteResolverInterface::ATTRIBUTE_ADMIN_EDIT_MODE_SITE);
+            }
+        }
+
+        if (!isset($i18nParameters['routeParameters']['_locale']) && $mainRequest->attributes->has('_locale')) {
+            $i18nParameters['routeParameters']['_locale'] = $mainRequest->getLocale();
+        }
+
+        return $i18nParameters;
     }
 }
