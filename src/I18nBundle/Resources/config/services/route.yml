@@ -5,3 +5,4 @@ services:
 
     I18nBundle\Modifier\RouteModifier:
         autowire: true
+        lazy: true

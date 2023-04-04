@@ -15,6 +15,7 @@ abstract class AbstractRequestAwareLinkGenerator
 {
     protected UrlGeneratorInterface $urlGenerator;
     protected RequestStack $requestStack;
+    protected RequestHelper $requestHelper;
 
     protected int $urlReferenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
 
@@ -28,6 +29,12 @@ abstract class AbstractRequestAwareLinkGenerator
     public function setRequestStack(RequestStack $requestStack): void
     {
         $this->requestStack = $requestStack;
+    }
+
+    #[Required]
+    public function setRequestHelper(RequestHelper $requestHelper): void
+    {
+        $this->requestHelper = $requestHelper;
     }
 
     /**
@@ -62,10 +69,7 @@ abstract class AbstractRequestAwareLinkGenerator
             // suppress exception, if we're in admin mode
             // there is no (possible) site context in some conditions (like link generation in wysiwyg)
 
-            if (
-                $mainRequest->attributes->has(RequestHelper::ATTRIBUTE_FRONTEND_REQUEST) &&
-                $mainRequest->attributes->get(RequestHelper::ATTRIBUTE_FRONTEND_REQUEST) === false
-            ) {
+            if ($this->requestHelper->isFrontendRequest($mainRequest) === false || $this->requestHelper->isFrontendRequestByAdmin() === true) {
                 return sprintf('/i18n-suppressed-link-%d', $object->getId());
             }
 
