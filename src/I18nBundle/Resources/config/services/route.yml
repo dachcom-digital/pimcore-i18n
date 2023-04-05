@@ -6,6 +6,7 @@ services:
 
     I18nBundle\Modifier\RouteModifier:
         autowire: true
+        lazy: true
 
     I18nBundle\Modifier\RouteItem\RouteItemModifier:
         arguments:
