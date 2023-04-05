@@ -24,7 +24,8 @@ class RouteModifier
     public function __construct(
         protected LinkGeneratorRouteItemTransformer $linkGeneratorRouteItemTransformer,
         protected I18nContextManager $i18nContextManager
-    ) {}
+    ) {
+    }
 
     public function generateI18nContext(string $name, $parameters = []): ?I18nContextInterface
     {
@@ -75,7 +76,8 @@ class RouteModifier
                 continue;
             }
 
-            $i18nContext->getRouteItem()->getRouteParametersBag()->set($routeKey, $this->translateDynamicRouteKey($zone, $i18nContext->getRouteItem(), $translationKey, $locale));
+            $i18nContext->getRouteItem()->getRouteParametersBag()->set($routeKey,
+                $this->translateDynamicRouteKey($zone, $i18nContext->getRouteItem(), $translationKey, $locale));
         }
     }
 
@@ -258,4 +260,5 @@ class RouteModifier
 
         return $parameters;
     }
+
 }

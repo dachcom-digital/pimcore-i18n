@@ -7,12 +7,10 @@ use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Manager\I18nContextManager;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Builder\RouteParameterBuilder;
-use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\Document;
 use Pimcore\Model\Element\ElementInterface;
 use Pimcore\Model\Site;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Extension\AbstractExtension;
@@ -52,7 +50,7 @@ class I18nExtension extends AbstractExtension
 
     public function getI18nContext(): ?I18nContextInterface
     {
-        return $this->i18nContextResolver->getContext($this->requestStack->getCurrentRequest());
+        return $this->i18nContextResolver->getContext($this->requestStack->getMainRequest());
     }
 
     public function createI18nContextByEntity(ElementInterface $entity, array $routeParameter = [], ?Site $site = null): ?I18nContextInterface
@@ -106,12 +104,7 @@ class I18nExtension extends AbstractExtension
     {
         $referenceType = $absoluteUrl ? UrlGeneratorInterface::ABSOLUTE_URL : UrlGeneratorInterface::ABSOLUTE_PATH;
 
-        $routeItemParameters = RouteParameterBuilder::buildForEntityWithRequest(
-            $entity,
-            $routeParameter,
-            $this->requestStack->getCurrentRequest(),
-            $this->getRequestContext()
-        );
+        $routeItemParameters = RouteParameterBuilder::buildForEntity($entity, $routeParameter);
 
         return $this->urlGenerator->generate('', $routeItemParameters, $referenceType);
     }
@@ -120,11 +113,7 @@ class I18nExtension extends AbstractExtension
     {
         $referenceType = $absoluteUrl ? UrlGeneratorInterface::ABSOLUTE_URL : UrlGeneratorInterface::ABSOLUTE_PATH;
 
-        $routeItemParameters = RouteParameterBuilder::buildForStaticRouteWithRequest(
-            $routeParameter,
-            $this->requestStack->getCurrentRequest(),
-            $this->getRequestContext()
-        );
+        $routeItemParameters = RouteParameterBuilder::buildForStaticRoute($routeParameter);
 
         return $this->urlGenerator->generate($route, $routeItemParameters, $referenceType);
     }
@@ -133,28 +122,8 @@ class I18nExtension extends AbstractExtension
     {
         $referenceType = $absoluteUrl ? UrlGeneratorInterface::ABSOLUTE_URL : UrlGeneratorInterface::ABSOLUTE_PATH;
 
-        $routeItemParameters = RouteParameterBuilder::buildForSymfonyRouteWithRequest(
-            $routeParameter,
-            $this->requestStack->getCurrentRequest(),
-            $this->getRequestContext()
-        );
+        $routeItemParameters = RouteParameterBuilder::buildForSymfonyRoute($routeParameter);
 
         return $this->urlGenerator->generate($route, $routeItemParameters, $referenceType);
-    }
-
-    private function getRequestContext(): array
-    {
-        $mainRequest = $this->requestStack->getMainRequest();
-        $request = $this->requestStack->getCurrentRequest();
-
-        if ($request instanceof Request && $request->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
-            return ['site' => $request->attributes->get(SiteResolver::ATTRIBUTE_SITE)];
-        }
-
-        if ($mainRequest instanceof Request && $mainRequest->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
-            return ['site' => $mainRequest->attributes->get(SiteResolver::ATTRIBUTE_SITE)];
-        }
-
-        return [];
     }
 }

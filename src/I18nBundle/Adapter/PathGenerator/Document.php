@@ -8,6 +8,7 @@ use I18nBundle\Exception\VirtualProxyPathException;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Model\ZoneSiteInterface;
 use Pimcore\Model\Document as PimcoreDocument;
+use Pimcore\Tool\Frontend;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -237,16 +238,26 @@ class Document extends AbstractPathGenerator
 
     protected function generateLink(RouteItemInterface $routeItem, PimcoreDocument $document, ?ZoneSiteInterface $virtualProxyZoneSite = null): string
     {
+        $context = [];
+
+        if ($virtualProxyZoneSite instanceof ZoneSiteInterface) {
+            $context['virtualProxyZoneSite'] = $virtualProxyZoneSite;
+        }
+
+        if (null !== $site = Frontend::getSiteForDocument($document)) {
+            $context['site'] = $site;
+        }
+
         $routeParameters = [
             Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => [
                 'type'            => RouteItemInterface::DOCUMENT_ROUTE,
                 'entity'          => $document,
                 'routeName'       => '',
-                'routeParameters' => [],
+                'routeParameters' => [
+                    '_locale' => $document->getProperty('language')
+                ],
                 'routeAttributes' => $routeItem->getRouteAttributes(),
-                'context'         => $virtualProxyZoneSite instanceof ZoneSiteInterface
-                    ? ['virtualProxyZoneSite' => $virtualProxyZoneSite]
-                    : []
+                'context'         => $context
             ]
         ];
 

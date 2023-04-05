@@ -21,11 +21,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 public function myAction(Request $request) 
 {
-    $parameters = RouteParameterBuilder::buildForEntityWithRequest(
-        \Pimcore\Model\Document::getById(20),
-        [],
-        $request
-    );
+    $document = \Pimcore\Model\Document::getById(20);
+    
+    $parameters = RouteParameterBuilder::buildForEntity($document);
 
     return $this->urlGenerator->generate('', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
 }
@@ -43,11 +41,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 protected function execute(InputInterface $input, OutputInterface $output): int
 {
-    $parameters = RouteParameterBuilder::buildForEntity(
-        \Pimcore\Model\Document::getById(20),
-        [],
-        []
-    );
+    $document = \Pimcore\Model\Document::getById(20);
+    
+    $parameters = RouteParameterBuilder::buildForEntity($document);
 
     return $this->urlGenerator->generate('', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
 }

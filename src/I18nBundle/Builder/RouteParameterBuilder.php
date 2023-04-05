@@ -4,26 +4,24 @@ namespace I18nBundle\Builder;
 
 use I18nBundle\Definitions;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
-use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\Document;
 use Pimcore\Model\Element\ElementInterface;
-use Pimcore\Model\Site;
-use Pimcore\Tool;
-use Pimcore\Tool\Frontend;
-use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
 use Symfony\Component\HttpFoundation\Request;
 
 class RouteParameterBuilder
 {
     public static function buildForEntity(ElementInterface $element, array $routeParameter, array $context = []): array
     {
-        return self::buildRouteParams(null, $routeParameter, $context, null, $element);
+        return self::buildRouteParams(null, $routeParameter, $context, $element);
     }
 
-    public static function buildForEntityWithRequest(ElementInterface $element, array $routeParameter, Request $request, array $requestContext = []): array
+    /**
+     * @deprecated use buildForEntity() instead. locale and site will be injected automatically, if given
+     */
+    public static function buildForEntityWithRequest(ElementInterface $element, array $routeParameter, Request $request): array
     {
-        return self::buildRouteParams(null, $routeParameter, $requestContext, $request, $element);
+        return self::buildForEntity($element, $routeParameter);
     }
 
     public static function buildForStaticRoute(array $routeParameter, array $context = []): array
@@ -31,9 +29,12 @@ class RouteParameterBuilder
         return self::buildRouteParams(RouteItemInterface::STATIC_ROUTE, $routeParameter, $context);
     }
 
-    public static function buildForStaticRouteWithRequest(array $routeParameter, Request $request, array $requestContext = []): array
+    /**
+     * @deprecated use buildForStaticRoute() instead. locale and site will be injected automatically, if given
+     */
+    public static function buildForStaticRouteWithRequest(array $routeParameter, Request $request): array
     {
-        return self::buildRouteParams(RouteItemInterface::STATIC_ROUTE, $routeParameter, $requestContext, $request);
+        return self::buildForStaticRoute($routeParameter);
     }
 
     public static function buildForSymfonyRoute(array $routeParameter, array $context = []): array
@@ -41,16 +42,18 @@ class RouteParameterBuilder
         return self::buildRouteParams(RouteItemInterface::SYMFONY_ROUTE, $routeParameter, $context);
     }
 
-    public static function buildForSymfonyRouteWithRequest(array $routeParameter, Request $request, array $requestContext = []): array
+    /**
+     * @deprecated use buildForSymfonyRoute() instead. locale and site will be injected automatically, if given
+     */
+    public static function buildForSymfonyRouteWithRequest(array $routeParameter, Request $request): array
     {
-        return self::buildRouteParams(RouteItemInterface::SYMFONY_ROUTE, $routeParameter, $requestContext, $request);
+        return self::buildForSymfonyRoute($routeParameter);
     }
 
     private static function buildRouteParams(
         ?string $routeType,
         array $routeParameter,
         array $context,
-        ?Request $request = null,
         ?ElementInterface $element = null
     ): array {
 
@@ -76,26 +79,6 @@ class RouteParameterBuilder
         }
 
         $params['type'] = $routeType;
-
-        if (!$request instanceof Request) {
-            return [Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => $params];
-        }
-
-        if ($routeType === RouteItemInterface::DOCUMENT_ROUTE) {
-            return [Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => $params];
-        }
-
-        $hasContextSite = isset($params['context']['site']) && $params['context']['site'] instanceof Site;
-
-        if ($hasContextSite === false && $request->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
-            $params['context']['site'] = $request->attributes->get(SiteResolver::ATTRIBUTE_SITE);
-        } elseif ($hasContextSite === false && Tool::isFrontendRequestByAdmin($request) && $request->attributes->has(DynamicRouter::CONTENT_KEY)) {
-            $params['context']['site'] = Frontend::getSiteForDocument($request->attributes->get(DynamicRouter::CONTENT_KEY));
-        }
-
-        if ($request->attributes->has('_locale')) {
-            $params['routeParameters']['_locale'] = $request->getLocale();
-        }
 
         return [Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER => $params];
     }

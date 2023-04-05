@@ -18,7 +18,6 @@ use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Registry\LocaleProviderRegistry;
 use I18nBundle\Registry\PathGeneratorRegistry;
-use Pimcore\Http\RequestHelper;
 use Pimcore\Model\Document;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -26,7 +25,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class I18nContextManager
 {
     public function __construct(
-        protected RequestHelper $requestHelper,
         protected ZoneBuilder $zoneBuilder,
         protected ZoneSitesBuilder $zoneSitesBuilder,
         protected RouteItemBuilder $routeItemBuilder,
@@ -140,5 +138,4 @@ class I18nContextManager
 
         return $this->pathGeneratorRegistry->get($pathGeneratorIdentifier);
     }
-
 }
