@@ -28,13 +28,18 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 public function myAction(Request $request) 
 {
+    // set object
     $object = \Pimcore\Model\DataObject::getById(20);
     
     $parameters = RouteParameterBuilder::buildForEntity($object);
 
     $linkGeneratorStaticRoute = $this->urlGenerator->generate('', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
     
-    $parameters = RouteParameterBuilder::buildForStaticRoute(['news' => 'my-attribute']);
+    $parameters = RouteParameterBuilder::buildForStaticRoute(
+        [
+            'news' => 'my-attribute'
+        ]
+    );
 
     $instantStaticRoute = $this->urlGenerator->generate('my_static_route', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
 }

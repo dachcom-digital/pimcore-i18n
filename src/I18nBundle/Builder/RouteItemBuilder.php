@@ -5,44 +5,24 @@ namespace I18nBundle\Builder;
 use I18nBundle\Definitions;
 use I18nBundle\Exception\RouteItemException;
 use I18nBundle\Factory\RouteItemFactory;
-use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
-use I18nBundle\Resolver\PimcoreAdminSiteResolverInterface;
-use Pimcore\Http\Request\Resolver\EditmodeResolver;
-use Pimcore\Http\Request\Resolver\SiteResolver;
-use Pimcore\Http\RequestHelper;
-use Pimcore\Model\DataObject\ClassDefinition\LinkGeneratorInterface;
-use Pimcore\Model\DataObject\Concrete;
+use I18nBundle\Modifier\RouteItem\RouteItemModifier;
 use Pimcore\Model\Document;
 use Symfony\Bundle\FrameworkBundle\Routing\Router as FrameworkRouter;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Generator\CompiledUrlGenerator;
 
 class RouteItemBuilder
 {
     protected ?FrameworkRouter $frameworkRouter = null;
-    protected RequestStack $requestStack;
-    protected RequestHelper $requestHelper;
-    protected SiteResolver $siteResolver;
-    protected PimcoreAdminSiteResolverInterface $adminSiteResolver;
-    protected EditmodeResolver $editModeResolver;
     protected RouteItemFactory $routeItemFactory;
+    protected RouteItemModifier $routeItemModifier;
 
     public function __construct(
-        RequestStack $requestStack,
-        RequestHelper $requestHelper,
-        SiteResolver $siteResolver,
-        PimcoreAdminSiteResolverInterface $adminSiteResolver,
-        EditmodeResolver $editModeResolver,
-        RouteItemFactory $routeItemFactory
+        RouteItemFactory $routeItemFactory,
+        RouteItemModifier $routeItemModifier
     ) {
-        $this->requestStack = $requestStack;
-        $this->requestHelper = $requestHelper;
-        $this->siteResolver = $siteResolver;
-        $this->adminSiteResolver = $adminSiteResolver;
-        $this->editModeResolver = $editModeResolver;
         $this->routeItemFactory = $routeItemFactory;
+        $this->routeItemModifier = $routeItemModifier;
     }
 
     public function setFrameworkRouter(FrameworkRouter $router): void
@@ -54,13 +34,14 @@ class RouteItemBuilder
     {
         $routeItem = $this->routeItemFactory->createFromArray($type, true, $i18nRouteParameters);
 
-        if ($routeItem->getType() === RouteItemInterface::STATIC_ROUTE) {
-            $this->assertStaticRouteItem($routeItem);
-        } elseif ($routeItem->getType() === RouteItemInterface::SYMFONY_ROUTE) {
-            $this->assertSymfonyRouteItem($routeItem);
-        }
-
-        $this->attachDefaultRequestParametersToRouteItem($routeItem);
+        $this->routeItemModifier->modifyByParameters(
+            $routeItem->getType(),
+            $routeItem,
+            $i18nRouteParameters,
+            [
+                'router' => $this->frameworkRouter
+            ]
+        );
 
         if (!$routeItem->hasLocaleFragment()) {
             throw new RouteItemException(
@@ -84,20 +65,15 @@ class RouteItemBuilder
     public function buildRouteItemByRequest(Request $baseRequest, ?Document $baseDocument): ?RouteItemInterface
     {
         $pimcoreRequestSource = $baseRequest->attributes->get('pimcore_request_source');
-        $routeParameters = $baseRequest->attributes->get('_route_params', []);
         $currentRouteName = $baseRequest->attributes->get('_route');
 
         $routeItem = null;
         if ($pimcoreRequestSource === 'staticroute') {
             $routeItem = $this->routeItemFactory->create(RouteItemInterface::STATIC_ROUTE, false);
-            $routeItem->getRouteAttributesBag()->add($baseRequest->attributes->all());
         } elseif (str_starts_with($currentRouteName, 'document_')) {
             $routeItem = $this->routeItemFactory->create(RouteItemInterface::DOCUMENT_ROUTE, false);
-            $routeItem->setEntity($baseDocument);
-            $routeItem->getRouteParametersBag()->set('_locale', $baseDocument->getProperty('language'));
         } elseif ($baseRequest->attributes->has(Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER)) {
             $routeItem = $this->routeItemFactory->create(RouteItemInterface::SYMFONY_ROUTE, false);
-            $routeItem->getRouteAttributesBag()->add($baseRequest->attributes->all());
         }
 
         if ($routeItem === null) {
@@ -106,11 +82,15 @@ class RouteItemBuilder
 
         $routeItem->setRouteName($currentRouteName);
 
-        $this->attachDefaultRequestParametersToRouteItem($routeItem, $baseRequest);
-
-        if (isset($routeParameters['_locale']) && !$routeItem->getRouteParametersBag()->has('_locale')) {
-            $routeItem->getRouteParametersBag()->set('_locale', $baseRequest->getLocale());
-        }
+        $this->routeItemModifier->modifyByRequest(
+            $routeItem->getType(),
+            $routeItem,
+            $baseRequest,
+            [
+                'document' => $baseDocument,
+                'router' => $this->frameworkRouter
+            ]
+        );
 
         if (!$routeItem->hasLocaleFragment()) {
             throw new RouteItemException(
@@ -122,145 +102,5 @@ class RouteItemBuilder
         }
 
         return $routeItem;
-    }
-
-    protected function assertStaticRouteItem(RouteItemInterface $routeItem): void
-    {
-        if (!$routeItem->hasRouteName() && !$routeItem->hasEntity()) {
-            throw new \Exception(sprintf('Cannot build static route item. Either route name or entity must be present'));
-        }
-
-        if ($routeItem->hasEntity()) {
-            $this->assertValidLinkGenerator($routeItem);
-        }
-    }
-
-    protected function assertSymfonyRouteItem(RouteItemInterface $routeItem): void
-    {
-        if ($routeItem->getRouteAttributesBag()->has(Definitions::ATTRIBUTE_I18N_ROUTE_TRANSLATION_KEYS_VALIDATED)) {
-            return;
-        }
-
-        $this->assertValidSymfonyRoute($routeItem);
-
-        $routeItem->getRouteAttributesBag()->set(Definitions::ATTRIBUTE_I18N_ROUTE_TRANSLATION_KEYS_VALIDATED, true);
-    }
-
-    protected function assertValidLinkGenerator(RouteItemInterface $routeItem): void
-    {
-        $entity = $routeItem->getEntity();
-
-        if (!$entity instanceof Concrete) {
-            throw new \Exception(sprintf('I18n object zone generation error: Entity needs to be an instance of "%s", "%s" given.', Concrete::class, get_class($entity)));
-        }
-
-        $linkGenerator = $entity->getClass()?->getLinkGenerator();
-        if (!$linkGenerator instanceof LinkGeneratorInterface) {
-            throw new \Exception(
-                sprintf(
-                    'I18n object zone generation error: No link generator for entity "%s" found (If you have declared your link generator as service, make sure it is public)',
-                    get_class($entity)
-                )
-            );
-        }
-
-        if (!$linkGenerator instanceof I18nLinkGeneratorInterface) {
-            throw new \Exception(
-                sprintf(
-                    'I18n object zone generation error: Your link generator "%s" needs to be an instance of %s.',
-                    get_class($linkGenerator),
-                    I18nLinkGeneratorInterface::class
-                )
-            );
-        }
-
-        $routeItem->setRouteName($linkGenerator->getStaticRouteName($entity));
-    }
-
-    protected function assertValidSymfonyRoute(RouteItemInterface $routeItem): void
-    {
-        if ($this->frameworkRouter === null) {
-            throw new \Exception('Symfony RouteItem error: Framework router not found. cannot assert symfony route');
-        }
-
-        $routeName = $routeItem->getRouteName();
-        $locale = $routeItem->getLocaleFragment();
-
-        /** @var CompiledUrlGenerator $generator */
-        $generator = $this->frameworkRouter->getGenerator();
-
-        if (!$generator instanceof CompiledUrlGenerator) {
-            throw new \Exception(
-                sprintf('Symfony RouteItem error: Url generator needs to be instance of "%s", "%s" given.',
-                    CompiledUrlGenerator::class,
-                    get_class($generator)
-                )
-            );
-        }
-
-        /**
-         * Oh lawd. This is terrible.
-         * Can we do that better instead of stealing private properties like this?
-         */
-        $compiledRoutes = \Closure::bind(static function & (CompiledUrlGenerator $generator) {
-            return $generator->compiledRoutes;
-        }, null, $generator)($generator);
-
-        $symfonyRoute = null;
-        if (isset($compiledRoutes[$routeName])) {
-            $symfonyRoute = $compiledRoutes[$routeName];
-        }
-
-        if ($symfonyRoute === null && !empty($locale)) {
-            $localizedRouteName = sprintf('%s.%s', $routeName, $locale);
-            if (isset($compiledRoutes[$localizedRouteName])) {
-                $symfonyRoute = $compiledRoutes[$localizedRouteName];
-            }
-        }
-
-        if ($symfonyRoute === null) {
-            throw new \Exception(sprintf('symfony route "%s" not found', $routeName));
-        }
-
-        $defaults = $symfonyRoute[1];
-
-        if (!isset($defaults[Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER])) {
-            throw new \Exception(sprintf('"%s" symfony route is not configured as i18n route. please add defaults._i18n to your route configuration.', $routeName));
-        }
-
-        $i18nDefaults = $defaults[Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER];
-
-        if (!is_array($i18nDefaults)) {
-            return;
-        }
-
-        if (isset($i18nDefaults['translation_keys'])) {
-            $routeItem->getRouteAttributesBag()->set('_i18n_translation_keys', $i18nDefaults['translation_keys']);
-        }
-    }
-
-    protected function attachDefaultRequestParametersToRouteItem(RouteItemInterface $routeItem, ?Request $baseRequest = null): void
-    {
-        $mainRequest = $baseRequest instanceof Request ? $baseRequest : $this->requestStack->getMainRequest();
-
-        if (!$mainRequest instanceof Request) {
-            return;
-        }
-
-        $isFrontendRequestByAdmin = $this->requestHelper->isFrontendRequestByAdmin($mainRequest);
-
-        if (!$routeItem->getRouteContextBag()->has('site') || $routeItem->getRouteContextBag()->get('site') === null) {
-            if ($mainRequest->attributes->has(SiteResolver::ATTRIBUTE_SITE)) {
-                $routeItem->getRouteContextBag()->set('site', $mainRequest->attributes->get(SiteResolver::ATTRIBUTE_SITE));
-            } elseif ($mainRequest->attributes->has(PimcoreAdminSiteResolverInterface::ATTRIBUTE_ADMIN_EDIT_MODE_SITE)) {
-                $routeItem->getRouteContextBag()->set('site', $mainRequest->attributes->get(PimcoreAdminSiteResolverInterface::ATTRIBUTE_ADMIN_EDIT_MODE_SITE));
-            }
-        }
-
-        if ($mainRequest->attributes->has('_locale') && !$routeItem->getRouteParametersBag()->has('_locale')) {
-            $routeItem->getRouteParametersBag()->set('_locale', $mainRequest->getLocale());
-        }
-
-        $routeItem->getRouteContextBag()->set('isFrontendRequestByAdmin', $isFrontendRequestByAdmin);
     }
 }

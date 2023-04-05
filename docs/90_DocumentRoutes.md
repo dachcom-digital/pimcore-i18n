@@ -43,13 +43,7 @@ protected function execute(InputInterface $input, OutputInterface $output): int
 {
     $document = \Pimcore\Model\Document::getById(20);
     
-    $parameters = RouteParameterBuilder::buildForEntity(
-        $document,
-        [],
-        [
-            'site' => Site::getByDomain('test-domain1.test')
-        ]
-    );
+    $parameters = RouteParameterBuilder::buildForEntity($document);
 
     return $this->urlGenerator->generate('', $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
 }
