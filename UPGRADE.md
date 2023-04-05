@@ -2,6 +2,8 @@
 
 ## 4.1.6
 - [BUGFIX] Follow-Up: Object Preview Improvements (Also suppress exception in document context) [#126](https://github.com/dachcom-digital/pimcore-i18n/pull/126)
+- [IMPROVEMENT] Relay on main request, always check for request parameters (site, locale) as long request is available [#124](https://github.com/dachcom-digital/pimcore-i18n/pull/124)
+- [IMPROVEMENT] Introduce AdminSiteResolver to provide Sites in editmode if possible [#123](https://github.com/dachcom-digital/pimcore-i18n/pull/123)
 
 ## 4.1.5
 - [BUGFIX] Object Preview Improvements [#126](https://github.com/dachcom-digital/pimcore-i18n/pull/126)
