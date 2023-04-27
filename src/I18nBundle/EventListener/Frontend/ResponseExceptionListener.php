@@ -2,6 +2,7 @@
 
 namespace I18nBundle\EventListener\Frontend;
 
+use Doctrine\DBAL\Connection;
 use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Exception\RouteItemException;
 use I18nBundle\Exception\ZoneSiteNotFoundException;
@@ -35,6 +36,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
     protected Document\Service $documentService;
     protected Config $pimcoreConfig;
     protected DocumentRenderer $documentRenderer;
+    protected Connection $db;
 
     public function __construct(
         I18nContextManager $i18nContextManager,
@@ -42,7 +44,8 @@ class ResponseExceptionListener implements EventSubscriberInterface
         SiteResolver $siteResolver,
         Document\Service $documentService,
         Config $pimcoreConfig,
-        DocumentRenderer $documentRenderer
+        DocumentRenderer $documentRenderer,
+        Connection $db
     ) {
         $this->i18nContextManager = $i18nContextManager;
         $this->i18nContextResolver = $i18nContextResolver;
@@ -50,6 +53,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
         $this->documentService = $documentService;
         $this->pimcoreConfig = $pimcoreConfig;
         $this->documentRenderer = $documentRenderer;
+        $this->db = $db;
     }
 
     public static function getSubscribedEvents(): array
@@ -155,6 +159,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $this->logger->emergency('Unable to render error page, exception thrown');
             $this->logger->emergency($e);
         }
+        $this->logToHttpErrorLog($event->getRequest(), $statusCode);
 
         $event->setResponse(new Response($response, $statusCode, $headers));
     }
@@ -227,5 +232,25 @@ class ResponseExceptionListener implements EventSubscriberInterface
         DataObject\AbstractObject::setHideUnpublished(true);
         DataObject\AbstractObject::setGetInheritedValues(true);
         DataObject\Localizedfield::setGetFallbackValues(true);
+    }
+
+    protected function logToHttpErrorLog(Request $request, $statusCode)
+    {
+        $uri = $request->getUri();
+        $exists = $this->db->fetchOne('SELECT date FROM http_error_log WHERE uri = ?', [$uri]);
+        if ($exists) {
+            $this->db->executeQuery('UPDATE http_error_log SET `count` = `count` + 1, date = ? WHERE uri = ?', [time(), $uri]);
+        } else {
+            $this->db->insert('http_error_log', [
+                'uri' => $uri,
+                'code' => (int) $statusCode,
+                'parametersGet' => serialize($_GET),
+                'parametersPost' => serialize($_POST),
+                'cookies' => serialize($_COOKIE),
+                'serverVars' => serialize($_SERVER),
+                'date' => time(),
+                'count' => 1,
+            ]);
+        }
     }
 }
