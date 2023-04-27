@@ -97,7 +97,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
      */
     protected function handleErrorPage(ExceptionEvent $event): void
     {
-        if (false && \Pimcore::inDebugMode()) {
+        if (\Pimcore::inDebugMode()) {
             return;
         }
 
@@ -117,7 +117,6 @@ class ResponseExceptionListener implements EventSubscriberInterface
          * We need a document to initialize a valid zone!
          */
         $document = $this->determineErrorDocument($event->getRequest());
-
         $this->logToHttpErrorLog($event->getRequest(), $statusCode);
 
         if (!$document instanceof Document) {
