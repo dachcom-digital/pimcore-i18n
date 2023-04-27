@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 4.1.7
+- [BUGFIX] resolve site and locale in areabrick-render-index-editmode route [#132](https://github.com/dachcom-digital/pimcore-i18n/issues/132)
+
 ## 4.1.6
 - [BUGFIX] Follow-Up: Object Preview Improvements (Also suppress exception in document context) [#126](https://github.com/dachcom-digital/pimcore-i18n/pull/126)
 - [IMPROVEMENT] Relay on main request, always check for request parameters (site, locale) as long request is available [#124](https://github.com/dachcom-digital/pimcore-i18n/pull/124)

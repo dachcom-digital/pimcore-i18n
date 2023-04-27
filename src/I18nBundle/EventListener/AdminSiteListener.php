@@ -5,6 +5,7 @@ namespace I18nBundle\EventListener;
 use I18nBundle\Resolver\PimcoreAdminSiteResolverInterface;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
 use Pimcore\Http\RequestHelper;
+use Pimcore\Model\Document;
 use Pimcore\Model\Site;
 use Pimcore\Tool\Frontend;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
@@ -42,16 +43,18 @@ class AdminSiteListener implements EventSubscriberInterface
 
     protected function resolveAdminContextSite(Request $request): void
     {
-        if (!$this->requestHelper->isFrontendRequestByAdmin($request)) {
+        $document = null;
+        if ($this->requestHelper->isFrontendRequestByAdmin($request) && $request->attributes->has(DynamicRouter::CONTENT_KEY)) {
+            $document = $request->attributes->get(DynamicRouter::CONTENT_KEY);
+        } elseif ($request->attributes->get('_route') === 'pimcore_admin_document_page_areabrick-render-index-editmode' && $request->request->has('documentId')) {
+            $document = Document::getById($request->request->get('documentId'));
+        }
+
+        if ($document === null) {
             return;
         }
 
-        if (!$request->attributes->has(DynamicRouter::CONTENT_KEY)) {
-            return;
-        }
-
-
-        $site = Frontend::getSiteForDocument($request->attributes->get(DynamicRouter::CONTENT_KEY));
+        $site = Frontend::getSiteForDocument($document);
 
         if (!$site instanceof Site) {
             return;
