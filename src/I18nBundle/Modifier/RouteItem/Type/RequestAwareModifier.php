@@ -6,6 +6,7 @@ use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Resolver\PimcoreAdminSiteResolverInterface;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Http\RequestHelper;
+use Pimcore\Model\Document;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
@@ -53,8 +54,15 @@ class RequestAwareModifier implements RouteItemModifierInterface
             }
         }
 
-        if ($request->attributes->has('_locale') && !$routeItem->getRouteParametersBag()->has('_locale')) {
-            $routeItem->getRouteParametersBag()->set('_locale', $request->getLocale());
+        if (!$routeItem->getRouteParametersBag()->has('_locale')) {
+            if ($request->attributes->has('_locale')) {
+                $routeItem->getRouteParametersBag()->set('_locale', $request->getLocale());
+            } elseif ($request->attributes->get('_route') === 'pimcore_admin_document_page_areabrick-render-index-editmode' && $request->request->has('documentId')) {
+                $document = Document::getById($request->request->get('documentId'));
+                if($document instanceof Document) {
+                    $routeItem->getRouteParametersBag()->set('_locale', $document->getProperty('language'));
+                }
+            }
         }
 
         $routeItem->getRouteContextBag()->set('isFrontendRequestByAdmin', $isFrontendRequestByAdmin);
