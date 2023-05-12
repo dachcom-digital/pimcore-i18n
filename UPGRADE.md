@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 4.1.8
+- [BUGFIX] Reinstated HTTP error logging for SEO
+
 ## 4.1.7
 - [BUGFIX] resolve site and locale in areabrick-render-index-editmode route [#132](https://github.com/dachcom-digital/pimcore-i18n/issues/132)
 
