@@ -117,6 +117,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
          * We need a document to initialize a valid zone!
          */
         $document = $this->determineErrorDocument($event->getRequest());
+        $this->logToHttpErrorLog($event->getRequest(), $statusCode);
 
         if (!$document instanceof Document) {
             return;
@@ -159,7 +160,6 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $this->logger->emergency('Unable to render error page, exception thrown');
             $this->logger->emergency($e);
         }
-        $this->logToHttpErrorLog($event->getRequest(), $statusCode);
 
         $event->setResponse(new Response($response, $statusCode, $headers));
     }
@@ -244,10 +244,10 @@ class ResponseExceptionListener implements EventSubscriberInterface
             $this->db->insert('http_error_log', [
                 'uri' => $uri,
                 'code' => (int) $statusCode,
-                'parametersGet' => serialize($_GET),
-                'parametersPost' => serialize($_POST),
-                'cookies' => serialize($_COOKIE),
-                'serverVars' => serialize($_SERVER),
+                'parametersGet'  => serialize($request->query->all()),
+                'parametersPost' => serialize($request->request->all()),
+                'cookies'        => serialize($request->cookies->all()),
+                'serverVars'     => serialize($request->server->all()),
                 'date' => time(),
                 'count' => 1,
             ]);
