@@ -10,5 +10,3 @@ Set the path to the database file in your `parameters.yml` to enable the geo sup
 ```yaml
 i18n.geo_ip.db_file: /usr/share/GeoIP/GeoLite2-City.mmdb
 ``` 
-
-To keep the BC, I18n also will check the project path `var/config/GeoLite2-City.mmdb` for legacy reasons.
