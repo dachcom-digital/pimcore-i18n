@@ -14,7 +14,7 @@ services:
 
     I18nBundle\Session\SessionConfigurator:
         tags:
-            - { name: pimcore.session.configurator }
+            - { name: kernel.event_subscriber}
 
     I18nBundle\Routing\I18nRouter:
         decorates: 'router'

@@ -32,7 +32,8 @@
     },
     "require": {
         "pimcore/pimcore": "^11.0",
-        "symfony/intl": "^6.2"
+        "symfony/intl": "^6.2",
+        "geoip2/geoip2": "^2.0"
     },
     "require-dev": {
         "codeception/codeception": "^5.0",

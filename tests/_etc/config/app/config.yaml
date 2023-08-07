@@ -18,6 +18,39 @@ doctrine:
                     enum: string
                     bit: boolean
 
+pimcore_static_routes:
+    config_location:
+        staticroutes:
+            write_target:
+                type: 'settings-store'
+
+pimcore:
+    config_location:
+        image_thumbnails:
+            write_target:
+                type: 'settings-store'
+        video_thumbnails:
+            write_target:
+                type: 'settings-store'
+        document_types:
+            write_target:
+                type: 'settings-store'
+        predefined_properties:
+            write_target:
+                type: 'settings-store'
+        predefined_asset_metadata:
+            write_target:
+                type: 'settings-store'
+        perspectives:
+            write_target:
+                type: 'settings-store'
+        custom_views:
+            write_target:
+                type: 'settings-store'
+        object_custom_layouts:
+            write_target:
+                type: 'settings-store'
+
 framework:
     profiler:
         enabled: true
@@ -27,3 +60,5 @@ framework:
         transports:
             main: 'null://null'
             pimcore_newsletter: 'null://null'
+    session:
+        storage_factory_id: session.storage.factory.mock_file

@@ -49,11 +49,11 @@ i18n:
                 translations: ~
 
 services:
-    DachcomBundle\Test\Services\TestAlternateListener:
+    DachcomBundle\Test\Support\Services\TestAlternateListener:
         autowire: true
         public: false
         tags:
             - { name: kernel.event_subscriber }
 
-    DachcomBundle\Test\Services\TestLinkGenerator:
+    DachcomBundle\Test\Support\Services\TestLinkGenerator:
         public: true

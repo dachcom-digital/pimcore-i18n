@@ -1,6 +1,6 @@
 <?php
 
-namespace DachcomBundle\Test\Services;
+namespace DachcomBundle\Test\Support\Services;
 
 use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
 use I18nBundle\Model\RouteItem\LinkGeneratorRouteItemInterface;

@@ -1,4 +1,4 @@
-actor: FunctionalTester
+actor: FunctionalI18nTester
 error_level: '%PIMCORE_PHP_ERROR_REPORTING%'
 modules:
     enabled:

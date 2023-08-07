@@ -73,7 +73,7 @@
     "icon": null,
     "previewUrl": null,
     "group": null,
-    "linkGeneratorReference": "@DachcomBundle\\Test\\Services\\TestLinkGenerator",
+    "linkGeneratorReference": "@DachcomBundle\\Test\\Support\\Services\\TestLinkGenerator",
     "propertyVisibility": {
         "grid": {
             "id": true,
