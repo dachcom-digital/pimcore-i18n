@@ -229,6 +229,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
         $documentCountry = $i18nContext->getLocaleDefinition()->getCountryIso();
         $currentZoneId = $i18nContext->getZone()->getId();
 
+        /** @var AttributeBagInterface $bag */
         $bag = $request->getSession()->getBag('i18n_session');
 
         if (!empty($documentLocale)) {
