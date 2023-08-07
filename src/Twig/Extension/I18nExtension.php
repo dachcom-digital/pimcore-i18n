@@ -18,21 +18,12 @@ use Twig\TwigFunction;
 
 class I18nExtension extends AbstractExtension
 {
-    protected RequestStack $requestStack;
-    protected UrlGeneratorInterface $urlGenerator;
-    protected I18nContextResolverInterface $i18nContextResolver;
-    protected I18nContextManager $i18nContextManager;
-
     public function __construct(
-        RequestStack $requestStack,
-        UrlGeneratorInterface $urlGenerator,
-        I18nContextResolverInterface $i18nContextResolver,
-        I18nContextManager $i18nContextManager
+        protected RequestStack $requestStack,
+        protected UrlGeneratorInterface $urlGenerator,
+        protected I18nContextResolverInterface $i18nContextResolver,
+        protected I18nContextManager $i18nContextManager
     ) {
-        $this->requestStack = $requestStack;
-        $this->urlGenerator = $urlGenerator;
-        $this->i18nContextResolver = $i18nContextResolver;
-        $this->i18nContextManager = $i18nContextManager;
     }
 
     public function getFunctions(): array

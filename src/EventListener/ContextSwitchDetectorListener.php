@@ -12,6 +12,7 @@ use I18nBundle\Helper\RequestValidatorHelper;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use I18nBundle\I18nEvents;
 use I18nBundle\Event\ContextSwitchEvent;
+use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -190,6 +191,7 @@ class ContextSwitchDetectorListener implements EventSubscriberInterface
 
     protected function getSessionData(Request $request): array
     {
+        /** @var AttributeBagInterface $bag */
         $bag = $request->getSession()->getBag('i18n_session');
 
         $data = [

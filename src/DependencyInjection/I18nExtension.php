@@ -11,7 +11,7 @@ use I18nBundle\Configuration\Configuration as BundleConfiguration;
 
 class I18nExtension extends Extension implements PrependExtensionInterface
 {
-    public function prepend(ContainerBuilder $container)
+    public function prepend(ContainerBuilder $container): void
     {
         $configs = $container->getExtensionConfig($this->getAlias());
 
@@ -57,6 +57,7 @@ class I18nExtension extends Extension implements PrependExtensionInterface
         $container->setParameter('i18n.registry_availability', $config['registry']);
 
         // set geo db path (including legacy path)
+        /** @phpstan-ignore-next-line */
         if ($container->hasParameter('pimcore.geoip.db_file') && !empty($container->getParameter('pimcore.geoip.db_file'))) {
             $geoIpDbFile = $container->getParameter('pimcore.geoip.db_file');
         } else {

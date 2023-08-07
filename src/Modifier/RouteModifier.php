@@ -107,7 +107,7 @@ class RouteModifier
 
     public function buildLinkGeneratorRouteItem(Concrete $routeItemEntity, I18nContextInterface $i18nContext): RouteItemInterface
     {
-        $linkGenerator = $routeItemEntity->getClass()?->getLinkGenerator();
+        $linkGenerator = $routeItemEntity->getClass()->getLinkGenerator();
         if (!$linkGenerator instanceof I18nLinkGeneratorInterface) {
             throw new \Exception(
                 sprintf(

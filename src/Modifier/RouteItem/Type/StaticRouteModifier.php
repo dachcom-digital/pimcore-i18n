@@ -52,7 +52,7 @@ class StaticRouteModifier implements RouteItemModifierInterface
             throw new \Exception(sprintf('I18n object zone generation error: Entity needs to be an instance of "%s", "%s" given.', Concrete::class, get_class($entity)));
         }
 
-        $linkGenerator = $entity->getClass()?->getLinkGenerator();
+        $linkGenerator = $entity->getClass()->getLinkGenerator();
         if (!$linkGenerator instanceof LinkGeneratorInterface) {
             throw new \Exception(
                 sprintf(

@@ -11,6 +11,7 @@ final class RouterPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
+        /** @phpstan-ignore-next-line */
         if ($container->has('router.default')) {
             $container->getDefinition(RouteItemBuilder::class)->addMethodCall('setFrameworkRouter', [new Reference('router.default')]);
         }
