@@ -5,6 +5,8 @@ services:
         autoconfigure: true
         public: false
 
+    I18nBundle\Resolver\RedirectResolver: ~
+
     I18nBundle\Resolver\PimcoreAdminSiteResolverInterface: '@I18nBundle\Resolver\PimcoreAdminSiteResolver'
     I18nBundle\Resolver\PimcoreAdminSiteResolver: ~
 

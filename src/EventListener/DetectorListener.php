@@ -8,11 +8,9 @@ use I18nBundle\Helper\RequestValidatorHelper;
 use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Model\ZoneSiteInterface;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
-use I18nBundle\Adapter\Redirector\RedirectorBag;
 use I18nBundle\Configuration\Configuration;
-use I18nBundle\Registry\RedirectorRegistry;
+use I18nBundle\Resolver\RedirectResolver;
 use I18nBundle\Tool\System;
-use Pimcore\Config;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -25,9 +23,9 @@ class DetectorListener implements EventSubscriberInterface
     public function __construct(
         protected Configuration $configuration,
         protected CookieHelper $cookieHelper,
-        protected RedirectorRegistry $redirectorRegistry,
         protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
         protected I18nContextResolverInterface $i18nContextResolver,
+        protected RedirectResolver $redirectResolver,
         protected RequestValidatorHelper $requestValidatorHelper
     ) {
     }
@@ -48,9 +46,7 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $redirectUrl = null;
         $request = $event->getRequest();
-        $document = $this->pimcoreDocumentResolver->getDocument($request);
 
         if (System::isInBackend($request)) {
             return;
@@ -64,6 +60,7 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
+        $document = $this->pimcoreDocumentResolver->getDocument($request);
         if (!$document instanceof Document) {
             return;
         }
@@ -79,25 +76,10 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $redirectorBag = new RedirectorBag([
-            'i18nContext' => $i18nContext,
-            'request'     => $request,
-        ]);
+        $redirectResponse = $this->redirectResolver->resolve($request, $i18nContext);
 
-        foreach ($this->redirectorRegistry->all() as $redirector) {
-            $redirector->makeDecision($redirectorBag);
-            $decision = $redirector->getDecision();
-
-            if ($decision['valid'] === true) {
-                $redirectUrl = $decision['url'];
-            }
-
-            $redirectorBag->addRedirectorDecisionToBag($redirector->getName(), $decision);
-        }
-
-        if ($redirectUrl !== null) {
-            $status = $this->configuration->getConfig('redirect_status_code');
-            $event->setResponse(new RedirectResponse($this->getRedirectUrl($redirectUrl), $status));
+        if ($redirectResponse instanceof RedirectResponse) {
+            $event->setResponse($redirectResponse);
         }
     }
 
@@ -138,7 +120,7 @@ class DetectorListener implements EventSubscriberInterface
         $zone = $i18nContext->getZone();
 
         $zoneSites = $zone->getSites(true);
-        $validUri = $this->getRedirectUrl(strtok($event->getRequest()->getUri(), '?'));
+        $validUri = $this->redirectResolver->resolveRedirectUrl(strtok($event->getRequest()->getUri(), '?'));
 
         $cookie = $this->cookieHelper->get($event->getRequest());
 
@@ -163,18 +145,5 @@ class DetectorListener implements EventSubscriberInterface
             'country'  => $i18nContext->getLocaleDefinition()->getCountryIso()
         ]);
 
-    }
-
-    protected function getRedirectUrl(string $path): string
-    {
-        $config = Config::getSystemConfiguration('documents');
-
-        $endPath = rtrim($path, '/');
-
-        if ($config['allow_trailing_slash'] !== 'no') {
-            $endPath .= '/';
-        }
-
-        return $endPath;
     }
 }
