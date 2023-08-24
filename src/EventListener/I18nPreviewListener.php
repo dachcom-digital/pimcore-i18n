@@ -3,6 +3,7 @@
 namespace I18nBundle\EventListener;
 
 use Pimcore\Http\Request\Resolver\DocumentResolver;
+use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Http\RequestHelper;
 use Pimcore\Model\Site;
@@ -30,7 +31,7 @@ class I18nPreviewListener implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            KernelEvents::REQUEST => ['onKernelRequest', 21], // before DocumentFallbackListener
+            KernelEvents::REQUEST => ['onKernelRequest', 33], // before DocumentFallbackListener
         ];
     }
 
@@ -42,11 +43,15 @@ class I18nPreviewListener implements EventSubscriberInterface
 
         $request = $event->getRequest();
 
-        if (!$this->requestHelper->isFrontendRequestByAdmin($request)) {
+        $validRequestContext =
+            $request->attributes->get(PimcoreContextResolver::ATTRIBUTE_PIMCORE_CONTEXT) === PimcoreContextResolver::CONTEXT_ADMIN ||
+            $this->requestHelper->isFrontendRequestByAdmin($request);
+
+        if ($validRequestContext === false) {
             return;
         }
 
-        if (!$request->query->has('i18n_preview_locale') && !$request->query->has('i18n_preview_site')) {
+        if ($this->getLocaleIdentifier($request) === null && $this->getSiteIdentifier($request) === null) {
             return;
         }
 
@@ -56,13 +61,15 @@ class I18nPreviewListener implements EventSubscriberInterface
 
     protected function resolveSite(Request $request): void
     {
-        if (!$request->query->has('i18n_preview_site')) {
+        $siteIdentifier = $this->getSiteIdentifier($request);
+
+        if ($siteIdentifier === null) {
             return;
         }
 
         $path = urldecode($request->getPathInfo());
 
-        if (!$site = Site::getById($request->query->get('i18n_preview_site'))) {
+        if (!$site = Site::getById($siteIdentifier)) {
             return;
         }
 
@@ -74,7 +81,10 @@ class I18nPreviewListener implements EventSubscriberInterface
 
     protected function resolveDocument(Request $request): void
     {
-        if (!$request->query->has('i18n_preview_locale')) {
+        $siteIdentifier = $this->getSiteIdentifier($request);
+        $localeIdentifier = $this->getLocaleIdentifier($request);
+
+        if ($localeIdentifier === null) {
             return;
         }
 
@@ -84,7 +94,7 @@ class I18nPreviewListener implements EventSubscriberInterface
             return;
         }
 
-        $path = $request->query->has('i18n_preview_site') ? $this->siteResolver->getSitePath($request) : $request;
+        $path = $siteIdentifier !== null ? $this->siteResolver->getSitePath($request) : $request;
         $nearestDocument = $this->documentService->getNearestDocumentByPath($path, false, $this->nearestDocumentTypes);
 
         if (!$nearestDocument instanceof Document) {
@@ -93,4 +103,31 @@ class I18nPreviewListener implements EventSubscriberInterface
 
         $this->documentResolver->setDocument($request, $nearestDocument);
     }
+
+    protected function getSiteIdentifier(Request $request): null|int|string
+    {
+        if ($request->query->has('i18n_preview_site')) {
+            return $request->query->get('i18n_preview_site');
+        }
+
+        if ($request->query->has('i18n_site')) {
+            return $request->query->get('i18n_site');
+        }
+
+        return null;
+    }
+
+    protected function getLocaleIdentifier(Request $request): ?string
+    {
+        if ($request->query->has('i18n_preview_locale')) {
+            return $request->query->get('i18n_preview_locale');
+        }
+
+        if ($request->query->has('i18n_locale')) {
+            return $request->query->get('i18n_locale');
+        }
+
+        return null;
+    }
+
 }
