@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 4.1.9
+- [BUGFIX] Move preview listener to earlier state to allow static route preview with restricted sites
+
 ## 4.1.8
 - [BUGFIX] Reinstated HTTP error logging for SEO
 
