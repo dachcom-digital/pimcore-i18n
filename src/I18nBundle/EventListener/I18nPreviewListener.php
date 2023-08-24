@@ -108,7 +108,9 @@ class I18nPreviewListener implements EventSubscriberInterface
     {
         if ($request->query->has('i18n_preview_site')) {
             return $request->query->get('i18n_preview_site');
-        } elseif ($request->query->has('i18n_site')) {
+        }
+
+        if ($request->query->has('i18n_site')) {
             return $request->query->get('i18n_site');
         }
 
@@ -119,7 +121,9 @@ class I18nPreviewListener implements EventSubscriberInterface
     {
         if ($request->query->has('i18n_preview_locale')) {
             return $request->query->get('i18n_preview_locale');
-        } elseif ($request->query->has('i18n_locale')) {
+        }
+
+        if ($request->query->has('i18n_locale')) {
             return $request->query->get('i18n_locale');
         }
 
