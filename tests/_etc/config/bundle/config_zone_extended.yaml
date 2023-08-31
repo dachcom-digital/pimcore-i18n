@@ -1,0 +1,59 @@
+parameters:
+    i18n_translations:
+        -   key: 'testKey'
+            values:
+                de: 'beitrag'
+                en: 'news'
+                fr: 'nouvelles'
+                it: 'notizia'
+                en_US: 'news'
+                de_CH: 'artikel'
+                de_DE: 'artikel'
+
+i18n:
+    mode: language
+    locale_adapter: system
+    default_locale: 'en'
+    request_scheme: 'http'
+    request_port: 80
+    translations: '%i18n_translations%'
+    zones:
+        zone1:
+            id: 1
+            domains:
+                - 'test-domain1.test'
+                - 'test-domain2.test'
+                - 'test-domain3.test'
+            config:
+                mode: language
+                locale_adapter: system
+                translations: ~
+        zone2:
+            id: 2
+            domains:
+                - 'test-domain4.test'
+                - 'test-domain5.test'
+                - 'test-domain6.test'
+            config:
+                mode: country
+                locale_adapter: system
+                default_locale: 'de'
+                translations: ~
+        zone3:
+            id: 3
+            domains:
+                - 'test-domain7.test'
+            config:
+                mode: language
+                locale_adapter: system
+                translations: ~
+
+services:
+    DachcomBundle\Test\Support\Services\TestAlternateListener:
+        autowire: true
+        public: false
+        tags:
+            - { name: kernel.event_subscriber }
+
+    DachcomBundle\Test\Support\Services\TestLinkGenerator:
+        public: true

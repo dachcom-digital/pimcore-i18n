@@ -43,7 +43,7 @@ i18n:
 ### 1. Create a Service
 
 ```yaml
-# config/services.yml
+# config/services.yaml
 App\Services\I18nBundle\RedirectorAdapter\Website:
     parent: I18nBundle\Adapter\Redirector\AbstractRedirector
     public: false

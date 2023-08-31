@@ -15,7 +15,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "I18nBundle\\": "src/I18nBundle"
+            "I18nBundle\\": "src/"
         }
     },
     "autoload-dev": {
@@ -31,14 +31,16 @@
         }
     },
     "require": {
-        "pimcore/pimcore": "^10.1"
+        "pimcore/pimcore": "^11.0",
+        "symfony/intl": "^6.2",
+        "geoip2/geoip2": "^2.0"
     },
     "require-dev": {
-        "codeception/codeception": "^4.1",
-        "codeception/module-webdriver": "^1.4",
-        "codeception/module-symfony": "^1.6",
-        "phpstan/phpstan": "^0.12",
-        "phpstan/phpstan-symfony": "^0.12",
+        "codeception/codeception": "^5.0",
+        "codeception/module-symfony": "^3.1",
+        "codeception/module-webdriver": "^4.0",
+        "phpstan/phpstan": "^1.0",
+        "phpstan/phpstan-symfony": "^1.0",
         "symplify/easy-coding-standard": "^9.0"
     }
 }

@@ -19,7 +19,8 @@ This bundle helps you to master this challenges and gives you the freedom to ela
 ### Release Plan
 | Release | Supported Pimcore Versions        | Supported Symfony Versions | Release Date | Maintained     | Branch     |
 |---------|-----------------------------------|----------------------------|--------------|----------------|------------|
-| **4.x** | `10.1` - `10.6`                   | `5.4`                      | 12.11.2021   | Feature Branch | master     |
+| **5.x** | `11.0`                            | `6.2`                      | --           | Feature Branch | dev-master |
+| **4.x** | `10.1` - `10.6`                   | `5.4`                      | 12.11.2021   | Bugfixes       | 4.x        |
 | **3.x** | `6.0` - `6.3`, `6.5` - `6.9`      | `3.4`, `^4.4`              | 18.07.2019   | Unsupported    | 3.x        |
 | **2.4** | `5.4`, `5.5`, `5.6`, `5.7`, `5.8` | `3.4`                      | 24.05.2019   | Unsupported    | 2.4        |
 
@@ -27,11 +28,17 @@ This bundle helps you to master this challenges and gives you the freedom to ela
 
 ```json
 "require" : {
-    "dachcom-digital/i18n" : "~4.1.0"
+    "dachcom-digital/i18n" : "~5.0.0"
 }
 ```
 
-- Execute: `$ bin/console pimcore:bundle:enable I18nBundle`
+Add Bundle to `bundles.php`:
+```php
+return [
+    I18nBundle\I18nBundle::class => ['all' => true],
+];
+```
+
 - Execute: `$ bin/console pimcore:bundle:install I18nBundle`
 
 ## Upgrading
