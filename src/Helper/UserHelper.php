@@ -22,13 +22,13 @@ class UserHelper
 
     public function getLanguagesAcceptedByUser(): array
     {
-        $masterRequest = $this->requestStack->getMainRequest();
-        if (!$masterRequest instanceof Request) {
+        $mainRequest = $this->requestStack->getMainRequest();
+        if (!$mainRequest instanceof Request) {
             return [];
         }
 
         $guessedLanguages = [];
-        $acceptLanguages = $masterRequest->getLanguages();
+        $acceptLanguages = $mainRequest->getLanguages();
 
         if (!is_array($acceptLanguages)) {
             return $guessedLanguages;
