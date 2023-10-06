@@ -10,7 +10,6 @@ class Zone implements ZoneInterface
     protected ?string $name;
     protected ?string $zoneDefaultLocale;
     protected string $localeAdapterName;
-    protected string $mode;
     protected array $translations;
     protected array $domains;
     protected array $activeLocales = [];
@@ -25,7 +24,6 @@ class Zone implements ZoneInterface
         ?string $name,
         ?string $zoneDefaultLocale,
         string $localeAdapterName,
-        string $mode,
         array $translations,
         array $domains
     ) {
@@ -33,7 +31,6 @@ class Zone implements ZoneInterface
         $this->name = $name;
         $this->zoneDefaultLocale = $zoneDefaultLocale;
         $this->localeAdapterName = $localeAdapterName;
-        $this->mode = $mode;
         $this->translations = $translations;
         $this->domains = $domains;
     }
@@ -70,11 +67,6 @@ class Zone implements ZoneInterface
     public function getDomains(): array
     {
         return $this->domains;
-    }
-
-    public function getMode(): string
-    {
-        return $this->mode;
     }
 
     public function getTranslations(): array

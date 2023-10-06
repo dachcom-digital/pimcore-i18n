@@ -1,6 +1,5 @@
 i18n:
     enable_context_switch_detector: true
-    mode: language
     locale_adapter: system
     default_locale: 'en'
     request_scheme: 'http'

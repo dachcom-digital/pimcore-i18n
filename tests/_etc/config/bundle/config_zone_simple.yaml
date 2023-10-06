@@ -1,5 +1,4 @@
 i18n:
-    mode: language
     locale_adapter: system
     default_locale: 'en'
     request_scheme: 'http'
@@ -9,7 +8,6 @@ i18n:
         zone1:
             id: 1
             config:
-                mode: language
                 locale_adapter: system
                 translations: ~
             domains:

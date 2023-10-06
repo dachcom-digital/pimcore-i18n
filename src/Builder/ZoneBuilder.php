@@ -85,7 +85,6 @@ class ZoneBuilder
             $currentZoneName,
             $zoneDefinition['default_locale'],
             $zoneDefinition['locale_adapter'],
-            $zoneDefinition['mode'],
             $translations,
             $currentZoneDomains
         );

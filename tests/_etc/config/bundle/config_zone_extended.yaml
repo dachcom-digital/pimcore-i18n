@@ -11,7 +11,6 @@ parameters:
                 de_DE: 'artikel'
 
 i18n:
-    mode: language
     locale_adapter: system
     default_locale: 'en'
     request_scheme: 'http'
@@ -25,7 +24,6 @@ i18n:
                 - 'test-domain2.test'
                 - 'test-domain3.test'
             config:
-                mode: language
                 locale_adapter: system
                 translations: ~
         zone2:
@@ -35,7 +33,6 @@ i18n:
                 - 'test-domain5.test'
                 - 'test-domain6.test'
             config:
-                mode: country
                 locale_adapter: system
                 default_locale: 'de'
                 translations: ~
@@ -44,7 +41,6 @@ i18n:
             domains:
                 - 'test-domain7.test'
             config:
-                mode: language
                 locale_adapter: system
                 translations: ~
 

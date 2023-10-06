@@ -15,11 +15,6 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->enumNode('mode')
-                    ->values(['country', 'language'])
-                    ->defaultValue('language')
-                    ->info('')
-                ->end()
                 ->enumNode('redirect_status_code')->defaultValue(302)->values([301,302])->end()
                 ->booleanNode('enable_context_switch_detector')->defaultValue(false)->end()
                 ->scalarNode('request_scheme')->defaultValue('https')->end()
@@ -103,10 +98,6 @@ class Configuration implements ConfigurationInterface
                             ->end()
                             ->arrayNode('config')
                                 ->children()
-                                    ->enumNode('mode')
-                                        ->values(['country', 'language'])
-                                        ->isRequired()
-                                    ->end()
                                     ->scalarNode('locale_adapter')
                                         ->isRequired()
                                         ->info('')

@@ -51,10 +51,6 @@ class HeadMetaListener implements EventSubscriberInterface
             return;
         }
 
-        if ($i18nContext->getZone()->getMode() !== 'country') {
-            return;
-        }
-
         $currentCountryIso = $i18nContext->getLocaleDefinition()->getCountryIso();
 
         if (empty($currentCountryIso)) {

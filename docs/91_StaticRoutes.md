@@ -116,7 +116,6 @@ Now we'll add some configuration to translate this fragment:
 # config/packages/i18n.yaml
 i18n:
 
-    mode: country
     locale_adapter: system
     
     # you also need to add them to every zone, if you have any

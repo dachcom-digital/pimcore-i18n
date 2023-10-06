@@ -7,31 +7,26 @@ But you may need some more complex structures, so we implemented the zone manage
 
 ### Default Configuration Options
 
-| Name | Description |
-|------|-------------|
-| mode | Set mode (`language` or `country`) - `country` also includes language |
-| locale_adapter | Locale Adapter (`system`, by default) |
-| default_locale | Define a default locale (like `de`, `en_US`) |
-| translations | [Static Route translations](28_StaticRoutes.md) |
-| zones | Array for complex Zones |
+| Name           | Description                                     |
+|----------------|-------------------------------------------------|
+| locale_adapter | Locale Adapter (`system`, by default)           |
+| default_locale | Define a default locale (like `de`, `en_US`)    |
+| translations   | [Static Route translations](28_StaticRoutes.md) |
+| zones          | Array for complex Zones                         |
 
 ### Zone Configuration Options
 Basically there are the same options as in the default configuration, except that you can't define zones within zones.
 
-| Name | Description |
-|------|-------------|
-| mode | Set mode (`language` or `country`) - `country` also includes language |
-| locale_adapter | Locale Adapter (`system` by default) |
-| default_locale | Define a default locale (like `de`, `en_US`) |
-| translations | [Static Route translations](28_StaticRoutes.md) |
+| Name           | Description                                     |
+|----------------|-------------------------------------------------|
+| locale_adapter | Locale Adapter (`system` by default)            |
+| default_locale | Define a default locale (like `de`, `en_US`)    |
+| translations   | [Static Route translations](28_StaticRoutes.md) |
 
 ### Configuration
 
 ```yaml
 i18n:
-
-    # set mode (language|country)
-    mode: language
 
     # define a locale adapter (system|custom)
     locale_adapter: system
@@ -59,7 +54,6 @@ i18n:
                 - 'pimcore5-domain2.test'
                 - 'pimcore5-domain3.test'
             config:
-                mode: language
                 locale_adapter: system
                 translations: ~
 
@@ -71,7 +65,6 @@ i18n:
                 - ['test-domain5.test', 'https', 443]       # defined as array you're able to pass scheme and port
                 - 'test-domain6.test'                       # still working, default values (i18n.request_scheme, i18n.request_port) will be selected
             config:
-                mode: country
                 locale_adapter: system
                 translations: ~
 
@@ -81,7 +74,6 @@ i18n:
             domains:
                 - 'pimcore5-domain7.test'
             config:
-                mode: language
                 locale_adapter: system
                 translations: ~
 ```

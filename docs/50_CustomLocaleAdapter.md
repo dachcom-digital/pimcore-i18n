@@ -22,7 +22,6 @@ App\Services\I18nBundle\LocaleAdapter\SpecialLocaleProvider:
 ```yaml
 # config/packages/i18n.yaml
 i18n:
-    mode: country
     locale_adapter: special
 ```
 
