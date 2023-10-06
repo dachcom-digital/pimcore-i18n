@@ -16,8 +16,6 @@ interface ZoneInterface
 
     public function getDomains(): array;
 
-    public function getMode(): string;
-
     public function getTranslations(): array;
 
     public function isActiveZone(): bool;

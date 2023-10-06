@@ -162,10 +162,6 @@ class I18nContext implements I18nContextInterface
 
     public function getActiveCountries(): array
     {
-        if ($this->zone->getMode() !== 'country') {
-            return [];
-        }
-
         $activeLocales = $this->zone->getActiveLocales();
 
         $validCountries = [];

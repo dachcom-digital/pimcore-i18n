@@ -26,7 +26,7 @@ class GeoRedirector extends AbstractRedirector
          */
         $userLanguagesIso = $this->userHelper->getLanguagesAcceptedByUser();
 
-        if (!is_array($userLanguagesIso) || count($userLanguagesIso) === 0) {
+        if (count($userLanguagesIso) === 0) {
             $this->setDecision([
                 'valid'             => false,
                 'redirectorOptions' => [
@@ -38,16 +38,12 @@ class GeoRedirector extends AbstractRedirector
             return;
         }
 
-        $userCountryIso = null;
+        $userCountryIso = $this->userHelper->guessCountry();
         $zoneSites = $redirectorBag->getI18nContext()->getZone()->getSites(true);
-
-        if ($redirectorBag->getI18nContext()->getZone()->getMode() === 'country') {
-            $userCountryIso = $this->userHelper->guessCountry();
-        }
 
         $redirectorOptions = [
             'geoLanguage' => $userLanguagesIso,
-            'geoCountry'  => $userCountryIso !== null ? $userCountryIso : false,
+            'geoCountry'  => $userCountryIso ?? false,
         ];
 
         $prioritisedListQuery = [];
@@ -137,6 +133,14 @@ class GeoRedirector extends AbstractRedirector
         $indexId = array_search($locale, array_map(static function (ZoneSiteInterface $site) {
             return $site->getLocale();
         }, $zoneSites), true);
+
+        // no site with given locale found
+        // maybe there is a matching country site
+        if ($indexId === false) {
+            $indexId = array_search($countryIso, array_map(static function (ZoneSiteInterface $site) {
+                return $site->getCountryIso();
+            }, $zoneSites), true);
+        }
 
         return $indexId !== false ? $zoneSites[$indexId] : null;
     }

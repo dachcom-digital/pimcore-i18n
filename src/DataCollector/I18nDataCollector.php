@@ -46,7 +46,6 @@ class I18nDataCollector extends AbstractDataCollector
 
         $zone = $i18nContext->getZone();
         $zoneId = $zone->getId();
-        $mode = $zone->getMode();
 
         $currentLocale = '--';
         $currentLanguage = '--';
@@ -67,7 +66,6 @@ class I18nDataCollector extends AbstractDataCollector
         $this->data = [
             'isFrontend'      => true,
             'zoneId'          => $zoneId ?? 'None',
-            'i18nMode'        => $mode,
             'currentLocale'   => $currentLocale,
             'currentLanguage' => $currentLanguage,
             'currentCountry'  => $currentCountry
@@ -92,11 +90,6 @@ class I18nDataCollector extends AbstractDataCollector
     public function reset(): void
     {
         $this->data = [];
-    }
-
-    public function getI18nMode(): ?string
-    {
-        return $this->data['i18nMode'];
     }
 
     public function getLocale(): ?string

@@ -40,18 +40,14 @@ class Document extends AbstractPathGenerator
             return $this->cachedUrls[$document->getId()];
         }
 
-        if ($i18nContext->getZone()->getMode() === 'language') {
-            $urls = $this->documentUrlsFromLanguage($i18nContext, $document, $onlyShowRootLanguages);
-        } else {
-            $urls = $this->documentUrlsFromCountry($i18nContext, $document, $onlyShowRootLanguages);
-        }
+        $urls = $this->resolveDocumentRoutes($i18nContext, $document, $onlyShowRootLanguages);
 
         $this->cachedUrls[$document->getId()] = $urls;
 
         return $urls;
     }
 
-    private function documentUrlsFromLanguage(I18nContextInterface $i18nContext, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
+    private function resolveDocumentRoutes(I18nContextInterface $i18nContext, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
     {
         $routes = [];
         $zoneSites = $i18nContext->getZone()->getSites(true);
@@ -61,87 +57,17 @@ class Document extends AbstractPathGenerator
             return $site->getRootId();
         }, $zoneSites), true);
 
-        // case 1: no deep linking requested. only return root pages!
-        // case 2: current document is a root page ($rootDocumentIndexId) - only return root pages!
         if ($onlyShowRootLanguages === true || $rootDocumentIndexId !== false) {
             foreach ($zoneSites as $zoneSite) {
-
-                if (empty($zoneSite->getLanguageIso())) {
-                    continue;
-                }
-
                 $routes[] = [
                     'languageIso'      => $zoneSite->getLanguageIso(),
-                    'countryIso'       => null,
+                    'countryIso'       => $zoneSite->getCountryIso(),
                     'locale'           => $zoneSite->getLocale(),
                     'hrefLang'         => $zoneSite->getHrefLang(),
                     'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
+                    'key'              => $document->getKey(),
                     'url'              => $zoneSite->getUrl()
                 ];
-            }
-
-            return $routes;
-        }
-
-        $service = new PimcoreDocument\Service();
-        $translations = $service->getTranslations($document);
-
-        foreach ($zoneSites as $zoneSite) {
-
-            if (empty($zoneSite->getLocale())) {
-                continue;
-            }
-
-            $pageInfoLocale = $zoneSite->getLocale();
-            if (isset($translations[$pageInfoLocale])) {
-                try {
-                    /** @var PimcoreDocument\Page $document */
-                    $document = PimcoreDocument::getById($translations[$pageInfoLocale]);
-                } catch (\Exception $e) {
-                    continue;
-                }
-
-                if (!$document->isPublished()) {
-                    continue;
-                }
-
-                $routes[] = [
-                    'languageIso'      => $zoneSite->getLanguageIso(),
-                    'countryIso'       => null,
-                    'locale'           => $zoneSite->getLocale(),
-                    'hrefLang'         => $zoneSite->getHrefLang(),
-                    'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
-                    'url'              => $this->generateLink($routeItem, $document)
-                ];
-            }
-        }
-
-        return $routes;
-    }
-
-    private function documentUrlsFromCountry(I18nContextInterface $i18nContext, PimcoreDocument $document, bool $onlyShowRootLanguages = false): array
-    {
-        $routes = [];
-        $zoneSites = $i18nContext->getZone()->getSites(true);
-        $routeItem = $i18nContext->getRouteItem();
-
-        $rootDocumentIndexId = array_search($document->getId(), array_map(static function (ZoneSiteInterface $site) {
-            return $site->getRootId();
-        }, $zoneSites), true);
-
-        if ($onlyShowRootLanguages === true || $rootDocumentIndexId !== false) {
-            foreach ($zoneSites as $zoneSite) {
-                if (!empty($zoneSite->getCountryIso())) {
-                    $routes[] = [
-                        'languageIso'      => $zoneSite->getLanguageIso(),
-                        'countryIso'       => $zoneSite->getCountryIso(),
-                        'locale'           => $zoneSite->getLocale(),
-                        'hrefLang'         => $zoneSite->getHrefLang(),
-                        'localeUrlMapping' => $zoneSite->getLocaleUrlMapping(),
-                        'key'              => $document->getKey(),
-                        'url'              => $zoneSite->getUrl()
-                    ];
-                }
             }
 
             return $routes;

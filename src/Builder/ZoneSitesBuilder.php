@@ -109,13 +109,11 @@ class ZoneSitesBuilder
 
         if (!empty($docLocale)) {
 
-            if ($zone->getMode() === 'country') {
-                $docCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
-            }
+            $docCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
 
             if (str_contains($docLocale, '_')) {
                 $parts = explode('_', $docLocale);
-                if (isset($parts[1]) && !empty($parts[1])) {
+                if (!empty($parts[1])) {
                     $docCountryIso = $parts[1];
                 }
             }
@@ -123,7 +121,8 @@ class ZoneSitesBuilder
             $realLang = explode('_', $docLocale);
             $docRealLanguageIso = $realLang[0];
             $hrefLang = strtolower($docRealLanguageIso);
-            if (!empty($docCountryIso) && $docCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
+
+            if ($docCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
                 $hrefLang .= '-' . strtolower($docCountryIso);
             }
         }
@@ -245,13 +244,11 @@ class ZoneSitesBuilder
                 continue;
             }
 
-            if ($zone->getMode() === 'country') {
-                $childCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
-            }
+            $childCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
 
             if (str_contains($childDocLocale, '_')) {
                 $parts = explode('_', $childDocLocale);
-                if (isset($parts[1]) && !empty($parts[1])) {
+                if (!empty($parts[1])) {
                     $childCountryIso = $parts[1];
                 }
             }
@@ -267,7 +264,8 @@ class ZoneSitesBuilder
 
             $realLang = explode('_', $childDocLocale);
             $hrefLang = strtolower($realLang[0]);
-            if (!empty($childCountryIso) && $childCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
+
+            if ($childCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
                 $hrefLang .= '-' . strtolower($childCountryIso);
             }
 

@@ -79,8 +79,6 @@ class HeadLinkListener implements EventSubscriberInterface
 
     /**
      * Define x-default url based on crawled pages.
-     * country mode: get global page and default language from default/system settings
-     * language mode: get page with default language from default/system settings.
      *
      * @throws \Exception
      */

@@ -5,6 +5,10 @@
 ### Global Changes
 - Recommended folder structure by symfony adopted
 
+### New Features
+- [BC BREAK] Config node `mode` has been removed and will be handled internally which simplifies i18n usability
+- Configurable cookie expire flag
+
 ***
 
 I18nBundle 4.x Upgrade Notes: https://github.com/dachcom-digital/pimcore-i18n/blob/4.x/UPGRADE.md
