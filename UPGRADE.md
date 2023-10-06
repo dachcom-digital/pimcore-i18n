@@ -5,8 +5,9 @@
 ### Global Changes
 - Recommended folder structure by symfony adopted
 
-### BC-Breaks
-- Config node `mode` has been removed and will be handled internally
+### New Features
+- [BC BREAK] Config node `mode` has been removed and will be handled internally which simplifies i18n usability
+- Configurable cookie expire flag
 
 ***
 
