@@ -127,19 +127,20 @@ class GeoRedirector extends AbstractRedirector
                 return $site->getLocale();
             }, $zoneSites), true);
 
-            if ($indexId === false) {
-
-                $indexId = array_search($countryIso, array_map(static function (ZoneSiteInterface $site) {
-                    return $site->getCountryIso();
-                }, $zoneSites), true);
-            }
-
             return $indexId !== false ? $zoneSites[$indexId] : null;
         }
 
         $indexId = array_search($locale, array_map(static function (ZoneSiteInterface $site) {
             return $site->getLocale();
         }, $zoneSites), true);
+
+        // no site with given locale found
+        // maybe there is a matching country site
+        if ($indexId === false) {
+            $indexId = array_search($countryIso, array_map(static function (ZoneSiteInterface $site) {
+                return $site->getCountryIso();
+            }, $zoneSites), true);
+        }
 
         return $indexId !== false ? $zoneSites[$indexId] : null;
     }
