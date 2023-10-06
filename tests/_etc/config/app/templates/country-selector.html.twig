@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page for I18n</title>
+    {{ pimcore_head_meta() }}
+    {{ pimcore_head_link() }}
+</head>
+<body>
+    <div id="site">
+        {% set current_context = i18n_current_context() %}
+        {% if current_context is not null %}
+            {% set countries = current_context.activeCountries %}
+            {% if countries is iterable %}
+                <nav id="navigation">
+                    {% for country in countries %}
+                        <ul>
+                            <li class="country" data-country="{{ country.country.isoCode }}">{{ country.countryTitle }}
+                                <ul class="languages">
+                                    {% for language in country.languages %}
+                                        <li data-language="{{ language.iso }}" {{ language.active ? ' class="active"' : '' }}><a href="{{ language.linkedHref }}">{{ language.iso|upper }}</a></li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        </ul>
+                    {% endfor %}
+                </nav>
+            {% endif %}
+        {% endif %}
+
+        <div class="navigation">
+            {% set menu = pimcore_build_nav({
+                active: document,
+                root: document,
+                cache: app.request.locale
+            }) %}
+
+            {{ pimcore_render_nav(menu, 'menu', 'renderMenu', {
+                maxDepth: 10,
+                ulClass: 'nav navbar-nav'
+            }) }}
+        </div>
+        <div class="content">
+            {% if document is defined %}
+                <span id="page-id">{{ document.id }}</span>
+            {% endif %}
+        </div>
+        {% block content %}
+            {{ pimcore_areablock('dachcomBundleTest') }}
+        {% endblock %}
+    </div>
+</body>
+</html>

@@ -145,9 +145,10 @@ class I18nContext implements I18nContextInterface
 
             $languageData = $this->mapLanguageInfo($site->getLocale(), $site->getUrl());
             $languageData['linkedHref'] = $site->getUrl();
-            $languageData['active'] = $site->getLanguageIso() === $this->localeDefinition->getLanguageIso();
+            $languageData['active'] = $site->getLocale() === $this->localeDefinition->getLocale();
+
             foreach ($linkedLanguages as $linkedLanguage) {
-                if ($linkedLanguage['languageIso'] === $site->getLanguageIso()) {
+                if ($linkedLanguage['locale'] === $site->getLocale()) {
                     $languageData['linkedHref'] = $linkedLanguage['url'];
 
                     break;
@@ -192,6 +193,7 @@ class I18nContext implements I18nContextInterface
         $countryData = [];
         if (!empty($validCountries)) {
             foreach ($validCountries as $country) {
+
                 if (is_null($country['isoCode'])) {
                     continue;
                 }
