@@ -121,7 +121,8 @@ class ZoneSitesBuilder
             $realLang = explode('_', $docLocale);
             $docRealLanguageIso = $realLang[0];
             $hrefLang = strtolower($docRealLanguageIso);
-            if (!empty($docCountryIso) && $docCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
+
+            if ($docCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
                 $hrefLang .= '-' . strtolower($docCountryIso);
             }
         }
@@ -263,7 +264,8 @@ class ZoneSitesBuilder
 
             $realLang = explode('_', $childDocLocale);
             $hrefLang = strtolower($realLang[0]);
-            if (!empty($childCountryIso) && $childCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
+
+            if ($childCountryIso !== Definitions::INTERNATIONAL_COUNTRY_NAMESPACE) {
                 $hrefLang .= '-' . strtolower($childCountryIso);
             }
 
