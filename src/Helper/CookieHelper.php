@@ -48,9 +48,10 @@ class CookieHelper
         $secure = $cookieConfig['secure'];
         $httpOnly = $cookieConfig['httpOnly'];
         $sameSite = $cookieConfig['sameSite'];
+        $expire = is_string($cookieConfig['expire']) ? strtotime($cookieConfig['expire']) : $cookieConfig['expire'];
 
         $cookieData = base64_encode(json_encode($params));
-        $cookie = new Cookie(Definitions::REDIRECT_COOKIE_NAME, $cookieData, strtotime('+1 year'), $path, $domain, $secure, $httpOnly, false, $sameSite);
+        $cookie = new Cookie(Definitions::REDIRECT_COOKIE_NAME, $cookieData, $expire, $path, $domain, $secure, $httpOnly, false, $sameSite);
         $response->headers->setCookie($cookie);
 
         return $cookie;
