@@ -5,8 +5,6 @@ services:
         autoconfigure: true
         public: false
 
-    I18nBundle\Helper\CookieHelper: ~
-
     I18nBundle\Helper\AdminLocaleHelper: ~
 
     I18nBundle\Helper\AdminMessageRendererHelper: ~

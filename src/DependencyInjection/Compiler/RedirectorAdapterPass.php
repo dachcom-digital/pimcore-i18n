@@ -13,7 +13,9 @@ final class RedirectorAdapterPass implements CompilerPassInterface
     {
         $services = [];
         $definition = $container->getDefinition(RedirectorRegistry::class);
-        $registryAvailability = $container->getParameter('i18n.registry_availability');
+        $registry = $container->getParameter('i18n.registry');
+
+        $redirectorRegistry = $registry['redirector'] ?? [];
 
         foreach ($container->findTaggedServiceIds('i18n.adapter.redirector', true) as $serviceId => $attributes) {
             $priority = $attributes[0]['priority'] ?? 0;
@@ -33,11 +35,12 @@ final class RedirectorAdapterPass implements CompilerPassInterface
 
         foreach ($services as $service) {
             $serviceAlias = $service['alias'];
-            $available = isset($registryAvailability['redirector'][$serviceAlias]) ? $registryAvailability['redirector'][$serviceAlias]['enabled'] : true;
+            $available = isset($redirectorRegistry[$serviceAlias]) ? $redirectorRegistry[$serviceAlias]['enabled'] : true;
             $definition->addMethodCall('register', [$service['reference'], $serviceAlias]);
 
             $service['definition']->addMethodCall('setName', [$serviceAlias]);
             $service['definition']->addMethodCall('setEnabled', [$available]);
+            $service['definition']->addMethodCall('setConfig', [$redirectorRegistry[$serviceAlias]['config'] ?? []]);
         }
     }
 }

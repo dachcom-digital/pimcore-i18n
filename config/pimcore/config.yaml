@@ -1,3 +1,21 @@
 doctrine_migrations:
     migrations_paths:
         'I18nBundle\Migrations': '@I18nBundle/src/Migrations'
+
+i18n:
+    registry:
+        redirector:
+            cookie:
+                config:
+                    cookie:
+                        path: /
+                        secure: false
+                        http_only: true
+                        same_site: lax
+                        expire: '+1 year'
+            geo:
+                config:
+                    rules:
+                        - { ignore_country: false, strict_country: true, strict_language: false }
+                        - { ignore_country: false, strict_country: false, strict_language: false }
+                        - { ignore_country: true, strict_country: false, strict_language: true }

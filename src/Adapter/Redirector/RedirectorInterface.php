@@ -2,6 +2,8 @@
 
 namespace I18nBundle\Adapter\Redirector;
 
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
 interface RedirectorInterface
 {
     public function isEnabled(): bool;
@@ -16,6 +18,10 @@ interface RedirectorInterface
 
     public function getDecision(): array;
 
+    public function setConfig(array $config): void;
+
+    public function getConfig(): array;
+    
     public function lastRedirectorWasSuccessful(RedirectorBag $redirectorBag): bool;
 
     public function makeDecision(RedirectorBag $redirectorBag): void;

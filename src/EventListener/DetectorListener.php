@@ -7,8 +7,8 @@ use I18nBundle\Helper\CookieHelper;
 use I18nBundle\Helper\RequestValidatorHelper;
 use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Model\ZoneSiteInterface;
+use I18nBundle\Registry\RedirectorRegistry;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
-use I18nBundle\Configuration\Configuration;
 use I18nBundle\Resolver\RedirectResolver;
 use I18nBundle\Tool\System;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -20,15 +20,15 @@ use Pimcore\Model\Document;
 
 class DetectorListener implements EventSubscriberInterface
 {
+
     public function __construct(
-        protected Configuration $configuration,
-        protected CookieHelper $cookieHelper,
         protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
         protected I18nContextResolverInterface $i18nContextResolver,
+        protected RedirectorRegistry $redirectorRegistry,
         protected RedirectResolver $redirectResolver,
         protected RequestValidatorHelper $requestValidatorHelper
-    ) {
-    }
+    )
+    {}
 
     public static function getSubscribedEvents(): array
     {
@@ -101,15 +101,14 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $registryConfig = $this->configuration->getConfig('registry');
-        $available = isset($registryConfig['redirector']['cookie'])
-            ? $registryConfig['redirector']['cookie']['enabled']
-            : true;
+        $cookieRedirector = $this->redirectorRegistry->get('cookie');
 
         //check if we're allowed to bake a cookie at the first place!
-        if ($available === false) {
+        if (false === $cookieRedirector->isEnabled()) {
             return;
         }
+
+        $cookieHelper = new CookieHelper($cookieRedirector->getConfig()['cookie']);
 
         $i18nContext = $this->i18nContextResolver->getContext($event->getRequest());
 
@@ -122,7 +121,7 @@ class DetectorListener implements EventSubscriberInterface
         $zoneSites = $zone->getSites(true);
         $validUri = $this->redirectResolver->resolveRedirectUrl(strtok($event->getRequest()->getUri(), '?'));
 
-        $cookie = $this->cookieHelper->get($event->getRequest());
+        $cookie = $cookieHelper->get($event->getRequest());
 
         //same domain, do nothing.
         if ($cookie !== null && $validUri === $cookie['url']) {
@@ -138,7 +137,7 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $this->cookieHelper->set($event->getResponse(), [
+        $cookieHelper->set($event->getResponse(), [
             'url'      => $validUri,
             'locale'   => $i18nContext->getLocaleDefinition()->getLocale(),
             'language' => $i18nContext->getLocaleDefinition()->getLanguageIso(),
