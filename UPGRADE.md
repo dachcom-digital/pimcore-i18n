@@ -7,7 +7,7 @@
 
 ### New Features
 - [BC BREAK] Config node `mode` has been removed and will be handled internally which simplifies i18n usability
-- Configurable cookie expire flag
+- Fully configurable redirector adapters
 
 ***
 

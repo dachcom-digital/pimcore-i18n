@@ -7,11 +7,32 @@ redirector gets applied.
 
 ### Cookie Redirector
 > Priority: `300`
-If enabled, visitor gets redirected to the last selected locale
+If enabled, visitor gets redirected to the last selected locale 
+
+Configuration:
+```
+config:
+    cookie:
+        path:
+        domain:
+        secure:
+        http_only:
+        same_site:
+        expire:
+```
 
 ### GEO Redirector
 > Priority: `200`
 If enabled, visitor gets redirected based on IP and browser language
+
+Configuration
+```
+config:
+    rules:
+        - { ignore_country: false, strict_country: true, strict_language: false }
+        - { ignore_country: false, strict_country: false, strict_language: false }
+        ...
+```
 
 ### Fallback Redirector
 > Priority: `100`
@@ -52,6 +73,22 @@ App\Services\I18nBundle\RedirectorAdapter\Website:
         - { name: i18n.adapter.redirector, alias: website, priority: 110 }
 ```
 
+### 2. Enable
+you can also provide config for your redirector
+
+```yaml
+# config/config.yaml
+i18n:
+    registry:
+        rediretor:
+            website:
+                enabled: true
+                config:
+                    my_config_node: 'value'
+                    # etc ...
+
+```
+
 ### 3. Create a class
 
 Create a class, extend it from `AbstractRedirector`.
@@ -64,6 +101,7 @@ namespace App\Services\I18nBundle\RedirectorAdapter;
 use I18nBundle\Adapter\Redirector\AbstractRedirector;
 use I18nBundle\Adapter\Redirector\RedirectorBag;
 use I18nBundle\Model\ZoneSiteInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class Website extends AbstractRedirector
 {
@@ -73,6 +111,9 @@ class Website extends AbstractRedirector
         if ($this->lastRedirectorWasSuccessful($redirectorBag) === true) {
             return;
         }
+        
+        // get custom config
+        $myConfigValue = $this->config['my_config_node'];
 
         // get the last decision bag
         $lastDecisionBag = $redirectorBag->getLastRedirectorDecision();
@@ -144,5 +185,19 @@ class Website extends AbstractRedirector
             $this->setDecision(['valid' => false]);
         }
     }
+    
+    protected function getConfigResolver(): ?OptionsResolver
+    {
+        $optionsResolver = new OptionsResolver();
+        
+        // preare your options resolver
+        $optionsResolver->setRequired('my_config_node');
+        $optionsResolver->setAllowedTypes('my_config_node', 'string');
+        // etc ..
+        
+        return $optionsResolver;
+        
+    }
+    
 }
 ```
