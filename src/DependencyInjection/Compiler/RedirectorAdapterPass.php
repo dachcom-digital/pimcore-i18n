@@ -15,7 +15,7 @@ final class RedirectorAdapterPass implements CompilerPassInterface
         $definition = $container->getDefinition(RedirectorRegistry::class);
         $registry = $container->getParameter('i18n.registry');
 
-        $redirectorRegistry = $registry['redirector'] ?? [];
+        $redirectorRegistry = $registry['redirector'];
 
         foreach ($container->findTaggedServiceIds('i18n.adapter.redirector', true) as $serviceId => $attributes) {
             $priority = $attributes[0]['priority'] ?? 0;

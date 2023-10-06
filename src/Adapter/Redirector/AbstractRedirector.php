@@ -29,8 +29,10 @@ abstract class AbstractRedirector implements RedirectorInterface
     public function setConfig(array $config): void
     {
         $configResolver = $this->getConfigResolver();
-        if (null === $configResolver && !empty($config)) {
-            throw new \Exception(sprintf('redirector adapter "%s" has a config, but no config resolver was provided.', $this->getName()));
+        if (null === $configResolver) {
+            if (!empty($config)) {
+                throw new \Exception(sprintf('redirector adapter "%s" has a config, but no config resolver was provided.', $this->getName()));
+            }
         } else {
             $this->config = $configResolver->resolve($config);
         }

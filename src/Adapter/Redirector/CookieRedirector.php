@@ -8,15 +8,11 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class CookieRedirector extends AbstractRedirector
 {
-    protected CookieHelper $cookieHelper;
-
-    public function __construct()
-    {
-        $this->cookieHelper = new CookieHelper($this->config['cookie']);
-    }
 
     public function makeDecision(RedirectorBag $redirectorBag): void
     {
+        $cookieHelper = new CookieHelper($this->config['cookie']);
+
         if ($this->lastRedirectorWasSuccessful($redirectorBag) === true) {
             return;
         }
@@ -28,7 +24,7 @@ class CookieRedirector extends AbstractRedirector
         $language = null;
 
         $request = $redirectorBag->getRequest();
-        $redirectCookie = $this->cookieHelper->get($request);
+        $redirectCookie = $cookieHelper->get($request);
 
         //if no cookie available the validation fails.
         if (is_array($redirectCookie) && !empty($redirectCookie['url'])) {

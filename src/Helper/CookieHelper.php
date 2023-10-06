@@ -40,8 +40,8 @@ class CookieHelper
         $path = $this->config['path'];
         $domain = $this->config['domain'];
         $secure = $this->config['secure'];
-        $httpOnly = $this->config['httpOnly'];
-        $sameSite = $this->config['sameSite'];
+        $httpOnly = $this->config['http_only'];
+        $sameSite = $this->config['same_site'];
         $expire = is_string($this->config['expire']) ? strtotime($this->config['expire']) : $this->config['expire'];
 
         $cookieData = base64_encode(json_encode($params));
