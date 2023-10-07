@@ -25,4 +25,9 @@ class DefaultController extends FrontendController
     {
         return $this->render('default/language-selector.html.twig');
     }
+
+    public function languageCountrySelectorAction(Request $request): Response
+    {
+        return $this->render('default/country-selector.html.twig');
+    }
 }
