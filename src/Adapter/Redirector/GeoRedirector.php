@@ -4,6 +4,7 @@ namespace I18nBundle\Adapter\Redirector;
 
 use I18nBundle\Helper\UserHelper;
 use I18nBundle\Model\ZoneSiteInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class GeoRedirector extends AbstractRedirector
 {
@@ -47,18 +48,14 @@ class GeoRedirector extends AbstractRedirector
         ];
 
         $prioritisedListQuery = [];
-        $prioritisedList = [
-            ['ignoreCountry' => false, 'countryStrictMode' => true, 'languageStrictMode' => false],
-            ['ignoreCountry' => false, 'countryStrictMode' => false, 'languageStrictMode' => false],
-            ['ignoreCountry' => true, 'countryStrictMode' => false, 'languageStrictMode' => true]
-        ];
+        $prioritisedList = $this->config['rules'];
 
         foreach ($prioritisedList as $index => $list) {
             foreach ($userLanguagesIso as $priority => $userLocale) {
 
-                $country = $list['ignoreCountry'] ? null : $userCountryIso;
-                $countryStrictMode = $list['countryStrictMode'];
-                $languageStrictMode = $list['languageStrictMode'];
+                $country = $list['ignore_country'] ? null : $userCountryIso;
+                $countryStrictMode = $list['strict_country'];
+                $languageStrictMode = $list['strict_language'];
 
                 if (null !== $zoneSite = $this->findZoneSite($zoneSites, $userLocale, $country, $countryStrictMode, $languageStrictMode)) {
                     $prioritisedListQuery[] = [
@@ -143,5 +140,22 @@ class GeoRedirector extends AbstractRedirector
         }
 
         return $indexId !== false ? $zoneSites[$indexId] : null;
+    }
+
+    protected function getConfigResolver(): OptionsResolver
+    {
+        $resolver = new OptionsResolver();
+        $resolver
+            ->setRequired('rules')
+            ->setDefault('rules', function(OptionsResolver $rulesResolver) {
+           $rulesResolver
+               ->setPrototype(true)
+               ->setRequired(['ignore_country', 'strict_country', 'strict_language'])
+               ->setAllowedTypes('ignore_country', 'bool')
+               ->setAllowedTypes('strict_country', 'bool')
+               ->setAllowedTypes('strict_language', 'bool');
+        });
+
+        return $resolver;
     }
 }

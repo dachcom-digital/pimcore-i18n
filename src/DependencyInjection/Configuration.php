@@ -4,7 +4,6 @@ namespace I18nBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
-use Symfony\Component\HttpFoundation\Cookie;
 
 class Configuration implements ConfigurationInterface
 {
@@ -29,6 +28,7 @@ class Configuration implements ConfigurationInterface
                             ->arrayPrototype()
                                 ->children()
                                     ->booleanNode('enabled')->defaultTrue()->end()
+                                    ->variableNode('config')->end()
                                 ->end()
                             ->end()
                         ->end()
@@ -133,34 +133,6 @@ class Configuration implements ConfigurationInterface
                         ->canBeUnset()
                         ->canBeDisabled()
                         ->treatNullLike(['enabled' => false])
-                    ->end()
-                ->end()
-                ->arrayNode('cookie')
-                    ->info('Cookie settings')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->scalarNode('path')
-                            ->defaultValue('/')
-                        ->end()
-                        ->scalarNode('domain')
-                            ->defaultNull()
-                        ->end()
-                        ->booleanNode('secure')
-                            ->defaultFalse()
-                        ->end()
-                        ->booleanNode('httpOnly')
-                            ->defaultTrue()
-                        ->end()
-                        ->scalarNode('expire')
-                            ->defaultValue('+1 year')
-                        ->end()
-                        ->scalarNode('sameSite')
-                            ->defaultValue(Cookie::SAMESITE_LAX)
-                            ->validate()
-                                ->ifNotInArray([Cookie::SAMESITE_NONE, Cookie::SAMESITE_LAX, Cookie::SAMESITE_STRICT])
-                                ->thenInvalid('Invalid sameSite setting for cookie: %s')
-                            ->end()
-                        ->end()
                     ->end()
                 ->end()
             ->end();

@@ -10,12 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CookieHelper
 {
-    private Configuration $configuration;
-
-    public function __construct(Configuration $configuration)
-    {
-        $this->configuration = $configuration;
-    }
+    public function __construct(protected array $config)
+    {}
 
     public function get(Request $request, string $key = Definitions::REDIRECT_COOKIE_NAME): ?array
     {
@@ -41,14 +37,12 @@ class CookieHelper
 
     public function set(Response $response, array $params): Cookie
     {
-        $cookieConfig = $this->configuration->getConfig('cookie');
-
-        $path = $cookieConfig['path'];
-        $domain = $cookieConfig['domain'];
-        $secure = $cookieConfig['secure'];
-        $httpOnly = $cookieConfig['httpOnly'];
-        $sameSite = $cookieConfig['sameSite'];
-        $expire = is_string($cookieConfig['expire']) ? strtotime($cookieConfig['expire']) : $cookieConfig['expire'];
+        $path = $this->config['path'];
+        $domain = $this->config['domain'];
+        $secure = $this->config['secure'];
+        $httpOnly = $this->config['http_only'];
+        $sameSite = $this->config['same_site'];
+        $expire = is_string($this->config['expire']) ? strtotime($this->config['expire']) : $this->config['expire'];
 
         $cookieData = base64_encode(json_encode($params));
         $cookie = new Cookie(Definitions::REDIRECT_COOKIE_NAME, $cookieData, $expire, $path, $domain, $secure, $httpOnly, false, $sameSite);

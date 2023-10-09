@@ -7,7 +7,9 @@
 
 ### New Features
 - [BC BREAK] Config node `mode` has been removed and will be handled internally which simplifies i18n usability
-- Configurable cookie expire flag
+- [BC BREAK] Config node `cookie` has been removed. Please use `i18n.registry.redirector.cookie.config.cookie` instead.  
+  See [Redirector Adapter](docs/51_RedirectorAdapter.md) for further reference
+- Fully configurable redirector adapters
 
 ***
 

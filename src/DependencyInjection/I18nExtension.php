@@ -54,7 +54,7 @@ class I18nExtension extends Extension implements PrependExtensionInterface
         $configManagerDefinition = $container->getDefinition(BundleConfiguration::class);
         $configManagerDefinition->addMethodCall('setConfig', [$config]);
 
-        $container->setParameter('i18n.registry_availability', $config['registry']);
+        $container->setParameter('i18n.registry', $config['registry']);
 
         // set geo db path (including legacy path)
         /** @phpstan-ignore-next-line */

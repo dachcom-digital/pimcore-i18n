@@ -7,6 +7,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 abstract class AbstractRedirector implements RedirectorInterface
 {
     protected bool $enabled = true;
+    protected array $config = [];
     protected ?string $name;
     protected array $decision = [];
 
@@ -18,6 +19,23 @@ abstract class AbstractRedirector implements RedirectorInterface
     public function setEnabled(bool $enabled): void
     {
         $this->enabled = $enabled;
+    }
+
+    public function getConfig(): array
+    {
+        return $this->config;
+    }
+
+    public function setConfig(array $config): void
+    {
+        $configResolver = $this->getConfigResolver();
+        if (null === $configResolver) {
+            if (!empty($config)) {
+                throw new \Exception(sprintf('redirector adapter "%s" has a config, but no config resolver was provided.', $this->getName()));
+            }
+        } else {
+            $this->config = $configResolver->resolve($config);
+        }
     }
 
     public function getName(): string
@@ -32,12 +50,12 @@ abstract class AbstractRedirector implements RedirectorInterface
 
     public function setDecision(array $decision): void
     {
-        $this->decision = $this->getResolver()->resolve($decision);
+        $this->decision = $this->getDecisionResolver()->resolve($decision);
     }
 
     public function getDecision(): array
     {
-        return $this->getResolver()->resolve($this->decision);
+        return $this->getDecisionResolver()->resolve($this->decision);
     }
 
     public function lastRedirectorWasSuccessful(RedirectorBag $redirectorBag): bool
@@ -52,7 +70,12 @@ abstract class AbstractRedirector implements RedirectorInterface
         return false;
     }
 
-    private function getResolver(): OptionsResolver
+    protected function getConfigResolver(): ?OptionsResolver
+    {
+        return null;
+    }
+
+    private function getDecisionResolver(): OptionsResolver
     {
         $resolver = new OptionsResolver();
         $resolver->setDefaults([
