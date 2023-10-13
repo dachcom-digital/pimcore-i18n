@@ -6,10 +6,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 interface RedirectorInterface
 {
-    public function isEnabled(): bool;
-
-    public function setEnabled(bool $enabled): void;
-
     public function getName(): string;
 
     public function setName(string $name): void;

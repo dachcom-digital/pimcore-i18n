@@ -101,13 +101,12 @@ class DetectorListener implements EventSubscriberInterface
             return;
         }
 
-        $cookieRedirector = $this->redirectorRegistry->get('cookie');
-
         //check if we're allowed to bake a cookie at the first place!
-        if (false === $cookieRedirector->isEnabled()) {
+        if (!$this->redirectorRegistry->has('cookie')) {
             return;
         }
 
+        $cookieRedirector = $this->redirectorRegistry->get('cookie');
         $cookieHelper = new CookieHelper($cookieRedirector->getConfig()['cookie']);
 
         $i18nContext = $this->i18nContextResolver->getContext($event->getRequest());

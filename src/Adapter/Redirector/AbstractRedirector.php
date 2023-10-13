@@ -6,20 +6,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 abstract class AbstractRedirector implements RedirectorInterface
 {
-    protected bool $enabled = true;
     protected array $config = [];
     protected ?string $name;
     protected array $decision = [];
-
-    public function isEnabled(): bool
-    {
-        return $this->enabled;
-    }
-
-    public function setEnabled(bool $enabled): void
-    {
-        $this->enabled = $enabled;
-    }
 
     public function getConfig(): array
     {

@@ -48,14 +48,6 @@ class RedirectorRegistry
      */
     public function all(): array
     {
-        $list = [];
-        foreach ($this->adapter as $adapter) {
-            if (!$adapter->isEnabled()) {
-                continue;
-            }
-            $list[] = $adapter;
-        }
-
-        return $list;
+        return array_values($this->adapter);
     }
 }

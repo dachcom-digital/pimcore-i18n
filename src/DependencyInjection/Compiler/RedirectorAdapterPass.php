@@ -34,6 +34,7 @@ final class RedirectorAdapterPass implements CompilerPassInterface
         }
 
         foreach ($services as $service) {
+
             $serviceAlias = $service['alias'];
             $available = isset($redirectorRegistry[$serviceAlias]) ? $redirectorRegistry[$serviceAlias]['enabled'] : true;
 
@@ -44,7 +45,6 @@ final class RedirectorAdapterPass implements CompilerPassInterface
             $definition->addMethodCall('register', [$service['reference'], $serviceAlias]);
 
             $service['definition']->addMethodCall('setName', [$serviceAlias]);
-            $service['definition']->addMethodCall('setEnabled', [$available]);
             $service['definition']->addMethodCall('setConfig', [$redirectorRegistry[$serviceAlias]['config'] ?? []]);
         }
     }
