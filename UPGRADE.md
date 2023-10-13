@@ -1,5 +1,9 @@
 # Upgrade Notes
 
+## 5.0.1
+- Remove `isEnabled` and `setEnabled` from redirector adapter since disabled services aren't available anymore [#149](https://github.com/dachcom-digital/pimcore-i18n/issues/149)
+- Remove legacy mode check in profiler [#150](https://github.com/dachcom-digital/pimcore-i18n/issues/150)
+
 ## Migrating from Version 4.x to Version 5.0
 
 ### Global Changes
