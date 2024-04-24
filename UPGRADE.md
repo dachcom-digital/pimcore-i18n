@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 5.0.2
+- fixed bug when no locale url mapping is available [#153](https://github.com/dachcom-digital/pimcore-i18n/pull/153)
+
 ## 5.0.1
 - Remove `isEnabled` and `setEnabled` from redirector adapter since disabled services aren't available anymore [#149](https://github.com/dachcom-digital/pimcore-i18n/issues/149)
 - Remove legacy mode check in profiler [#150](https://github.com/dachcom-digital/pimcore-i18n/issues/150)
