@@ -59,7 +59,7 @@ class ResponseExceptionListener implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            KernelEvents::EXCEPTION => ['onKernelException', 10]
+            KernelEvents::EXCEPTION => 'onKernelException'
         ];
     }
 

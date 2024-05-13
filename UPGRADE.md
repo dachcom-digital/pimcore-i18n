@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 4.1.10
+- [BUGFIX] Fix exception handler priority to prevent authentication exception hijacking
+
 ## 4.1.9
 - [BUGFIX] Move preview listener to earlier state to allow static route preview with restricted sites
 
