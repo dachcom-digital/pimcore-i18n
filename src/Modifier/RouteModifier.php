@@ -86,7 +86,7 @@ class RouteModifier
         //transform locale style to given url mapping - if existing
         $urlMapping = $zone->getLocaleUrlMapping();
 
-        if (!array_key_exists($locale, $urlMapping) || empty($urlMapping[$locale])) {
+        if (!array_key_exists($locale, $urlMapping)) {
             return $path;
         }
 
