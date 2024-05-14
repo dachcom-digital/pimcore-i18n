@@ -2,11 +2,11 @@
 
 namespace DachcomBundle\Test\FunctionalDefaultCountry;
 
-use DachcomBundle\Test\Support\FunctionalI18nTester;
+use DachcomBundle\Test\Support\FunctionalTester;
 
 class FrontpageMappingCest
 {
-    public function testFrontPageMappingWithRedirecting(FunctionalI18nTester $I): void
+    public function testFrontPageMappingWithRedirecting(FunctionalTester $I): void
     {
         $document1 = $I->haveAPageDocument('en', [], 'en');
         $document2 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
@@ -17,7 +17,7 @@ class FrontpageMappingCest
         $I->see($document3->getId(), '#page-id');
     }
 
-    public function testFrontPageMappingWithoutRedirecting(FunctionalI18nTester $I): void
+    public function testFrontPageMappingWithoutRedirecting(FunctionalTester $I): void
     {
         $document1 = $I->haveAPageDocument('en', [], 'en');
         $document2 = $I->haveAHardLink($document1, 'en-us', [], 'en_US');
