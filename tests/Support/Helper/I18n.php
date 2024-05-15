@@ -6,8 +6,11 @@ use Codeception\Lib\Interfaces\DependsOnModule;
 use Codeception\Module;
 use Codeception\Util\Debug;
 use Dachcom\Codeception\Support\Helper\PimcoreBackend;
+use I18nBundle\Builder\RouteParameterBuilder;
 use Pimcore\Model\Document\Hardlink;
 use Pimcore\Model\Document\Page;
+use Pimcore\Model\Element\ElementInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class I18n extends Module implements DependsOnModule
 {
@@ -25,9 +28,6 @@ class I18n extends Module implements DependsOnModule
         $this->pimcoreBackend = $pimcoreBackend;
     }
 
-    /**
-     * Actor Function to create a FrontPage mapped Document
-     */
     public function haveAFrontPageMappedDocument(Hardlink $hardlinkDocument): Page
     {
         $document = $this->pimcoreBackend->generatePageDocument('frontpage-mapped-' . $hardlinkDocument->getKey());
@@ -50,5 +50,13 @@ class I18n extends Module implements DependsOnModule
         }
 
         return $document;
+    }
+
+    public function haveAI18nGeneratedLinkForElement(ElementInterface $element, array $routeParameters, array $context = [], string $referenceType = UrlGeneratorInterface::ABSOLUTE_URL): string
+    {
+        $parameters = RouteParameterBuilder::buildForEntity($element, $routeParameters, $context);
+        $urlGenerator = \Pimcore::getContainer()->get('router');
+
+        return $urlGenerator->generate('', $parameters, $referenceType);
     }
 }

@@ -11,6 +11,9 @@ modules:
                 run_installer: true
         - \Dachcom\Codeception\Support\Helper\Browser\PhpBrowser:
                 depends: \Dachcom\Codeception\Support\Helper\PimcoreCore
+        - \DachcomBundle\Test\Support\Helper\I18n:
+                depends: \Dachcom\Codeception\Support\Helper\PimcoreBackend
         - \Dachcom\Codeception\Support\Helper\PimcoreBackend
         - \Dachcom\Codeception\Support\Helper\PimcoreUser
         - \Pimcore\Tests\Support\Helper\ClassManager
+        - \Codeception\Module\Asserts

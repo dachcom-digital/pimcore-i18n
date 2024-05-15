@@ -11,6 +11,10 @@ class TestLinkGenerator implements LinkGeneratorInterface, I18nLinkGeneratorInte
 {
     public function getStaticRouteName(Concrete $object): string
     {
+        if ($object->hasProperty('dynamic_static_route_name')) {
+            return $object->getProperty('dynamic_static_route_name');
+        }
+
         return 'test_route';
     }
 

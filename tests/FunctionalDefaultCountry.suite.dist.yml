@@ -1,4 +1,4 @@
-actor: FunctionalI18nTester
+actor: FunctionalTester
 error_level: '%PIMCORE_PHP_ERROR_REPORTING%'
 modules:
     enabled:
@@ -10,7 +10,9 @@ modules:
                 run_installer: true
         - \Dachcom\Codeception\Support\Helper\Browser\PhpBrowser:
                 depends: \Dachcom\Codeception\Support\Helper\PimcoreCore
-        - \Dachcom\Codeception\Support\Helper\PimcoreBackend
-        - \Dachcom\Codeception\Support\Helper\PimcoreUser
         - \DachcomBundle\Test\Support\Helper\I18n:
                 depends: \Dachcom\Codeception\Support\Helper\PimcoreBackend
+        - \Dachcom\Codeception\Support\Helper\PimcoreBackend
+        - \Dachcom\Codeception\Support\Helper\PimcoreUser
+        - \Pimcore\Tests\Support\Helper\ClassManager
+        - \Codeception\Module\Asserts
