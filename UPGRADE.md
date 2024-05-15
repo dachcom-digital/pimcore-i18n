@@ -2,6 +2,7 @@
 
 ## 5.0.3
 - [BUGFIX] Fix exception handler priority to prevent authentication exception hijacking
+- [BUGFIX] Revert [#af8bfe7](https://github.com/dachcom-digital/pimcore-i18n/commit/af8bfe74488fd85ebcdb14e4300f3a9f7ddc7dbe)
 
 ## 5.0.2
 - fixed bug when no locale url mapping is available [#153](https://github.com/dachcom-digital/pimcore-i18n/pull/153)

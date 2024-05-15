@@ -14,3 +14,5 @@ modules:
                 depends: \Dachcom\Codeception\Support\Helper\PimcoreBackend
         - \Dachcom\Codeception\Support\Helper\PimcoreBackend
         - \Dachcom\Codeception\Support\Helper\PimcoreUser
+        - \Pimcore\Tests\Support\Helper\ClassManager
+        - \Codeception\Module\Asserts
