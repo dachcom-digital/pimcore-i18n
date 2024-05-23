@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 5.0.4
+- [IMPROVEMENT] Add locale and site automatically in export mode (xliff, word export), based on given document
+
 ## 5.0.3
 - [BUGFIX] Fix exception handler priority to prevent authentication exception hijacking
 - [BUGFIX] Revert [#af8bfe7](https://github.com/dachcom-digital/pimcore-i18n/commit/af8bfe74488fd85ebcdb14e4300f3a9f7ddc7dbe)
