@@ -27,3 +27,7 @@ services:
     I18nBundle\Modifier\RouteItem\Type\RequestAwareModifier:
         tags:
             - { name: i18n.modifier.route_item }
+
+    I18nBundle\Modifier\RouteItem\Type\PimcoreExportDataAwareModifier:
+        tags:
+            - { name: i18n.modifier.route_item }

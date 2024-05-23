@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 4.1.11
+- [IMPROVEMENT] Add locale and site automatically in export mode (xliff, word export), based on given document
+
 ## 4.1.10
 - [BUGFIX] Fix exception handler priority to prevent authentication exception hijacking
 
