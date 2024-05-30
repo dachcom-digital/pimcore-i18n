@@ -22,20 +22,12 @@ class PimcoreExportDataAwareModifier implements RouteItemModifierInterface
 
     public function supportParameters(string $type, RouteItemInterface $routeItem, array $parameters, array $context): bool
     {
-        if (!$this->requestStack->getMainRequest() instanceof Request) {
-            return false;
-        }
-
-        return in_array($this->requestStack->getMainRequest()->attributes->get('_route'), self::EXPORT_AWARE_ROUTES, true);
+        return $this->isValidRequest();
     }
 
     public function supportRequest(string $type, RouteItemInterface $routeItem, Request $request, array $context): bool
     {
-        if (!$this->requestStack->getMainRequest() instanceof Request) {
-            return false;
-        }
-
-        return in_array($this->requestStack->getMainRequest()->attributes->get('_route'), self::EXPORT_AWARE_ROUTES, true);
+        return $this->isValidRequest();
     }
 
     public function modifyByParameters(RouteItemInterface $routeItem, array $parameters, array $context): void
@@ -89,5 +81,14 @@ class PimcoreExportDataAwareModifier implements RouteItemModifierInterface
         if (!$hasLocaleParameter) {
             $routeItem->getRouteParametersBag()->set('_locale', $element->getProperty('language'));
         }
+    }
+
+    private function isValidRequest(): bool
+    {
+        if (!$this->requestStack->getMainRequest() instanceof Request) {
+            return false;
+        }
+
+        return in_array($this->requestStack->getMainRequest()->attributes->get('_route'), self::EXPORT_AWARE_ROUTES, true);
     }
 }
