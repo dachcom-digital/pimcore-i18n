@@ -56,9 +56,7 @@ services:
             - { name: kernel.event_subscriber }
 
     # override pimcore not found exception handling
-    Pimcore\Bundle\CoreBundle\EventListener\ResponseExceptionListener:
-        class: I18nBundle\EventListener\Frontend\ResponseExceptionListener
+    I18nBundle\EventListener\Frontend\ResponseExceptionListener:
+        decorates: Pimcore\Bundle\CoreBundle\EventListener\ResponseExceptionListener
         calls:
             - [ setLogger, [ '@logger' ] ]
-        tags:
-            - { name: kernel.event_subscriber }
