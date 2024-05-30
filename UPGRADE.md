@@ -1,5 +1,7 @@
 # Upgrade Notes
 
+## 4.1.13
+- [IMPROVEMENT] Try to determinate locale and site when inline renderer is active (mostly via `checkMissingRequiredEditable()`)
 ## 4.1.12
 - [BUGFIX] Fix exception handler decoration
 ## 4.1.11

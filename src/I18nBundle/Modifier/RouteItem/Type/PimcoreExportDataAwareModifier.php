@@ -3,7 +3,6 @@
 namespace I18nBundle\Modifier\RouteItem\Type;
 
 use I18nBundle\Model\RouteItem\RouteItemInterface;
-use Pimcore\Http\RequestHelper;
 use Pimcore\Model\Document;
 use Pimcore\Model\Site;
 use Pimcore\Tool\Frontend;
@@ -17,10 +16,8 @@ class PimcoreExportDataAwareModifier implements RouteItemModifierInterface
         'pimcore_admin_translation_xliffexport'
     ];
 
-    public function __construct(
-        protected RequestStack $requestStack,
-        protected RequestHelper $requestHelper
-    ) {
+    public function __construct(protected RequestStack $requestStack)
+    {
     }
 
     public function supportParameters(string $type, RouteItemInterface $routeItem, array $parameters, array $context): bool
