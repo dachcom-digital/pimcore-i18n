@@ -1,15 +1,14 @@
 # Upgrade Notes
 
+## 5.0.5
+- [BUGFIX] Fix exception handler decoration
 ## 5.0.4
 - [IMPROVEMENT] Add locale and site automatically in export mode (xliff, word export), based on given document
-
 ## 5.0.3
 - [BUGFIX] Fix exception handler priority to prevent authentication exception hijacking
 - [BUGFIX] Revert [#af8bfe7](https://github.com/dachcom-digital/pimcore-i18n/commit/af8bfe74488fd85ebcdb14e4300f3a9f7ddc7dbe)
-
 ## 5.0.2
 - fixed bug when no locale url mapping is available [#153](https://github.com/dachcom-digital/pimcore-i18n/pull/153)
-
 ## 5.0.1
 - Remove `isEnabled` and `setEnabled` from redirector adapter since disabled services aren't available anymore [#149](https://github.com/dachcom-digital/pimcore-i18n/issues/149)
 - Remove legacy mode check in profiler [#150](https://github.com/dachcom-digital/pimcore-i18n/issues/150)
