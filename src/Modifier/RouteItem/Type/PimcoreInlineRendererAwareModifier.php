@@ -9,11 +9,11 @@ use Pimcore\Tool\Frontend;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-class PimcoreExportDataAwareModifier implements RouteItemModifierInterface
+class PimcoreInlineRendererAwareModifier implements RouteItemModifierInterface
 {
-    private const EXPORT_AWARE_ROUTES = [
-        'pimcore_bundle_wordexport_translation_wordexport',
-        'pimcore_bundle_xliff_translation_xliffexport'
+    private const EDIT_AWARE_ROUTES = [
+        'pimcore_admin_document_document_add',
+        'pimcore_admin_document_page_save'
     ];
 
     public function __construct(protected RequestStack $requestStack)
@@ -32,10 +32,6 @@ class PimcoreExportDataAwareModifier implements RouteItemModifierInterface
 
     public function modifyByParameters(RouteItemInterface $routeItem, array $parameters, array $context): void
     {
-        if (!$this->requestStack->getMainRequest() instanceof Request) {
-            return;
-        }
-
         $this->modify($routeItem, $this->requestStack->getMainRequest());
     }
 
@@ -46,41 +42,45 @@ class PimcoreExportDataAwareModifier implements RouteItemModifierInterface
 
     protected function modify(RouteItemInterface $routeItem, Request $request): void
     {
+        $document = $this->determinateDocumentByRoute($request);
+
         $hasSiteContext = $routeItem->getRouteContextBag()->has('site') && $routeItem->getRouteContextBag()->get('site') !== null;
         $hasLocaleParameter = $routeItem->getRouteParametersBag()->has('_locale');
 
-        $exportData = $request->request->has('data') ? json_decode($request->request->get('data'), true) : [];
-
-        if (count($exportData) === 0) {
-            return;
-        }
-
-        if (!array_key_exists('id', $exportData[0]) || !array_key_exists('type', $exportData[0])) {
-            return;
-        }
-
-        $elementId = $exportData[0]['id'];
-        $elementType = $exportData[0]['type'];
-
-        if ($elementType !== 'document') {
-            return;
-        }
-
-        $element = Document::getById($elementId);
-        if (!$element instanceof Document) {
+        if (!$document instanceof Document) {
             return;
         }
 
         if (!$hasSiteContext) {
-            $site = Frontend::getSiteForDocument($element);
+            $site = Frontend::getSiteForDocument($document);
             if ($site instanceof Site) {
                 $routeItem->getRouteContextBag()->set('site', $site);
             }
         }
 
-        if (!$hasLocaleParameter) {
-            $routeItem->getRouteParametersBag()->set('_locale', $element->getProperty('language'));
+        if (!$hasLocaleParameter && !empty($document->getProperty('language'))) {
+            $routeItem->getRouteParametersBag()->set('_locale', $document->getProperty('language'));
         }
+    }
+
+    private function determinateDocumentByRoute(Request $request): ?Document
+    {
+        if (
+            $request->attributes->get('_route') === 'pimcore_admin_document_document_add' &&
+            $request->request->get('elementType') === 'document' &&
+            !empty($request->request->get('parentId'))
+        ) {
+            return Document::getById($request->request->get('parentId'));
+        }
+
+        if (
+            $request->attributes->get('_route') === 'pimcore_admin_document_page_save' &&
+            !empty($request->request->get('id'))
+        ) {
+            return Document::getById($request->request->get('id'));
+        }
+
+        return null;
     }
 
     private function isValidRequest(): bool
@@ -89,6 +89,10 @@ class PimcoreExportDataAwareModifier implements RouteItemModifierInterface
             return false;
         }
 
-        return in_array($this->requestStack->getMainRequest()->attributes->get('_route'), self::EXPORT_AWARE_ROUTES, true);
+        return in_array(
+            $this->requestStack->getMainRequest()->attributes->get('_route'),
+            self::EDIT_AWARE_ROUTES,
+            true
+        );
     }
 }
