@@ -85,6 +85,10 @@ class PimcoreInlineRendererAwareModifier implements RouteItemModifierInterface
 
     private function isValidRequest(): bool
     {
+        if (!$this->requestStack->getMainRequest() instanceof Request) {
+            return false;
+        }
+
         return in_array(
             $this->requestStack->getMainRequest()->attributes->get('_route'),
             self::EDIT_AWARE_ROUTES,
