@@ -1,32 +1,26 @@
 # Upgrade Notes
 
+## 4.1.12
+- [BUGFIX] Fix exception handler decoration
 ## 4.1.11
 - [IMPROVEMENT] Add locale and site automatically in export mode (xliff, word export), based on given document
-
 ## 4.1.10
 - [BUGFIX] Fix exception handler priority to prevent authentication exception hijacking
-
 ## 4.1.9
 - [BUGFIX] Move preview listener to earlier state to allow static route preview with restricted sites
-
 ## 4.1.8
 - [BUGFIX] Reinstated HTTP error logging for SEO
-
 ## 4.1.7
 - [BUGFIX] resolve site and locale in areabrick-render-index-editmode route [#132](https://github.com/dachcom-digital/pimcore-i18n/issues/132)
-
 ## 4.1.6
 - [BUGFIX] Follow-Up: Object Preview Improvements (Also suppress exception in document context) [#126](https://github.com/dachcom-digital/pimcore-i18n/pull/126)
 - [IMPROVEMENT] Relay on main request, always check for request parameters (site, locale) as long request is available [#124](https://github.com/dachcom-digital/pimcore-i18n/pull/124)
 - [IMPROVEMENT] Introduce AdminSiteResolver to provide Sites in editmode if possible [#123](https://github.com/dachcom-digital/pimcore-i18n/pull/123)
-
 ## 4.1.5
 - [BUGFIX] Object Preview Improvements [#126](https://github.com/dachcom-digital/pimcore-i18n/pull/126)
 - [ENHANCEMENT] Improve requirements for AbstractRequestAwareLinkGenerator [#122](https://github.com/dachcom-digital/pimcore-i18n/issues/122)
-
 ## 4.1.4
 - [BUGFIX] Improve `isFrontendRequestByAdmin` determination and reduce redundancy
-
 ## 4.1.3
 - [BUGFIX] Zone Settings: Use fallback for translations [#114](https://github.com/dachcom-digital/pimcore-i18n/issues/114)
 - [BUGFIX] Allow parameters for translation config [#115](https://github.com/dachcom-digital/pimcore-i18n/issues/115)
