@@ -3,9 +3,7 @@
 namespace I18nBundle\Modifier\RouteItem\Type;
 
 use I18nBundle\Model\RouteItem\RouteItemInterface;
-use Pimcore\Http\Request\Resolver\EditmodeResolver;
 use Pimcore\Model\Document;
-use Pimcore\Model\Document\Editable\Block;
 use Pimcore\Model\Site;
 use Pimcore\Tool\Frontend;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,6 +11,11 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class PimcoreInlineRendererAwareModifier implements RouteItemModifierInterface
 {
+    private const EDIT_AWARE_ROUTES = [
+        'pimcore_admin_document_document_add',
+        'pimcore_admin_document_page_save'
+    ];
+
     public function __construct(protected RequestStack $requestStack)
     {
     }
@@ -82,20 +85,10 @@ class PimcoreInlineRendererAwareModifier implements RouteItemModifierInterface
 
     private function isValidRequest(): bool
     {
-        $parentRequest = $this->requestStack->getParentRequest();
-
-        if (!$parentRequest instanceof Request) {
-            return false;
-        }
-
-        if (!$parentRequest->attributes->has(EditmodeResolver::ATTRIBUTE_EDITMODE) || $parentRequest->attributes->get(EditmodeResolver::ATTRIBUTE_EDITMODE) === false) {
-            return false;
-        }
-
-        if (!$parentRequest->attributes->has(Block::ATTRIBUTE_IGNORE_EDITMODE_INDICES) || $parentRequest->attributes->get(Block::ATTRIBUTE_IGNORE_EDITMODE_INDICES) === false) {
-            return false;
-        }
-
-        return true;
+        return in_array(
+            $this->requestStack->getMainRequest()->attributes->get('_route'),
+            self::EDIT_AWARE_ROUTES,
+            true
+        );
     }
 }
