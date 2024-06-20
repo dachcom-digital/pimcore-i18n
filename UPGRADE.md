@@ -1,5 +1,7 @@
 # Upgrade Notes
 
+## 5.1.0
+- [FEATURE] pimcore backend: object preview button
 ## 5.0.6
 - [IMPROVEMENT] Try to determinate locale and site when inline renderer is active (mostly via `checkMissingRequiredEditable()`)
 ## 5.0.5
