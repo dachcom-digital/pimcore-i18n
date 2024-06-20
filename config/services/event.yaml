@@ -30,6 +30,11 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
+    # event: add backend assets
+    I18nBundle\EventListener\Admin\AssetListener:
+        tags:
+            - { name: kernel.event_subscriber }
+
     # event: log context switch
     I18nBundle\EventListener\ContextSwitchDetectorListener:
         tags:

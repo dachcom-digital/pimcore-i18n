@@ -94,7 +94,7 @@ class I18nPreviewListener implements EventSubscriberInterface
             return;
         }
 
-        $path = $siteIdentifier !== null ? $this->siteResolver->getSitePath($request) : $request;
+        $path = $siteIdentifier ? $this->siteResolver->getSitePath($request) : $request;
         $nearestDocument = $this->documentService->getNearestDocumentByPath($path, false, $this->nearestDocumentTypes);
 
         if (!$nearestDocument instanceof Document) {
