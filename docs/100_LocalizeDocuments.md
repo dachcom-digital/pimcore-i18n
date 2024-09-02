@@ -15,7 +15,7 @@ In this example there are several documents available:
 | `domain5/produits` | fr |
 
 ## Localization
-Use the [localization service](https://pimcore.com/docs/5.0.x/Multi_Language_i18n/Localize_your_Documents.html#page_Localization_Tool) to connect all available documents:
+Use the [localization service](https://pimcore.com/docs/platform/Pimcore/Best_Practice/Multilanguage_Setup#localization-tool) to connect all available documents:
 
 - `domain4/de/produkte`
 - `domain4/en/products`
