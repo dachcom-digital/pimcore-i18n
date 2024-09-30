@@ -57,7 +57,7 @@ class ZoneBuilder
         // no valid zone found. use default one.
         if ($validZone === false) {
             $zoneConfig = $this->configuration->getConfigNode();
-            return $this->createZone($zoneConfig, 'dynamic_zone_'.$site->getId(), 'dynamic_zone_'.$site->getId(), [$site->getMainDomain()]);
+            return $this->createZone($zoneConfig, $site->getId(), 'dynamic_zone_'.$site->getId(), [$site->getMainDomain()]);
         }
 
         return $this->createZone($zoneConfig['config'], $zoneConfig['id'], $zoneConfig['name'], $zoneConfig['domains']);
