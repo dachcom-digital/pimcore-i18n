@@ -1,5 +1,7 @@
 # Upgrade Notes
 
+## 5.1.1
+- [IMPROVEMENT] prevent applying str_contains on null value
 ## 5.1.0
 - [FEATURE] pimcore backend: object preview button
 ## 5.0.6

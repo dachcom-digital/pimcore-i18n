@@ -109,10 +109,10 @@ class I18nContextManager
         $languageIso = $locale;
         $countryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
 
-        if (str_contains($baseLocale, '_')) {
+        if ($baseLocale !== null && str_contains($baseLocale, '_')) {
             $parts = explode('_', $baseLocale);
             $languageIso = strtolower($parts[0]);
-            if (isset($parts[1]) && !empty($parts[1])) {
+            if (!empty($parts[1])) {
                 $countryIso = strtoupper($parts[1]);
             }
         }
