@@ -14,7 +14,7 @@
 Pimcore already comes with some great features to build internationalized websites. 
 But there are some gaps we have to handle by ourselves: search engine guidelines, geo based redirects, dynamic link handling for internal documents and of course: full qualified URLs for and in every context. 
 This bundle helps you to master this challenges and gives you the freedom to elaborate complex URL building and (country) based localization strategies.
-**Please read the read the [I18n overview page](./docs/1_I18n.md) before starting!**
+**Please read the [I18n overview page](./docs/1_I18n.md) before starting!**
 
 ### Release Plan
 | Release | Supported Pimcore Versions        | Supported Symfony Versions | Release Date | Maintained     | Branch     |
@@ -68,7 +68,7 @@ When using this bundle, you should:
 - [I18n Overview Page](./docs/1_I18n.md): Learn all about the i18n principals.
 - [Geo IP/Control](docs/10_GeoControl.md): Enable GeoIP Data Provider.
 - [Zone Definitions](docs/20_Zones.md): Learn more about i18n zone definitions and how to manage them.
-  - [Custom I18n Context Look-Up](docs/21_I18nContext.md)] (🔥 New!)
+  - [Custom I18n Context Look-Up](docs/21_I18nContext.md) (🔥 New!)
 - [Href-Lang](docs/25_HrefLang.md): Find out more about the href-lang tag generator.
 - [Language Configuration](docs/26_Languages.md): Configure languages.
 - [Country Configuration](docs/27_Countries.md): Configure countries.
