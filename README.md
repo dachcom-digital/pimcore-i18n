@@ -87,9 +87,12 @@ When using this bundle, you should:
 - [Navigation Caching](docs/110_NavigationCaching.md): Cache your navigation right!
 - [Cookie Settings](docs/120_CookieSettings.md): Change Symfony default cookie settings.
 
-## Copyright and License
-Copyright: [DACHCOM.DIGITAL](http://dachcom-digital.ch)  
-For licensing details please visit [LICENSE.md](LICENSE.md)
+## License
+**DACHCOM.DIGITAL AG**, Löwenhofstrasse 15, 9424 Rheineck, Schweiz  
+[dachcom.com](https://www.dachcom.com), dcdi@dachcom.ch  
+Copyright © 2024 DACHCOM.DIGITAL. All rights reserved.  
+
+For licensing details please visit [LICENSE.md](LICENSE.md)  
 
 ## Upgrade Info
 Before updating, please [check our upgrade notes!](UPGRADE.md)  
