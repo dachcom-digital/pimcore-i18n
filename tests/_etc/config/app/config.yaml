@@ -11,6 +11,10 @@ services:
             - [setContainer, ['@service_container']]
 
 doctrine:
+    orm:
+        entity_managers:
+            default:
+                connection: default
     dbal:
         connections:
             default:
@@ -51,7 +55,15 @@ pimcore:
             write_target:
                 type: 'settings-store'
 
+pimcore_admin:
+    admin_csp_header:
+        enabled: false
+
 framework:
+
+    session:
+        storage_factory_id: session.storage.factory.mock_file
+
     profiler:
         enabled: true
         collect: false
@@ -60,5 +72,3 @@ framework:
         transports:
             main: 'null://null'
             pimcore_newsletter: 'null://null'
-    session:
-        storage_factory_id: session.storage.factory.mock_file
