@@ -1,21 +1,32 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Definitions;
 use I18nBundle\Helper\AdminMessageRendererHelper;
+use I18nBundle\Helper\RequestValidatorHelper;
 use I18nBundle\Http\I18nContextResolverInterface;
 use I18nBundle\Manager\I18nContextManager;
-use Pimcore\Http\Request\Resolver\EditmodeResolver;
-use I18nBundle\Definitions;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
-use I18nBundle\Helper\RequestValidatorHelper;
+use Pimcore\Http\Request\Resolver\EditmodeResolver;
+use Pimcore\Model\Document;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Pimcore\Model\Document;
 
 class I18nStartupListener implements EventSubscriberInterface
 {
@@ -68,6 +79,7 @@ class I18nStartupListener implements EventSubscriberInterface
             $this->initializeI18nContext($request, $document);
         } catch (\Throwable $e) {
             $this->handleContextException($e, $event);
+
             return;
         }
 
@@ -124,7 +136,6 @@ class I18nStartupListener implements EventSubscriberInterface
         }
 
         $request->attributes->set('_locale', $documentLocale);
-
     }
 
     /**

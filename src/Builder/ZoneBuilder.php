@@ -1,12 +1,23 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Builder;
 
 use I18nBundle\Configuration\Configuration;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Model\Zone;
 use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Registry\LocaleProviderRegistry;
-use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Model\Site;
 
 class ZoneBuilder
@@ -41,7 +52,6 @@ class ZoneBuilder
         $zoneConfig = [];
 
         foreach ($zones as $zone) {
-
             $flattenDomains = array_map(static function ($domain) {
                 return is_string($domain) ? $domain : $domain[0];
             }, $zone['domains']);
@@ -68,7 +78,6 @@ class ZoneBuilder
         ?string $currentZoneName = null,
         array $currentZoneDomains = []
     ): ZoneInterface {
-
         if (!empty($zoneDefinition['locale_adapter']) && !$this->localeProviderRegistry->has($zoneDefinition['locale_adapter'])) {
             throw new \Exception(sprintf(
                 'locale provider "%s" is not available. please use "%s" tag to register new adapter and add "%s" as a alias.',

@@ -1,12 +1,22 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Routing;
 
-use I18nBundle\Modifier\RouteModifier;
 use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Definitions;
-use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Modifier\RouteModifier;
 use Pimcore\Model\DataObject\Concrete;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\CacheWarmer\WarmableInterface;
@@ -178,7 +188,7 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
     }
 
     /**
-     * Forwards all unknown methods calls to inner router
+     * Forwards all unknown methods calls to inner router.
      */
     public function __call(string $name, array $arguments): mixed
     {

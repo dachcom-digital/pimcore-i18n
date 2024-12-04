@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Adapter\Redirector;
 
 use I18nBundle\Helper\CookieHelper;
@@ -8,7 +19,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class CookieRedirector extends AbstractRedirector
 {
-
     public function makeDecision(RedirectorBag $redirectorBag): void
     {
         $cookieHelper = new CookieHelper($this->config['cookie']);
@@ -48,16 +58,16 @@ class CookieRedirector extends AbstractRedirector
     {
         $resolver = new OptionsResolver();
         $resolver->setRequired('cookie');
-        $resolver->setDefault('cookie', function(OptionsResolver $cookieResolver) {
+        $resolver->setDefault('cookie', function (OptionsResolver $cookieResolver) {
             $cookieResolver
                 ->setRequired(['path', 'domain', 'secure', 'http_only', 'same_site'])
                 ->setDefaults([
-                    'path' => '/',
-                    'domain' => null,
-                    'secure' => false,
+                    'path'      => '/',
+                    'domain'    => null,
+                    'secure'    => false,
                     'http_only' => true,
                     'same_site' => Cookie::SAMESITE_LAX,
-                    'expire' => '+1 year'
+                    'expire'    => '+1 year'
                 ])
                 ->setAllowedTypes('path', 'string')
                 ->setAllowedTypes('domain', ['string', 'null'])

@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Adapter\Redirector;
 
 use I18nBundle\Helper\UserHelper;
@@ -23,7 +34,7 @@ class GeoRedirector extends AbstractRedirector
 
         /**
          * - Based on string source HTTP_ACCEPT_LANGUAGE ("de,en;q=0.9,de-DE;q=0.8;...")
-         * - Transformed by symfony to [de, en, de_DE, ...]
+         * - Transformed by symfony to [de, en, de_DE, ...].
          */
         $userLanguagesIso = $this->userHelper->getLanguagesAcceptedByUser();
 
@@ -52,7 +63,6 @@ class GeoRedirector extends AbstractRedirector
 
         foreach ($prioritisedList as $index => $list) {
             foreach ($userLanguagesIso as $priority => $userLocale) {
-
                 $country = $list['ignore_country'] ? null : $userCountryIso;
                 $countryStrictMode = $list['strict_country'];
                 $languageStrictMode = $list['strict_language'];
@@ -62,6 +72,7 @@ class GeoRedirector extends AbstractRedirector
                         'priority' => $index === 0 ? -1 : $priority,
                         'site'     => $zoneSite
                     ];
+
                     break;
                 }
             }
@@ -70,6 +81,7 @@ class GeoRedirector extends AbstractRedirector
         // nothing found.
         if (count($prioritisedListQuery) === 0) {
             $this->setDecision(['valid' => false, 'redirectorOptions' => $redirectorOptions]);
+
             return;
         }
 
@@ -97,11 +109,9 @@ class GeoRedirector extends AbstractRedirector
         bool $countryStrictMode = true,
         bool $languageStrictMode = false
     ): ?ZoneSiteInterface {
-
         $locale = $languageStrictMode ? substr($locale, 0, 2) : $locale;
 
         if ($countryIso === null) {
-
             $indexId = array_search($locale, array_map(static function (ZoneSiteInterface $site) {
                 return $site->getLocale();
             }, $zoneSites), true);
@@ -143,14 +153,14 @@ class GeoRedirector extends AbstractRedirector
         $resolver = new OptionsResolver();
         $resolver
             ->setRequired('rules')
-            ->setDefault('rules', function(OptionsResolver $rulesResolver) {
-           $rulesResolver
-               ->setPrototype(true)
-               ->setRequired(['ignore_country', 'strict_country', 'strict_language'])
-               ->setAllowedTypes('ignore_country', 'bool')
-               ->setAllowedTypes('strict_country', 'bool')
-               ->setAllowedTypes('strict_language', 'bool');
-        });
+            ->setDefault('rules', function (OptionsResolver $rulesResolver) {
+                $rulesResolver
+                    ->setPrototype(true)
+                    ->setRequired(['ignore_country', 'strict_country', 'strict_language'])
+                    ->setAllowedTypes('ignore_country', 'bool')
+                    ->setAllowedTypes('strict_country', 'bool')
+                    ->setAllowedTypes('strict_language', 'bool');
+            });
 
         return $resolver;
     }

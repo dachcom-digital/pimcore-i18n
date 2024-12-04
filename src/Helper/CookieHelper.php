@@ -1,8 +1,18 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Helper;
 
-use I18nBundle\Configuration\Configuration;
 use I18nBundle\Definitions;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,7 +21,8 @@ use Symfony\Component\HttpFoundation\Response;
 class CookieHelper
 {
     public function __construct(protected array $config)
-    {}
+    {
+    }
 
     public function get(Request $request, string $key = Definitions::REDIRECT_COOKIE_NAME): ?array
     {

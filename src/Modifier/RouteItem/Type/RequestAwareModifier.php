@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Modifier\RouteItem\Type;
 
 use I18nBundle\Model\RouteItem\RouteItemInterface;
@@ -59,7 +70,7 @@ class RequestAwareModifier implements RouteItemModifierInterface
                 $routeItem->getRouteParametersBag()->set('_locale', $request->getLocale());
             } elseif ($request->attributes->get('_route') === 'pimcore_admin_document_page_areabrick-render-index-editmode' && $request->request->has('documentId')) {
                 $document = Document::getById($request->request->get('documentId'));
-                if($document instanceof Document) {
+                if ($document instanceof Document) {
                     $routeItem->getRouteParametersBag()->set('_locale', $document->getProperty('language'));
                 }
             }
