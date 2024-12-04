@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Model;
 
 use I18nBundle\Adapter\LocaleProvider\LocaleProviderInterface;
@@ -104,9 +115,9 @@ class Zone implements ZoneInterface
         $this->localeUrlMapping = $this->buildLocaleUrlMappingForCurrentZone();
     }
 
-    public function processProviderLocales(LocaleProviderInterface $provider): void {
-
-        if($this->providerLocalesDispatched === true) {
+    public function processProviderLocales(LocaleProviderInterface $provider): void
+    {
+        if ($this->providerLocalesDispatched === true) {
             throw new \Exception(sprintf('Provider locales zone %d already have been declared', $this->getId()));
         }
 
@@ -138,7 +149,6 @@ class Zone implements ZoneInterface
         $elements = [];
         /** @var ZoneSiteInterface $i18nZoneSite */
         foreach ($i18nZoneSites as $i18nZoneSite) {
-
             if (!empty($i18nZoneSite->getCountryIso()) || !empty($i18nZoneSite->getLanguageIso())) {
                 $elements[] = $i18nZoneSite;
             }

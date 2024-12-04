@@ -1,14 +1,25 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Context;
 
 use I18nBundle\Adapter\PathGenerator\PathGeneratorInterface;
 use I18nBundle\Definitions;
 use I18nBundle\Exception\ZoneSiteNotFoundException;
 use I18nBundle\Model\LocaleDefinitionInterface;
+use I18nBundle\Model\RouteItem\RouteItemInterface;
 use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Model\ZoneSiteInterface;
-use I18nBundle\Model\RouteItem\RouteItemInterface;
 use Pimcore\Model\Translation;
 use Symfony\Component\Intl\Countries;
 use Symfony\Component\Intl\Languages;
@@ -119,7 +130,6 @@ class I18nContext implements I18nContextInterface
             'countryName' => $countryName,
             'locale'      => $this->localeDefinition->getLanguageIso()
         ];
-
     }
 
     public function getLinkedLanguages(bool $onlyShowRootLanguages = false): array
@@ -138,7 +148,6 @@ class I18nContext implements I18nContextInterface
         $linkedLanguages = $this->getLinkedLanguages();
 
         foreach ($sites as $site) {
-
             if (empty($site->getLanguageIso())) {
                 continue;
             }
@@ -193,7 +202,6 @@ class I18nContext implements I18nContextInterface
         $countryData = [];
         if (!empty($validCountries)) {
             foreach ($validCountries as $country) {
-
                 if (is_null($country['isoCode'])) {
                     continue;
                 }

@@ -1,15 +1,26 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Builder;
 
+use Doctrine\DBAL\Connection;
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Definitions;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Model\SiteRequestContext;
+use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Model\ZoneSite;
 use I18nBundle\Model\ZoneSiteInterface;
-use I18nBundle\Model\ZoneInterface;
-use I18nBundle\Model\SiteRequestContext;
-use Doctrine\DBAL\Connection;
 use Pimcore\Model\Document;
 use Pimcore\Model\Site;
 
@@ -73,7 +84,6 @@ class ZoneSitesBuilder
         int $rootId,
         bool $fullBootstrap
     ): ?ZoneSiteInterface {
-
         $routeItemLocale = $routeItem->getLocaleFragment();
         $domainDoc = Document::getById($rootId);
 
@@ -108,7 +118,6 @@ class ZoneSitesBuilder
         $siteRequestContext = $this->generateSiteRequestContext($mainDomain, $zoneDomainConfiguration);
 
         if (!empty($docLocale)) {
-
             $docCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
 
             if (str_contains($docLocale, '_')) {
@@ -166,14 +175,12 @@ class ZoneSitesBuilder
         SiteRequestContext $siteRequestContext,
         bool $fullBootstrap
     ): array {
-
         $subPages = [];
         $processedChildLocales = [];
 
         $routeItemLocale = $routeItem->getLocaleFragment();
 
         foreach ($domainDoc->getChildren(true) as $child) {
-
             $validPath = true;
             $loopDetector = [];
             $childCountryIso = null;
@@ -310,7 +317,7 @@ class ZoneSitesBuilder
         }
 
         if (!str_starts_with($domainUrl, 'http')) {
-            $domainUrl = sprintf('%s://%s', $httpScheme, $domainUrl);;
+            $domainUrl = sprintf('%s://%s', $httpScheme, $domainUrl);
         }
 
         if ($domainPort !== null) {
@@ -342,5 +349,4 @@ class ZoneSitesBuilder
             'rootId'     => 1
         ];
     }
-
 }

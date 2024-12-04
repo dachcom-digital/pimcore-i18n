@@ -1,18 +1,29 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\EventListener;
 
 use Pimcore\Http\Request\Resolver\DocumentResolver;
 use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Http\Request\Resolver\SiteResolver;
 use Pimcore\Http\RequestHelper;
+use Pimcore\Model\Document;
 use Pimcore\Model\Site;
 use Symfony\Cmf\Bundle\RoutingBundle\Routing\DynamicRouter;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Pimcore\Model\Document;
 
 class I18nPreviewListener implements EventSubscriberInterface
 {
@@ -24,7 +35,6 @@ class I18nPreviewListener implements EventSubscriberInterface
         protected SiteResolver $siteResolver,
         protected Document\Service $documentService
     ) {
-
         $this->nearestDocumentTypes = ['page', 'snippet', 'hardlink', 'link', 'folder'];
     }
 
@@ -129,5 +139,4 @@ class I18nPreviewListener implements EventSubscriberInterface
 
         return null;
     }
-
 }

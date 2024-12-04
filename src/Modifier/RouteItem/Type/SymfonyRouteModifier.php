@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Modifier\RouteItem\Type;
 
 use I18nBundle\Definitions;
@@ -63,7 +74,8 @@ class SymfonyRouteModifier implements RouteItemModifierInterface
 
         if (!$generator instanceof CompiledUrlGenerator) {
             throw new \Exception(
-                sprintf('Symfony RouteItem error: Url generator needs to be instance of "%s", "%s" given.',
+                sprintf(
+                    'Symfony RouteItem error: Url generator needs to be instance of "%s", "%s" given.',
                     CompiledUrlGenerator::class,
                     get_class($generator)
                 )
@@ -74,7 +86,7 @@ class SymfonyRouteModifier implements RouteItemModifierInterface
          * Oh lawd. This is terrible.
          * Can we do that better instead of stealing private properties like this?
          */
-        $compiledRoutes = \Closure::bind(static function & (CompiledUrlGenerator $generator) {
+        $compiledRoutes = \Closure::bind(static function &(CompiledUrlGenerator $generator) {
             return $generator->compiledRoutes;
         }, null, $generator)($generator);
 
@@ -110,5 +122,4 @@ class SymfonyRouteModifier implements RouteItemModifierInterface
             $routeItem->getRouteAttributesBag()->set('_i18n_translation_keys', $i18nDefaults['translation_keys']);
         }
     }
-
 }

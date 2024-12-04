@@ -1,13 +1,24 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Transformer;
 
 use I18nBundle\Definitions;
-use I18nBundle\Model\ZoneSiteInterface;
 use I18nBundle\Model\RouteItem\AlternateRouteItem;
 use I18nBundle\Model\RouteItem\AlternateRouteItemInterface;
 use I18nBundle\Model\RouteItem\LinkGeneratorRouteItemInterface;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Model\ZoneSiteInterface;
 
 class AlternateRouteItemTransformer implements TransformerInterface
 {
@@ -39,7 +50,8 @@ class AlternateRouteItemTransformer implements TransformerInterface
     public function reverseTransformToArray(mixed $transformedRouteItem, array $context = []): array
     {
         if (!$transformedRouteItem instanceof AlternateRouteItemInterface) {
-            throw new \Exception(sprintf(
+            throw new \Exception(
+                sprintf(
                     'Transformed route item must be instance of "%s", "%s" given.',
                     LinkGeneratorRouteItemInterface::class,
                     get_class($transformedRouteItem)

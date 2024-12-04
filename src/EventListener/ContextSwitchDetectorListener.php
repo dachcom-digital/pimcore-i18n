@@ -1,23 +1,34 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Configuration\Configuration;
 use I18nBundle\Context\I18nContextInterface;
+use I18nBundle\Event\ContextSwitchEvent;
+use I18nBundle\Helper\RequestValidatorHelper;
 use I18nBundle\Http\I18nContextResolverInterface;
+use I18nBundle\I18nEvents;
+use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use Pimcore\Config;
 use Pimcore\Logger;
 use Pimcore\Model\Document;
-use I18nBundle\Helper\RequestValidatorHelper;
-use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
-use I18nBundle\I18nEvents;
-use I18nBundle\Event\ContextSwitchEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class ContextSwitchDetectorListener implements EventSubscriberInterface
 {

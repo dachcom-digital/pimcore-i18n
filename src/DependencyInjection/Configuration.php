@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -14,7 +25,7 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->enumNode('redirect_status_code')->defaultValue(302)->values([301,302])->end()
+                ->enumNode('redirect_status_code')->defaultValue(302)->values([301, 302])->end()
                 ->booleanNode('enable_context_switch_detector')->defaultValue(false)->end()
                 ->scalarNode('request_scheme')->defaultValue('https')->end()
                 ->integerNode('request_port')->defaultValue(443)->end()
@@ -69,7 +80,6 @@ class Configuration implements ConfigurationInterface
                                 ->prototype('variable')
                                     ->validate()
                                         ->ifTrue(function ($domain) {
-
                                             if (is_string($domain)) {
                                                 return false;
                                             }

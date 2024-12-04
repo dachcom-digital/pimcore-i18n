@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\Modifier;
 
 use I18nBundle\Context\I18nContextInterface;
@@ -67,13 +78,14 @@ class RouteModifier
         $translationKeys = $i18nContext->getRouteItem()->getRouteAttributesBag()->get('_i18n_translation_keys', []);
 
         foreach ($translationKeys as $routeKey => $translationKey) {
-
             if ($i18nContext->getRouteItem()->getRouteParametersBag()->has($translationKey)) {
                 continue;
             }
 
-            $i18nContext->getRouteItem()->getRouteParametersBag()->set($routeKey,
-                $this->translateDynamicRouteKey($zone, $i18nContext->getRouteItem(), $translationKey, $locale));
+            $i18nContext->getRouteItem()->getRouteParametersBag()->set(
+                $routeKey,
+                $this->translateDynamicRouteKey($zone, $i18nContext->getRouteItem(), $translationKey, $locale)
+            );
         }
     }
 
@@ -152,7 +164,6 @@ class RouteModifier
         }
 
         if ($contextBag->has('virtualProxyZoneSite')) {
-
             if ($prettyUrlSet) {
                 throw new VirtualProxyPathException(sprintf('Virtual path generation for document with pretty URLs ("%s") cannot be processed', $documentPath));
             }
@@ -256,5 +267,4 @@ class RouteModifier
 
         return $parameters;
     }
-
 }

@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\EventListener;
 
 use I18nBundle\Context\I18nContextInterface;
@@ -11,24 +22,23 @@ use I18nBundle\Registry\RedirectorRegistry;
 use I18nBundle\Resolver\PimcoreDocumentResolverInterface;
 use I18nBundle\Resolver\RedirectResolver;
 use I18nBundle\Tool\System;
+use Pimcore\Model\Document;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Pimcore\Model\Document;
 
 class DetectorListener implements EventSubscriberInterface
 {
-
     public function __construct(
         protected PimcoreDocumentResolverInterface $pimcoreDocumentResolver,
         protected I18nContextResolverInterface $i18nContextResolver,
         protected RedirectorRegistry $redirectorRegistry,
         protected RedirectResolver $redirectResolver,
         protected RequestValidatorHelper $requestValidatorHelper
-    )
-    {}
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
@@ -142,6 +152,5 @@ class DetectorListener implements EventSubscriberInterface
             'language' => $i18nContext->getLocaleDefinition()->getLanguageIso(),
             'country'  => $i18nContext->getLocaleDefinition()->getCountryIso()
         ]);
-
     }
 }

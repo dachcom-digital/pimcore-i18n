@@ -1,5 +1,16 @@
 <?php
 
+/*
+ * This source file is available under two different licenses:
+ *   - GNU General Public License version 3 (GPLv3)
+ *   - DACHCOM Commercial License (DCL)
+ * Full copyright and license information is available in
+ * LICENSE.md which is distributed with this source code.
+ *
+ * @copyright  Copyright (c) DACHCOM.DIGITAL AG (https://www.dachcom-digital.com)
+ * @license    GPLv3 and DCL
+ */
+
 namespace I18nBundle\EventListener\Frontend;
 
 use Doctrine\DBAL\Connection;
@@ -7,16 +18,16 @@ use I18nBundle\Context\I18nContextInterface;
 use I18nBundle\Exception\RouteItemException;
 use I18nBundle\Exception\ZoneSiteNotFoundException;
 use I18nBundle\Http\I18nContextResolverInterface;
-use Pimcore\Document\Renderer\DocumentRenderer;
 use I18nBundle\Manager\I18nContextManager;
 use Pimcore\Bundle\CoreBundle\EventListener\PimcoreContextListener;
-use Pimcore\Config;
-use Pimcore\Http\Exception\ResponseException;
-use Pimcore\Model\DataObject;
-use Pimcore\Http\Request\Resolver\SiteResolver;
-use Pimcore\Model\Document;
-use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
 use Pimcore\Bundle\CoreBundle\EventListener\Traits\PimcoreContextAwareTrait;
+use Pimcore\Config;
+use Pimcore\Document\Renderer\DocumentRenderer;
+use Pimcore\Http\Exception\ResponseException;
+use Pimcore\Http\Request\Resolver\PimcoreContextResolver;
+use Pimcore\Http\Request\Resolver\SiteResolver;
+use Pimcore\Model\DataObject;
+use Pimcore\Model\Document;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
