@@ -33,33 +33,21 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
         $this->urlGenerator = $urlGenerator;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function setContext(RequestContext $context)
     {
         $this->router->setContext($context);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContext(): RequestContext
     {
         return $this->router->getContext();
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getRouteCollection()
     {
         return $this->router->getRouteCollection();
     }
 
-    /**
-     * @inheritdoc
-     */
     public function matchRequest(Request $request): array
     {
         if ($this->router instanceof RequestMatcherInterface) {
@@ -69,17 +57,11 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
         return [];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function match($pathinfo): array
     {
         return $this->router->match($pathinfo);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function warmUp(string $cacheDir)
     {
         if ($this->router instanceof WarmableInterface) {
@@ -136,10 +118,6 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
     {
         $locale = $i18nContext->getRouteItem()->getLocaleFragment();
         $zone = $i18nContext->getZone();
-
-        if (!$zone instanceof ZoneInterface) {
-            return $this->urlGenerator->generate($i18nContext->getRouteItem()->getRouteName(), $i18nContext->getRouteItem()->getRouteParameters(), $referenceType);
-        }
 
         $this->routeModifier->modifySymfonyRouteParameterBag($i18nContext);
 

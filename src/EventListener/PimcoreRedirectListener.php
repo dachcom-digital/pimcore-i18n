@@ -96,7 +96,7 @@ class PimcoreRedirectListener implements EventSubscriberInterface
 
         preg_match('/\{i18n_localized_target_page=([0-9]+)\}/', $response->getTargetUrl(), $matches);
 
-        if (!is_array($matches) || count($matches) !== 2) {
+        if (count($matches) !== 2) {
             return $response;
         }
 

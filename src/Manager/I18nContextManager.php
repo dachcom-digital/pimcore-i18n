@@ -41,10 +41,6 @@ class I18nContextManager
     {
         $routeItem = $this->routeItemBuilder->buildRouteItemByParameters($type, $i18nRouteParameters);
 
-        if (!$routeItem instanceof RouteItemInterface) {
-            return null;
-        }
-
         $zone = $this->setupZone($routeItem, $fullBootstrap);
         $pathGenerator = $this->setupPathGenerator($routeItem, $fullBootstrap);
         $localeDefinition = $this->buildLocaleDefinition($routeItem);

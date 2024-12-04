@@ -30,10 +30,6 @@ class UserHelper
         $guessedLanguages = [];
         $acceptLanguages = $mainRequest->getLanguages();
 
-        if (!is_array($acceptLanguages)) {
-            return $guessedLanguages;
-        }
-
         $pimcoreLanguages = Tool::getValidLanguages();
 
         foreach ($acceptLanguages as $acceptLanguage) {
