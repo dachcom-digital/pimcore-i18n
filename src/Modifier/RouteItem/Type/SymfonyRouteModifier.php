@@ -59,7 +59,6 @@ class SymfonyRouteModifier implements RouteItemModifierInterface
         $routeName = $routeItem->getRouteName();
         $locale = $routeItem->getLocaleFragment();
 
-        /** @var CompiledUrlGenerator $generator */
         $generator = $router->getGenerator();
 
         if (!$generator instanceof CompiledUrlGenerator) {

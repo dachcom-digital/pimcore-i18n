@@ -43,10 +43,6 @@ class RouteModifier
         $zone = $i18nContext->getZone();
         $locale = $i18nContext->getRouteItem()->getLocaleFragment();
 
-        if (!$zone instanceof ZoneInterface) {
-            return $originalPath;
-        }
-
         $path = preg_replace_callback(
             '/@((?:(?![\/|?]).)*)/',
             function ($matches) use ($i18nContext, $locale) {

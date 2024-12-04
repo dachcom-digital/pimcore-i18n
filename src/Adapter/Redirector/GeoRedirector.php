@@ -98,10 +98,6 @@ class GeoRedirector extends AbstractRedirector
         bool $languageStrictMode = false
     ): ?ZoneSiteInterface {
 
-        if (!is_array($zoneSites)) {
-            return null;
-        }
-
         $locale = $languageStrictMode ? substr($locale, 0, 2) : $locale;
 
         if ($countryIso === null) {

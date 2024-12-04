@@ -1,9 +1,9 @@
 # Upgrade Notes
 
-## 5.1.1
-- [IMPROVEMENT] prevent applying str_contains on null value
 ## 5.1.0
 - [FEATURE] pimcore backend: object preview button
+- [IMPROVEMENT] prevent applying str_contains on null value
+- [LICENSE] Dual-License with GPL and Dachcom Commercial License (DCL) added
 ## 5.0.6
 - [IMPROVEMENT] Try to determinate locale and site when inline renderer is active (mostly via `checkMissingRequiredEditable()`)
 ## 5.0.5

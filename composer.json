@@ -32,7 +32,7 @@
     },
     "require": {
         "pimcore/pimcore": "^11.0",
-        "symfony/intl": "^6.2",
+        "symfony/intl": "^6.4",
         "geoip2/geoip2": "^2.0"
     },
     "require-dev": {
@@ -40,8 +40,8 @@
         "codeception/module-asserts": "^3.0",
         "codeception/module-symfony": "^3.1",
         "codeception/module-webdriver": "^4.0",
-        "phpstan/phpstan": "^1.0",
-        "phpstan/phpstan-symfony": "^1.0",
-        "symplify/easy-coding-standard": "^9.0"
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
+        "symplify/easy-coding-standard": "~12.2.0"
     }
 }

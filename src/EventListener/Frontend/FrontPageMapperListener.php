@@ -54,13 +54,11 @@ class FrontPageMapperListener implements EventSubscriberInterface
             return;
         }
 
-        /** @var Hardlink\Wrapper\WrapperInterface $wrapperDocument */
-        $wrapperDocument = $document;
-        if ($wrapperDocument->getHardLinkSource()->getFullPath() !== $document->getFullPath()) {
+        if ($document->getHardLinkSource()->getFullPath() !== $document->getFullPath()) {
             return;
         }
 
-        $mapDocument = $wrapperDocument->getHardLinkSource()->getProperty('front_page_map');
+        $mapDocument = $document->getHardLinkSource()->getProperty('front_page_map');
         if (!$mapDocument instanceof Document) {
             return;
         }

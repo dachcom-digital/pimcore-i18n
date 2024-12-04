@@ -42,10 +42,6 @@ class FallbackRedirector extends AbstractRedirector
             return null;
         }
 
-        if (!is_array($zoneSites)) {
-            return null;
-        }
-
         $indexId = array_search($fallbackLocale, array_map(static function (ZoneSiteInterface $site) {
             return $site->getLocale();
         }, $zoneSites), true);

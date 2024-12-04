@@ -77,11 +77,6 @@ class HeadLinkListener implements EventSubscriberInterface
         }
     }
 
-    /**
-     * Define x-default url based on crawled pages.
-     *
-     * @throws \Exception
-     */
     private function getXDefaultLink(?string $defaultLocale, array $hrefLinks = []): ?string
     {
         $hrefUrl = null;
@@ -101,9 +96,6 @@ class HeadLinkListener implements EventSubscriberInterface
         return $hrefUrl;
     }
 
-    /**
-     * @throws \Exception
-     */
     private function generateHrefLink(string $path): string
     {
         $allowTrailingSlash = $this->pimcoreConfig['documents']['allow_trailing_slash'];
