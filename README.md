@@ -1,6 +1,6 @@
-# Pimcore - i18n Manager
-
+# Pimcore - I18n
 [![Software License](https://img.shields.io/badge/license-GPLv3-brightgreen.svg?style=flat-square)](LICENSE.md)
+[![Software License](https://img.shields.io/badge/license-DCL-white.svg?style=flat-square&color=%23ff5c5c)](LICENSE.md)
 [![Latest Release](https://img.shields.io/packagist/v/dachcom-digital/i18n.svg?style=flat-square)](https://packagist.org/packages/dachcom-digital/i18n)
 [![Tests](https://img.shields.io/github/actions/workflow/status/dachcom-digital/pimcore-i18n/.github/workflows/codeception.yml?branch=master&style=flat-square&logo=github&label=codeception)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3ACodeception+branch%3Amaster)
 [![PhpStan](https://img.shields.io/github/actions/workflow/status/dachcom-digital/pimcore-i18n/.github/workflows/php-stan.yml?branch=master&style=flat-square&logo=github&label=phpstan%20level%204)](https://github.com/dachcom-digital/pimcore-i18n/actions?query=workflow%3A"PHP+Stan"+branch%3Amaster)
@@ -28,7 +28,7 @@ This bundle helps you to master this challenges and gives you the freedom to ela
 
 ```json
 "require" : {
-    "dachcom-digital/i18n" : "~5.0.0"
+    "dachcom-digital/i18n" : "~5.1.0"
 }
 ```
 
@@ -87,12 +87,12 @@ When using this bundle, you should:
 - [Navigation Caching](docs/110_NavigationCaching.md): Cache your navigation right!
 - [Cookie Settings](docs/120_CookieSettings.md): Change Symfony default cookie settings.
 
+## Upgrade Info
+Before updating, please [check our upgrade notes!](UPGRADE.md)  
+
 ## License
 **DACHCOM.DIGITAL AG**, Löwenhofstrasse 15, 9424 Rheineck, Schweiz  
 [dachcom.com](https://www.dachcom.com), dcdi@dachcom.ch  
 Copyright © 2024 DACHCOM.DIGITAL. All rights reserved.  
 
 For licensing details please visit [LICENSE.md](LICENSE.md)  
-
-## Upgrade Info
-Before updating, please [check our upgrade notes!](UPGRADE.md)  
