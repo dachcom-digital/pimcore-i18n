@@ -42,6 +42,14 @@ services:
         tags:
             - { name: i18n.adapter.path.generator, alias: document }
 
+    I18nBundle\Adapter\PathGenerator\DataObject:
+        parent: I18nBundle\Adapter\PathGenerator\AbstractPathGenerator
+        arguments:
+            - '@router'
+            - '@event_dispatcher'
+        tags:
+            - { name: i18n.adapter.path.generator, alias: data_object }
+
 
     #
     # Adapter: ReDirector
