@@ -13,6 +13,7 @@
 
 namespace I18nBundle\Model\RouteItem;
 
+use Pimcore\Model\DataObject\Data\UrlSlug;
 use Pimcore\Model\Element\ElementInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
@@ -51,4 +52,8 @@ interface BaseRouteItemInterface
     public function getRouteName(): ?string;
 
     public function setRouteName(?string $routeName): void;
+
+    public function getUrlSlug(): ?UrlSlug;
+
+    public function setUrlSlug(?UrlSlug $urlSlug): void;
 }
