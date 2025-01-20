@@ -39,6 +39,11 @@ class AlternateDynamicRouteEvent extends Event
         return $this->type;
     }
 
+    public function getCurrentRouteItem(): RouteItemInterface
+    {
+        return $this->currentRouteItem;
+    }
+
     public function isCurrentRouteHeadless(): bool
     {
         return $this->currentRouteItem->isHeadless() === true;
