@@ -1,5 +1,7 @@
 # Upgrade Notes
 
+## 5.1.1
+- [IMPROVEMENT] alternate route event: getter for current route item
 ## 5.1.0
 - [FEATURE] pimcore backend: object preview button
 - [IMPROVEMENT] prevent applying str_contains on null value
