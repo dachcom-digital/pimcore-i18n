@@ -83,6 +83,10 @@ class RouteItemBuilder
             $routeItem = $this->routeItemFactory->create(RouteItemInterface::STATIC_ROUTE, false);
         } elseif (str_starts_with($currentRouteName, 'document_')) {
             $routeItem = $this->routeItemFactory->create(RouteItemInterface::DOCUMENT_ROUTE, false);
+        } elseif (str_starts_with($currentRouteName, 'data_object_')) {
+            $routeItem = $this->routeItemFactory->create(RouteItemInterface::DATA_OBJECT_ROUTE, true);
+            $routeItem->setEntity($baseRequest->attributes->get('object'));
+            $routeItem->setUrlSlug($baseRequest->attributes->get('urlSlug'));
         } elseif ($baseRequest->attributes->has(Definitions::ATTRIBUTE_I18N_ROUTE_IDENTIFIER)) {
             $routeItem = $this->routeItemFactory->create(RouteItemInterface::SYMFONY_ROUTE, false);
         }
