@@ -1,5 +1,7 @@
 # Upgrade Notes
 
+## 5.1.2
+- [BUBGFIX] fixed object preview button
 ## 5.1.1
 - [IMPROVEMENT] alternate route event: getter for current route item
 ## 5.1.0
