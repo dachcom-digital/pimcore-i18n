@@ -76,6 +76,7 @@ When using this bundle, you should:
   - [Document Routes](docs/90_DocumentRoutes.md): Build document routes
   - [Static Routes](docs/91_StaticRoutes.md): Build translatable static routes and implement href-lang tags.
   - [Symfony Route](docs/92_SymfonyRoutes.md): Build translatable symfony routes and implement href-lang tags.
+  - [DataObject Route](docs/93_DataObjectRoutes.md): Implement href-lang tags for data objects.
 - [Front Page Mapping](docs/30_FrontPageMapping.md): Learn how to map a custom front page.
 - [Localized Error Documents](docs/40_LocaleErrorDocument.md): Learn how to create localized error documents.
 - [Custom Locale Adapter](docs/50_CustomLocaleAdapter.md): Learn how to create a custom locale adapter.

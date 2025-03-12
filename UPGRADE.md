@@ -1,5 +1,8 @@
 # Upgrade Notes
 
+## 5.2.0
+- [FEATURE] DataObject routes generate alternate links based on Pimcore UrlSlug fields and adds them to the head.
+  Read more about it [here](./docs/93_DataObjectRoutes.md).
 ## 5.1.0
 - [FEATURE] pimcore backend: object preview button
 - [IMPROVEMENT] prevent applying str_contains on null value
