@@ -41,33 +41,33 @@ pimcore.plugin.i18n.objectPreview = Class.create({
         });
 
         sitesStore.each((siteItem) => {
-           if (locales.length === 1) {
-               let locale = locales[0];
-               previewButton.menu.insert({
-                   text: siteItem.data.domain + ' [' + locale + ']',
-                   handler: () => this.openObjectPreview(
-                       objectInstance,
-                           {
-                           i18n_locale: locale,
-                           i18n_site: siteItem.data.id
-                       }
-                   )
-               })
-           } else {
-               previewButton.menu.insert({
-                   text: siteItem.data.domain,
-                   menu: locales.map(locale => new Object({
-                       text: locale,
-                       handler: () => this.openObjectPreview(
-                           objectInstance,
-                           {
-                               i18n_locale: locale,
-                               i18n_site: siteItem.data.id
-                           }
-                       )
-                   }))
-               });
-           }
+            if (locales.length === 1) {
+                let locale = locales[0];
+                previewButton.menu.insert({
+                    text: siteItem.data.domain + ' [' + locale + ']',
+                    handler: () => this.openObjectPreview(
+                      objectInstance,
+                      {
+                          i18n_locale: locale,
+                          i18n_site: siteItem.data.id
+                      }
+                    )
+                })
+            } else {
+                previewButton.menu.insert({
+                    text: siteItem.data.domain,
+                    menu: locales.map(locale => new Object({
+                        text: locale,
+                        handler: () => this.openObjectPreview(
+                          objectInstance,
+                          {
+                              i18n_locale: locale,
+                              i18n_site: siteItem.data.id
+                          }
+                        )
+                    }))
+                });
+            }
         });
     },
 

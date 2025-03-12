@@ -107,6 +107,10 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
             return $this->generateDocumentRoute($i18nContext, $referenceType);
         }
 
+        if ($i18nContext->getRouteItem()->getType() === RouteItemInterface::DATA_OBJECT_ROUTE) {
+            return $this->generateDataObjectRoute($i18nContext, $referenceType);
+        }
+
         throw new RouteNotFoundException(sprintf('None of the chained routers were able to generate i18n route: %s', $name));
     }
 
@@ -139,6 +143,11 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
     protected function generateDocumentRoute(I18nContextInterface $i18nContext, int $referenceType): string
     {
         return $this->routeModifier->buildDocumentPath($i18nContext, $referenceType);
+    }
+
+    protected function generateDataObjectRoute(I18nContextInterface $i18nContext, int $referenceType): string
+    {
+        return $this->routeModifier->buildDataObjectPath($i18nContext, $referenceType);
     }
 
     protected function generateContextAwarePath(I18nContextInterface $i18nContext, RouteItemInterface $routeItem, int $referenceType): string

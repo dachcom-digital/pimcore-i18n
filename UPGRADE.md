@@ -1,7 +1,10 @@
 # Upgrade Notes
 
+## 5.2.0
+- [FEATURE] DataObject routes generate alternate links based on Pimcore UrlSlug fields and adds them to the head.
+  Read more about it [here](./docs/93_DataObjectRoutes.md).
 ## 5.1.2
-- [BUBGFIX] fixed object preview button
+- [BUGFIX] fixed object preview button
 ## 5.1.1
 - [IMPROVEMENT] alternate route event: getter for current route item
 ## 5.1.0

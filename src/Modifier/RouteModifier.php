@@ -20,6 +20,7 @@ use I18nBundle\Exception\VirtualProxyPathException;
 use I18nBundle\LinkGenerator\I18nLinkGeneratorInterface;
 use I18nBundle\Manager\I18nContextManager;
 use I18nBundle\Model\RouteItem\RouteItemInterface;
+use I18nBundle\Model\SiteRequestContext;
 use I18nBundle\Model\ZoneInterface;
 use I18nBundle\Model\ZoneSiteInterface;
 use I18nBundle\Tool\System;
@@ -192,23 +193,53 @@ class RouteModifier
             return $documentPath;
         }
 
-        $scheme = $zoneSite->getSiteRequestContext()->getScheme();
-        $host = $zoneSite->getSiteRequestContext()->getHost();
-        $httpPort = $zoneSite->getSiteRequestContext()->getHttpPort();
-        $httpsPort = $zoneSite->getSiteRequestContext()->getHttpsPort();
+        return $this->generateAbsoluteUrl($zoneSite->getSiteRequestContext(), $documentPath);
+    }
 
-        $port = '';
-        if ($scheme === 'http' && $httpPort !== 80) {
-            $port = ':' . $httpPort;
-        } elseif ($scheme === 'https' && $httpsPort !== 443) {
-            $port = ':' . $httpsPort;
+    /**
+     * @throws \Exception
+     */
+    public function buildDataObjectPath(I18nContextInterface $i18nContext, int $referenceType): string
+    {
+        $routeItem = $i18nContext->getRouteItem();
+        $attributes = $routeItem->isHeadless()
+            ? $routeItem->getRouteParameters()
+            : $routeItem->getRouteAttributes();
+        $object = $routeItem->getEntity();
+        $urlSlug = $routeItem->getRouteContextBag()->get('urlSlug');
+
+        if (!$object instanceof Concrete) {
+            throw new \RuntimeException(
+                sprintf(
+                    'Cannot build data object path. Entity must be an instance of "%s", "%s" given!',
+                    Concrete::class,
+                    get_class($object)
+                )
+            );
         }
 
-        if (!empty($documentPath)) {
-            $documentPath = '/' . ltrim($documentPath, '/');
+        $slugs = $object->get($urlSlug->getFieldname(), $attributes['_locale']);
+
+        if (empty($slugs)) {
+            throw new \RuntimeException(
+                sprintf(
+                    'No slugs found in object field "%s" for locale "%s"',
+                    $urlSlug->getFieldname(),
+                    $attributes['_locale']
+                )
+            );
         }
 
-        return sprintf('%s://%s%s%s', $scheme, $host, $port, $documentPath);
+        $dataObjectPath = $slugs[0]->getSlug();
+
+        if ($referenceType !== UrlGeneratorInterface::ABSOLUTE_URL) {
+            return $dataObjectPath;
+        }
+
+        return $this->generateAbsoluteUrl(
+            $i18nContext->getCurrentZoneSite()->getSiteRequestContext(),
+            $dataObjectPath
+        );
     }
 
     protected function translateDynamicRouteKey(ZoneInterface $zone, RouteItemInterface $routeItem, string $key, string $locale): string
@@ -266,5 +297,26 @@ class RouteModifier
         }
 
         return $parameters;
+    }
+
+    private function generateAbsoluteUrl(SiteRequestContext $siteRequestContext, string $path): string
+    {
+        $scheme = $siteRequestContext->getScheme();
+        $host = $siteRequestContext->getHost();
+        $httpPort = $siteRequestContext->getHttpPort();
+        $httpsPort = $siteRequestContext->getHttpsPort();
+
+        $port = '';
+        if ($scheme === 'http' && $httpPort !== 80) {
+            $port = ':' . $httpPort;
+        } elseif ($scheme === 'https' && $httpsPort !== 443) {
+            $port = ':' . $httpsPort;
+        }
+
+        if (!empty($path)) {
+            $path = '/' . ltrim($path, '/');
+        }
+
+        return sprintf('%s://%s%s%s', $scheme, $host, $port, $path);
     }
 }
