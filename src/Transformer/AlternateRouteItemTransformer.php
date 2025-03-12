@@ -39,11 +39,10 @@ class AlternateRouteItemTransformer implements TransformerInterface
         $alternateRouteItem->getRouteParametersBag()->set('_locale', $zoneSite->getLocale());
         $alternateRouteItem->getRouteContextBag()->set('site', $zoneSite->getPimcoreSite());
 
-        // Data object routes always have a route name, entity and url slug assigned
+        // Data object routes always have a route name and entity assigned
         if ($routeItem->getType() === RouteItemInterface::DATA_OBJECT_ROUTE) {
             $alternateRouteItem->setRouteName($routeItem->getRouteName());
             $alternateRouteItem->setEntity($routeItem->getEntity());
-            $alternateRouteItem->setUrlSlug($routeItem->getUrlSlug());
         }
 
         return $alternateRouteItem;
@@ -74,7 +73,6 @@ class AlternateRouteItemTransformer implements TransformerInterface
                 'routeParameters' => $transformedRouteItem->getRouteParameters(),
                 'routeAttributes' => $transformedRouteItem->getRouteAttributes(),
                 'context'         => $transformedRouteItem->getRouteContext(),
-                'urlSlug'         => $transformedRouteItem->getUrlSlug(),
             ]
         ];
     }

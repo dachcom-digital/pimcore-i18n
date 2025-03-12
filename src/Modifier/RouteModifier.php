@@ -206,7 +206,7 @@ class RouteModifier
             ? $routeItem->getRouteParameters()
             : $routeItem->getRouteAttributes();
         $object = $routeItem->getEntity();
-        $urlSlug = $routeItem->getUrlSlug();
+        $urlSlug = $routeItem->getRouteContextBag()->get('urlSlug');
 
         if (!$object instanceof Concrete) {
             throw new \RuntimeException(

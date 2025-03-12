@@ -13,7 +13,6 @@
 
 namespace I18nBundle\Model\RouteItem;
 
-use Pimcore\Model\DataObject\Data\UrlSlug;
 use Pimcore\Model\Element\ElementInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
@@ -26,7 +25,6 @@ abstract class BaseRouteItem
     protected ParameterBag $routeParameters;
     protected ParameterBag $routeAttributes;
     protected ParameterBag $routeContext;
-    protected ?UrlSlug $urlSlug = null;
 
     public function __construct(string $type, bool $headless)
     {
@@ -129,15 +127,5 @@ abstract class BaseRouteItem
     public function setRouteName(?string $routeName): void
     {
         $this->routeName = $routeName;
-    }
-
-    public function getUrlSlug(): ?UrlSlug
-    {
-        return $this->urlSlug;
-    }
-
-    public function setUrlSlug(?UrlSlug $urlSlug): void
-    {
-        $this->urlSlug = $urlSlug;
     }
 }
