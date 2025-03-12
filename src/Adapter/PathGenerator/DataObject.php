@@ -48,7 +48,7 @@ class DataObject extends DynamicRoute
             'type' => RouteItemInterface::DATA_OBJECT_ROUTE,
         ]);
 
-        if ($routeItem->getEntity() === null || $routeItem->getUrlSlug() === null) {
+        if ($routeItem->getEntity() === null || $routeItem->getRouteContextBag()->get('urlSlug') === null) {
             throw new \RuntimeException(
                 'Cannot create Data Object route URL. Object and/or UrlSlug is missing!'
             );
