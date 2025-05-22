@@ -66,7 +66,7 @@ class RequestAwareModifier implements RouteItemModifierInterface
         }
 
         if (!$routeItem->getRouteParametersBag()->has('_locale')) {
-            if ($request->attributes->has('_locale')) {
+            if ($request->getLocale()) {
                 $routeItem->getRouteParametersBag()->set('_locale', $request->getLocale());
             } elseif ($request->attributes->get('_route') === 'pimcore_admin_document_page_areabrick-render-index-editmode' && $request->request->has('documentId')) {
                 $document = Document::getById($request->request->get('documentId'));
