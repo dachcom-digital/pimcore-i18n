@@ -52,7 +52,7 @@ class I18n extends Module implements DependsOnModule
         return $document;
     }
 
-    public function haveAI18nGeneratedLinkForElement(ElementInterface $element, array $routeParameters, array $context = [], string $referenceType = UrlGeneratorInterface::ABSOLUTE_URL): string
+    public function haveAI18nGeneratedLinkForElement(ElementInterface $element, array $routeParameters, array $context = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_URL): string
     {
         $parameters = RouteParameterBuilder::buildForEntity($element, $routeParameters, $context);
         $urlGenerator = \Pimcore::getContainer()->get('router');
