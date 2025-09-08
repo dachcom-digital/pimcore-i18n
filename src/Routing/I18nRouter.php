@@ -169,7 +169,7 @@ class I18nRouter implements RouterInterface, RequestMatcherInterface, WarmableIn
 
         foreach ($allowedKeys as $allowedKey) {
             $contextGetter = sprintf('get%s', ucfirst($allowedKey));
-            $contextValue = $i18nContext->getCurrentZoneSite()->getSiteRequestContext()->$contextGetter($allowedKey);
+            $contextValue = $i18nContext->getCurrentZoneSite()->getSiteRequestContext()->$contextGetter();
             if (!empty($contextValue)) {
                 $setter = sprintf('set%s', ucfirst($allowedKey));
                 $this->getContext()->$setter($contextValue);
