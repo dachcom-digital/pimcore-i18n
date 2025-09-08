@@ -1,7 +1,8 @@
 # Upgrade Notes
 
 ## 5.1.3
-- [BUGFIX] prevent applying str_contains on null value
+- [BUGFIX] Prevent applying str_contains on null value [#179](https://github.com/dachcom-digital/pimcore-i18n/pull/179)
+- [BUGFIX] Request locale check in RequestAwareModifier [#181](https://github.com/dachcom-digital/pimcore-i18n/pull/181)
 ## 5.1.2
 - [BUGFIX] fixed object preview button
 ## 5.1.1
