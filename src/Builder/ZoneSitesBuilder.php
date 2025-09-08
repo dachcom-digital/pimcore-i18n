@@ -253,7 +253,7 @@ class ZoneSitesBuilder
 
             $childCountryIso = Definitions::INTERNATIONAL_COUNTRY_NAMESPACE;
 
-            if (str_contains($childDocLocale, '_')) {
+            if (!is_null($childDocLocale) && str_contains($childDocLocale, '_')) {
                 $parts = explode('_', $childDocLocale);
                 if (!empty($parts[1])) {
                     $childCountryIso = $parts[1];
