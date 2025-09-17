@@ -66,7 +66,8 @@ class ZoneBuilder
 
         // no valid zone found. use default one.
         if ($validZone === false) {
-            throw new \Exception(sprintf('No i18n zone for domain "%s" found. Maybe there is a typo in your i18n.zones.domains mapping?', $site->getMainDomain()));
+            $zoneConfig = $this->configuration->getConfigNode();
+            return $this->createZone($zoneConfig, $site->getId(), 'dynamic_zone_'.$site->getId(), [$site->getMainDomain()]);
         }
 
         return $this->createZone($zoneConfig['config'], $zoneConfig['id'], $zoneConfig['name'], $zoneConfig['domains']);
